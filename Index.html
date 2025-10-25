@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finanzas Personales (Supabase Cloud)</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
@@ -11,7 +12,6 @@
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); }
         .category-bar-container { height: 1.5rem; border-radius: 0.5rem; overflow: hidden; display: flex; }
         .category-bar-segment { height: 100%; }
-        /* Clases de loader eliminadas ya que no se necesitan */
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -45,6 +45,7 @@
                 <p id="saldo-inicial" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
                 <p class="text-sm text-gray-400 mt-1">Saldo del mes anterior</p>
             </div>
+
             <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-green-500">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold text-gray-500">Ingresos</h2>
@@ -53,6 +54,7 @@
                 <p id="ingresos-totales" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
                 <p class="text-sm text-gray-400 mt-1">Total de entradas del mes</p>
             </div>
+
             <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-red-500">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold text-gray-500">Gastos</h2>
@@ -61,6 +63,7 @@
                 <p id="gastos-totales" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
                 <p class="text-sm text-gray-400 mt-1">Total de salidas del mes</p>
             </div>
+
             <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-blue-500">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold text-gray-500">Saldo Final</h2>
@@ -69,6 +72,7 @@
                 <p id="balance-neto" class="text-3xl font-bold mt-2 text-blue-600">$0.00</p>
                 <p class="text-sm text-gray-400 mt-1">Saldo Inicial + Ingresos - Gastos</p>
             </div>
+
             <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-emerald-500">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold text-gray-500">Ahorro Total</h2>
@@ -189,7 +193,7 @@
         import { createIcons, Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem } from 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js';
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        // TUS CREDENCIALES DE SUPABASE (PÉGALAS AQUÍ)
+        // TUS CREDENCIALES DE SUPABASE (ACTUALIZADAS CON TUS DATOS)
         const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis'; 
         const TABLA_TRANSACCIONES = 'transacciones';
@@ -238,7 +242,7 @@
             
             if (error) {
                 console.error("Error al cargar datos de Supabase:", error);
-                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. ¿RLS habilitado?</td></tr>`;
+                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. Verifica las políticas RLS.</td></tr>`;
                 todasTransacciones = [];
             } else {
                 // Mapear y asignar los datos a la variable global

@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanzas Personales (Supabase Cloud)</title>
-    
-    <link rel="icon" type="image/png" href="favicon.png"> 
-
-    </head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finanzas Personales (Supabase Cloud)</title>
@@ -202,17 +194,17 @@
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
         // TUS CREDENCIALES DE SUPABASE (ACTUALIZADAS CON TUS DATOS)
-        const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis'; 
+        const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc3OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis'; 
         const TABLA_TRANSACCIONES = 'transacciones';
         
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // --- 2. VARIABLES Y ESTADO ---
-        let todasTransacciones = []; 
-        let transaccionesMesActual = []; 
-        let mesSeleccionado = ''; 
-        let resumenMensual = {}; 
+        let todasTransacciones = []; 
+        let transaccionesMesActual = []; 
+        let mesSeleccionado = ''; 
+        let resumenMensual = {}; 
         
         const categorias = {
             ingreso: ['Salario', 'Freelance', 'Inversiones', 'Venta', 'Regalo', 'Otro Ingreso'],
@@ -243,23 +235,19 @@
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
 
         async function cargarDatosDesdeSupabase() {
-            // Se usa .select('*') para traer todas las columnas
             const { data, error } = await supabase
                 .from(TABLA_TRANSACCIONES)
-                .select('*'); 
+                .select('*'); 
             
             if (error) {
                 console.error("Error al cargar datos de Supabase:", error);
                 document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. Verifica las políticas RLS.</td></tr>`;
                 todasTransacciones = [];
             } else {
-                // Mapear y asignar los datos a la variable global
                 todasTransacciones = data.map(t => ({
                     ...t,
-                    // Parsear el monto a número flotante
-                    monto: parseFloat(t.monto), 
-                    // Obtener YYYY-MM para filtrar
-                    mesAnio: t.fecha.substring(0, 7) 
+                    monto: parseFloat(t.monto), 
+                    mesAnio: t.fecha.substring(0, 7) 
                 }));
             }
             
@@ -284,8 +272,7 @@
                 formMessageEl.classList.remove('hidden', 'text-green-500');
                 formMessageEl.classList.add('text-red-500');
             } else {
-                // Recargar todos los datos para actualizar la UI
-                await cargarDatosDesdeSupabase(); 
+                await cargarDatosDesdeSupabase(); 
 
                 formMessageEl.textContent = "¡Transacción guardada con éxito en la nube!";
                 formMessageEl.classList.remove('hidden', 'text-red-500');
@@ -301,12 +288,11 @@
             const { error } = await supabase
                 .from(TABLA_TRANSACCIONES)
                 .delete()
-                .eq('id', id); // Condición para eliminar el registro con ese 'id'
+                .eq('id', id); 
 
             if (error) {
                 console.error("Error al eliminar en Supabase:", error);
             } else {
-                // Recarga los datos para actualizar la interfaz
                 await cargarDatosDesdeSupabase();
             }
         }
@@ -314,15 +300,12 @@
         // --- 5. LÓGICA DE FILTRADO Y CÁLCULO (Mantenida) ---
 
         function filtrarYRenderizar() {
-             // 1. Filtrar las transacciones del mes seleccionado
             transaccionesMesActual = todasTransacciones
                 .filter(t => t.mesAnio === mesSeleccionado)
                 .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
                 
-            // 2. Calcular el resumen y el saldo inicial
             resumenMensual = calcularResumenMensual();
 
-            // 3. Renderizar la UI
             const { ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado } = resumenMensual;
             renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado);
             renderizarListaTransacciones();
@@ -352,7 +335,7 @@
                     if (t.tipo === 'ingreso') {
                         ingresosMes += monto;
                     } else if (t.tipo === 'gasto' || t.tipo === 'ahorro') {
-                        gastosMes += monto; 
+                        gastosMes += monto; 
 
                         if (t.tipo === 'gasto') {
                             gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + monto;
@@ -570,4 +553,3 @@
     </script>
 </body>
 </html>
-

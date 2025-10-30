@@ -579,7 +579,12 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
-        // (guardarTransaccionesLocal ahora está en la Sección 7)
+        function guardarTransaccionesLocal() {
+             // Guardamos las configuraciones locales
+             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
+             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
+        }
         
         async function cargarDatosDesdeSupabase() {
             // Selecciona 'cuenta' que es la columna requerida
@@ -923,31 +928,29 @@
         // --- 7. MANEJO DE EVENTOS ---
 
         function actualizarCategoriasYCuentas() {
-            // Actualiza los selectores de categoría y cuenta en el formulario principal
             actualizarCategorias();
             
-            // Actualiza los selectores de cuenta en el formulario de Intercambio
-            cuentaSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
-            cuentaOrigenSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
-            cuentaDestinoSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
+            const opcionesCuentas = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
+            cuentaSelect.innerHTML = opcionesCuentas;
+            cuentaOrigenSelect.innerHTML = opcionesCuentas;
+            cuentaDestinoSelect.innerHTML = opcionesCuentas;
         }
 
         function actualizarCategorias() {
             const tipo = tipoSelect.value;
             const cats = categorias[tipo] || [];
             categoriaSelect.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-            calcularSugerenciaAhorro(); // Recalcula la sugerencia al cambiar el tipo
+            calcularSugerenciaAhorro(); 
         }
         
         // --- FUNCIÓN CRUD LOCALES (para configuración) ---
-
-        // (NOTA: Esta función se define UNA SOLA VEZ aquí)
+        // (Movida aquí para asegurar que está definida antes de ser usada)
         function guardarTransaccionesLocal() {
              localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
              localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
              localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
         }
-
+        
         function guardarCuentas() {
             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
         }
@@ -982,7 +985,7 @@
                 monto: parseFloat(document.getElementById('monto').value),
                 descripcion: document.getElementById('descripcion').value.trim(),
                 fecha: fechaTransaccion,
-                cuenta: cuentaSelect.value, // CAMPO AÑADIDO PARA SUBIR A SUPABASE
+                cuenta: cuentaSelect.value, 
             };
 
             if (transaccion.descripcion && transaccion.monto > 0 && transaccion.cuenta) {
@@ -1008,7 +1011,6 @@
             }
         });
         
-        // Evento de Intercambio (MODIFICADO)
         formIntercambio.addEventListener('submit', (e) => {
             e.preventDefault();
             
@@ -1030,11 +1032,10 @@
             }
         });
 
-        // --- LISTENERS DE ACCIONES DE LA TABLA Y MODALES ---
 
         listaTransaccionesEl.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-eliminar');
-            const editButton = e.target.closest('.btn-editar'); 
+            const editButton = e.target.closest('.btn-editar'); // CORREGIDO: Listener de Edición
 
             if (deleteButton) {
                 const id = deleteButton.dataset.id;
@@ -1393,28 +1394,9 @@
             });
         }
         
-        // --- Eventos de Administración de Datos (Asegurados) ---
-        
-        // 1. Botones de AGREGAR (Cuentas/Categorías)
-        btnAgregarGeneral.forEach(button => {
-            button.addEventListener('click', () => {
-                const tipo = button.dataset.tipo;
-                const input = categoriasInputs[tipo];
-                agregarGeneral(tipo, input.value);
-            });
-        });
-
-        // 2. Botones de ELIMINAR (X) y EDICIÓN de cuentas/categorías
+        // --- Evento de Edición de Nombre de Cuenta de Ahorros ---
         document.getElementById('seccion-categorias').addEventListener('click', (e) => {
-            const deleteButton = e.target.closest('.btn-eliminar-general');
             const editBtn = e.target.closest('.btn-editar-nombre-ahorros');
-
-            if (deleteButton) {
-                const nombre = deleteButton.dataset.nombre;
-                const tipo = deleteButton.dataset.tipo;
-                eliminarGeneral(tipo, nombre);
-            }
-            
             if (editBtn) {
                 const nombreAnterior = editBtn.dataset.nombre;
                 const nuevoNombre = prompt(`Introduce el nuevo nombre para la cuenta de ahorros:`, nombreAnterior);
@@ -1438,12 +1420,33 @@
                     // 3. Guardar el nuevo nombre visible y el array de cuentas
                     guardarNombreCuentaAhorros(nuevoNombreLimpio); 
                     guardarCuentas();
-                    guardarTransaccionesLocal(); // Guarda todo en localStorage
+                    guardarTransaccionesLocal();
                     
                     // 4. Renderizar y recalcular
                     renderizarCuentas(); 
                     filtrarYRenderizar(); 
                 }
+            }
+        });
+        
+        // --- Eventos de Administración de Datos (Asegurados) ---
+
+        // 1. Botones de AGREGAR (Cuentas/Categorías)
+        btnAgregarGeneral.forEach(button => {
+            button.addEventListener('click', () => {
+                const tipo = button.dataset.tipo;
+                const input = categoriasInputs[tipo];
+                agregarGeneral(tipo, input.value);
+            });
+        });
+
+        // 2. Botones de ELIMINAR (X) y EDICIÓN de cuentas/categorías
+        document.getElementById('seccion-categorias').addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.btn-eliminar-general');
+            if (deleteButton) {
+                const nombre = deleteButton.dataset.nombre;
+                const tipo = deleteButton.dataset.tipo;
+                eliminarGeneral(tipo, nombre);
             }
         });
 

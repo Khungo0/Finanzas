@@ -973,20 +973,20 @@
         
         // --- FUNCIÓN CRUD LOCALES (para configuración) ---
         
-        function guardarConfiguracionLocal() {
-             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
-             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
-        }
+        // La función duplicada "guardarConfiguracionLocal" debe eliminarse de aquí.
+// Esta sección debe empezar con "guardarCuentas".
 
-        function guardarCuentas() {
-            localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-        }
 
-        function guardarNombreCuentaAhorros(nuevoNombre) {
-            localStorage.setItem('finanzasNombreAhorrosActual', nuevoNombre);
-            nombreCuentaAhorrosActual = nuevoNombre;
-        }
+// Esta función SÍ debe estar
+function guardarCuentas() {
+    localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+}
+
+// Esta función SÍ debe estar
+function guardarNombreCuentaAhorros(nuevoNombre) {
+    localStorage.setItem('finanzasNombreAhorrosActual', nuevoNombre);
+    nombreCuentaAhorrosActual = nuevoNombre;
+}
 
         // --- EVENT HANDLERS ---
         
@@ -1496,3 +1496,4 @@
     </script>
 </body>
 </html>
+

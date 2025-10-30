@@ -1126,6 +1126,289 @@
             idAeliminar = null;
         });
         
+        // Funciones para la pestaña Administrar Datos (DRAG & DROP y Edición)
+
+        function guardarCuentas() {
+            localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+        }
+
+        function guardarNombreCuentaAhorros(nuevoNombre) {
+            localStorage.setItem('finanzasNombreAhorrosActual', nuevoNombre);
+            nombreCuentaAhorrosActual = nuevoNombre;
+        }
+
+        function agregarGeneral(tipo, nombre) {
+            nombre = nombre.trim();
+            if (!nombre) return false;
+            
+            let array;
+            let guardarFn;
+
+            if (tipo === 'cuenta') {
+                array = cuentas;
+                guardarFn = guardarCuentas;
+            } else {
+                array = categorias[tipo];
+                guardarFn = guardarTransaccionesLocal; // Guarda las categorías
+            }
+            
+            if (tipo === 'cuenta' && (nombre === NOMBRE_CUENTA_AHORROS_CLAVE || nombre === nombreCuentaAhorrosActual)) {
+                 alert("No puedes agregar otra cuenta con ese nombre reservado para ahorros.");
+                 return false;
+            }
+
+            if (!array.includes(nombre)) {
+                
+                const indexAhorros = array.indexOf(nombreCuentaAhorrosActual);
+                if (indexAhorros !== -1) {
+                    array.splice(indexAhorros, 1);
+                }
+                
+                array.push(nombre); 
+                
+                if (indexAhorros !== -1) {
+                    array.push(nombreCuentaAhorrosActual);
+                }
+                
+                guardarFn();
+                if (tipo === 'cuenta') renderizarCuentas();
+                else renderizarCategorias();
+                categoriasInputs[tipo].value = ''; 
+                actualizarCategoriasYCuentas(); 
+                return true;
+            } else {
+                alert(`${tipo === 'cuenta' ? 'La cuenta' : 'La categoría'} "${nombre}" ya existe.`);
+            }
+            return false;
+        }
+
+        function eliminarGeneral(tipo, nombre) {
+            let array;
+            let guardarFn;
+            let transaccionKey = tipo === 'cuenta' ? 'cuenta' : 'categoria';
+
+            if (tipo === 'cuenta') {
+                if (nombre === nombreCuentaAhorrosActual) {
+                    alert("La cuenta de ahorro principal no puede ser eliminada.");
+                    return false;
+                }
+                
+                array = cuentas;
+                guardarFn = guardarCuentas;
+            } else {
+                array = categorias[tipo];
+                guardarFn = guardarTransaccionesLocal;
+            }
+
+            const index = array.indexOf(nombre);
+            if (index > -1) {
+                const transaccionesActivas = todasTransacciones.filter(t => t[transaccionKey] === nombre);
+                
+                if (transaccionesActivas.length > 0) {
+                    alert(`No se puede eliminar porque tiene ${transaccionesActivas.length} transacciones registradas. Elimina las transacciones primero.`);
+                    return false;
+                }
+                
+                array.splice(index, 1);
+                guardarFn();
+                if (tipo === 'cuenta') renderizarCuentas();
+                else renderizarCategorias();
+                actualizarCategoriasYCuentas(); 
+                return true;
+            }
+            return false;
+        }
+
+        function renderizarCuentas() { 
+            const listaEl = categoriasListas['cuenta'];
+            const countEl = categoriasCounts['cuenta'];
+            listaEl.innerHTML = '';
+            
+            cuentas.forEach((cuenta, index) => {
+                const esAhorros = cuenta === nombreCuentaAhorrosActual;
+                const listItem = document.createElement('li');
+                
+                listItem.dataset.nombre = cuenta;
+                listItem.dataset.index = index; 
+
+                listItem.className = `flex justify-between items-center p-3 rounded-lg border ${esAhorros ? 'bg-blue-100 border-blue-300 font-semibold' : 'bg-gray-50 draggable-item'}`;
+                
+                listItem.innerHTML = `
+                    <span class="text-gray-800" data-cuenta="${cuenta}">${cuenta}</span>
+                    <div>
+                        ${esAhorros ? 
+                            `<button data-nombre="${cuenta}" class="btn-editar-nombre-ahorros text-blue-600 hover:text-blue-800 transition" title="Editar Nombre de Cuenta">
+                                <i data-lucide="pencil" class="w-5 h-5 inline-block"></i>
+                            </button>`
+                            : 
+                            `<button data-tipo="cuenta" data-nombre="${cuenta}" class="btn-eliminar-general text-red-400 hover:text-red-600 transition" title="Eliminar Cuenta">
+                                <i data-lucide="x-circle" class="w-5 h-5 inline-block"></i>
+                            </button>`
+                        }
+                    </div>
+                `;
+                listaEl.appendChild(listItem);
+            });
+
+            countEl.textContent = `(${cuentas.length} cuentas)`;
+            createIcons({ icons: { XCircle, Pencil, Edit } });
+            
+            addDragDropListeners(listaEl);
+        }
+        
+        function renderizarCategorias() {
+            Object.keys(categorias).forEach(tipo => {
+                const listaEl = categoriasListas[tipo];
+                const countEl = categoriasCounts[tipo];
+                listaEl.innerHTML = '';
+                categorias[tipo].forEach(categoria => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-lg border';
+                    listItem.innerHTML = `
+                        <span class="text-gray-800">${categoria}</span>
+                        <button data-tipo="${tipo}" data-nombre="${categoria}" class="btn-eliminar-general text-red-400 hover:text-red-600 transition" title="Eliminar Categoría">
+                            <i data-lucide="x-circle" class="w-5 h-5 inline-block"></i>
+                        </button>
+                    `;
+                    listaEl.appendChild(listItem);
+                });
+                
+                countEl.textContent = `(${categorias[tipo].length} categorías)`;
+            });
+            createIcons({ icons: { XCircle } });
+        }
+
+
+        // --- DRAG & DROP LOGIC ---
+        let dragSrcEl = null;
+
+        function handleDragStart(e) {
+            if (e.target.closest('li').dataset.nombre === nombreCuentaAhorrosActual) {
+                e.preventDefault(); 
+                return;
+            } 
+            dragSrcEl = e.target.closest('li');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
+            dragSrcEl.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault(); 
+            }
+            const targetItem = e.target.closest('li');
+            if (targetItem && targetItem.dataset.nombre !== nombreCuentaAhorrosActual) {
+                 e.dataTransfer.dropEffect = 'move';
+            }
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            const targetItem = e.target.closest('li');
+            if (targetItem && targetItem.dataset.nombre !== nombreCuentaAhorrosActual) {
+                 targetItem.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            const targetItem = e.target.closest('li');
+            if (targetItem) {
+                targetItem.classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.stopPropagation();
+            
+            const targetEl = e.target.closest('li');
+
+            if (dragSrcEl !== targetEl && targetEl && dragSrcEl) {
+                if (targetEl.dataset.nombre !== nombreCuentaAhorrosActual) {
+                    targetEl.parentNode.insertBefore(dragSrcEl, targetEl.nextSibling);
+                    updateAccountOrder();
+                } else if (targetEl.dataset.nombre === nombreCuentaAhorrosActual) {
+                    targetEl.parentNode.insertBefore(dragSrcEl, targetEl);
+                    updateAccountOrder();
+                }
+            }
+            
+            if (targetEl) {
+                targetEl.classList.remove('drag-over');
+            }
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('#lista-cuenta li').forEach(item => item.classList.remove('drag-over'));
+        }
+        
+        function updateAccountOrder() {
+            const listaEl = document.getElementById('lista-cuenta');
+            const newOrder = [];
+            
+            listaEl.querySelectorAll('li').forEach(item => {
+                 const nombre = item.dataset.nombre;
+                 if (nombre) {
+                     newOrder.push(nombre);
+                 }
+            });
+            
+            cuentas = newOrder;
+            guardarCuentas();
+        }
+
+        function addDragDropListeners(list) {
+            list.querySelectorAll('li').forEach(item => {
+                if (item.dataset.nombre !== nombreCuentaAhorrosActual) {
+                    item.setAttribute('draggable', 'true');
+                    item.addEventListener('dragstart', handleDragStart, false);
+                    item.addEventListener('dragenter', handleDragEnter, false);
+                    item.addEventListener('dragover', handleDragOver, false);
+                    item.addEventListener('dragleave', handleDragLeave, false);
+                    item.addEventListener('drop', handleDrop, false);
+                    item.addEventListener('dragend', handleDragEnd, false);
+                }
+            });
+        }
+        
+        // --- Evento de Edición de Nombre de Cuenta de Ahorros ---
+        document.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.btn-editar-nombre-ahorros');
+            if (editBtn) {
+                const nombreAnterior = editBtn.dataset.nombre;
+                const nuevoNombre = prompt(`Introduce el nuevo nombre para la cuenta de ahorros:`, nombreAnterior);
+                
+                if (nuevoNombre && nuevoNombre.trim() !== '' && nuevoNombre.trim() !== nombreAnterior) {
+                    const nuevoNombreLimpio = nuevoNombre.trim();
+
+                    // 1. Reemplazar el nombre anterior por el nuevo en el array 'cuentas'
+                    const index = cuentas.indexOf(nombreAnterior);
+                    if (index !== -1) {
+                        cuentas[index] = nuevoNombreLimpio;
+                    }
+                    
+                    // 2. Actualizar todas las transacciones (histórico)
+                    todasTransacciones.forEach(t => {
+                        if (t.cuenta === nombreAnterior) {
+                            t.cuenta = nuevoNombreLimpio;
+                        }
+                    });
+                    
+                    // 3. Guardar el nuevo nombre visible y el array de cuentas
+                    guardarNombreCuentaAhorros(nuevoNombreLimpio); 
+                    guardarCuentas();
+                    guardarTransaccionesLocal();
+                    
+                    // 4. Renderizar y recalcular
+                    renderizarCuentas(); 
+                    filtrarYRenderizar(); 
+                }
+            }
+        });
+
+
         // --- 8. INICIO DE LA APLICACIÓN ---
         
         inicializarPestanas(); 

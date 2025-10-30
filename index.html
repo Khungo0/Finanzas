@@ -918,7 +918,12 @@
                 `;
             }).join('');
             
-            createIcons({ icons: { Trash2, Pencil } }); 
+            // Renderizado de iconos separado
+            try {
+                createIcons({ icons: { Trash2, Pencil } }); 
+            } catch (e) {
+                console.warn("Error al renderizar iconos de la tabla:", e);
+            }
         }
 
         // --- 7. MANEJO DE EVENTOS ---
@@ -1034,9 +1039,16 @@
 
         listaTransaccionesEl.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-eliminar');
+            const editButton = e.target.closest('.btn-editar'); // AÑADIDO
+
             if (deleteButton) {
                 const id = deleteButton.dataset.id;
                 mostrarModalConfirmacion(id);
+            }
+            
+            if (editButton) { // AÑADIDO
+                const id = editButton.dataset.id;
+                mostrarModalEdicion(id);
             }
         });
 
@@ -1062,7 +1074,97 @@
             idAeliminar = null;
         });
         
-        // Funciones para la pestaña Administrar Datos (DRAG & DROP y Edición)
+        // --- Eventos de Edición (Modal) ---
+        
+        function actualizarOpcionesEdicion(currentTipo, currentCategoria, currentCuenta) {
+            
+            editCuentaSelect.innerHTML = cuentas.map(c => 
+                `<option value="${c}" ${c === currentCuenta ? 'selected' : ''}>${c}</option>`
+            ).join('');
+
+            const llenarCategorias = (tipo) => {
+                const cats = categorias[tipo] || [];
+                editCategoriaSelect.innerHTML = cats.map(cat => 
+                    `<option value="${cat}" ${cat === currentCategoria ? 'selected' : ''}>${cat}</option>`
+                ).join('');
+            };
+
+            editTipoSelect.value = currentTipo;
+            llenarCategorias(currentTipo);
+
+            editTipoSelect.onchange = null; 
+            editTipoSelect.onchange = () => {
+                const nuevoTipo = editTipoSelect.value;
+                llenarCategorias(nuevoTipo);
+            };
+        }
+        
+        formEdicion.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const transaccionEditada = {
+                id: editIdInput.value,
+                tipo: editTipoSelect.value,
+                cuenta: editCuentaSelect.value,
+                categoria: editCategoriaSelect.value,
+                monto: parseFloat(editMontoInput.value),
+                descripcion: editDescripcionInput.value.trim(),
+                fecha: editFechaInput.value,
+            };
+
+            if (transaccionEditada.descripcion && transaccionEditada.monto > 0 && transaccionEditada.cuenta) {
+                // Aquí llamamos a una función de Supabase para ACTUALIZAR
+                actualizarTransaccionSupabase(transaccionEditada);
+            } else {
+                alert("Por favor, complete todos los campos correctamente en el formulario de edición.");
+            }
+        });
+        
+        async function actualizarTransaccionSupabase(transaccion) {
+             const { error } = await supabase
+                .from(TABLA_TRANSACCIONES)
+                .update({ 
+                    tipo: transaccion.tipo,
+                    categoria: transaccion.categoria,
+                    monto: transaccion.monto,
+                    descripcion: transaccion.descripcion,
+                    fecha: transaccion.fecha,
+                    cuenta: transaccion.cuenta
+                 })
+                .eq('id', transaccion.id);
+
+            if (error) {
+                console.error("Error al actualizar en Supabase:", error);
+                alert("Error al actualizar: " + error.message);
+            } else {
+                modalContainerEdicion.classList.add('hidden');
+                await cargarDatosDesdeSupabase();
+            }
+        }
+
+
+        modalCancelEdicion.addEventListener('click', () => {
+            modalContainerEdicion.classList.remove('flex');
+            modalContainerEdicion.classList.add('hidden');
+            editTipoSelect.onchange = null; 
+        });
+        
+        function mostrarModalEdicion(id) {
+            const transaccion = todasTransacciones.find(t => t.id === parseInt(id));
+            if (!transaccion) return;
+
+            editIdInput.value = transaccion.id;
+            editMontoInput.value = transaccion.monto.toFixed(2);
+            editDescripcionInput.value = transaccion.descripcion;
+            editFechaInput.value = transaccion.fecha;
+            
+            actualizarOpcionesEdicion(transaccion.tipo, transaccion.categoria, transaccion.cuenta);
+            
+            modalContainerEdicion.classList.remove('hidden');
+            modalContainerEdicion.classList.add('flex');
+        }
+
+        // --- Eventos de Administrar Datos (CORREGIDOS) ---
 
         function agregarGeneral(tipo, nombre) {
             nombre = nombre.trim();
@@ -1178,7 +1280,7 @@
             });
 
             countEl.textContent = `(${cuentas.length} cuentas)`;
-            createIcons({ icons: { XCircle, Pencil, Edit } });
+            try { createIcons({ icons: { XCircle, Pencil, Edit } }); } catch(e) {}
             
             addDragDropListeners(listaEl);
         }
@@ -1202,7 +1304,7 @@
                 
                 countEl.textContent = `(${categorias[tipo].length} categorías)`;
             });
-            createIcons({ icons: { XCircle } });
+            try { createIcons({ icons: { XCircle } }); } catch(e) {}
         }
 
 
@@ -1301,7 +1403,7 @@
         }
         
         // --- Evento de Edición de Nombre de Cuenta de Ahorros ---
-        document.addEventListener('click', (e) => {
+        document.getElementById('seccion-categorias').addEventListener('click', (e) => {
             const editBtn = e.target.closest('.btn-editar-nombre-ahorros');
             if (editBtn) {
                 const nombreAnterior = editBtn.dataset.nombre;
@@ -1335,28 +1437,6 @@
             }
         });
 
-        // --- MANEJADORES DE EVENTOS DE ADMINISTRACIÓN DE DATOS ---
-
-        // 1. Botones de AGREGAR (Cuentas/Categorías)
-        btnAgregarGeneral.forEach(button => {
-            button.addEventListener('click', () => {
-                const tipo = button.dataset.tipo;
-                const input = categoriasInputs[tipo];
-                agregarGeneral(tipo, input.value);
-            });
-        });
-
-        // 2. Botones de ELIMINAR (X) y EDICIÓN de cuentas/categorías
-        document.getElementById('seccion-categorias').addEventListener('click', (e) => {
-            const deleteButton = e.target.closest('.btn-eliminar-general');
-            
-            if (deleteButton) {
-                const nombre = deleteButton.dataset.nombre;
-                const tipo = deleteButton.dataset.tipo;
-                eliminarGeneral(tipo, nombre);
-            }
-        });
-
 
         // --- 8. INICIO DE LA APLICACIÓN ---
         
@@ -1367,7 +1447,11 @@
         // Carga los datos de Supabase y renderiza el resumen
         cargarDatosDesdeSupabase(); 
 
-        createIcons({ icons: { Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, ListChecks, Wallet, Pencil, Edit, Repeat } });
+        try {
+            createIcons({ icons: { Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, ListChecks, Wallet, Pencil, Edit, Repeat } });
+        } catch(e) {
+             console.warn("Error al cargar iconos principales. La aplicación funcionará, pero los iconos pueden faltar.", e);
+        }
     </script>
 </body>
 </html>

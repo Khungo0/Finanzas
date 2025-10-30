@@ -579,6 +579,7 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
+        // (guardarTransaccionesLocal ahora se llama guardarConfiguracionLocal)
         function guardarConfiguracionLocal() {
              localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
              localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
@@ -947,7 +948,7 @@
         // --- FUNCIÓN CRUD LOCALES (para configuración) ---
 
         // (NOTA: Esta función se define UNA SOLA VEZ aquí)
-        function guardarTransaccionesLocal() {
+        function guardarConfiguracionLocal() {
              localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
              localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
              localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
@@ -1174,7 +1175,7 @@
                 guardarFn = guardarCuentas;
             } else {
                 array = categorias[tipo];
-                guardarFn = guardarTransaccionesLocal;
+                guardarFn = guardarConfiguracionLocal;
             }
             
             if (tipo === 'cuenta' && (nombre === NOMBRE_CUENTA_AHORROS_CLAVE || nombre === nombreCuentaAhorrosActual)) {
@@ -1222,7 +1223,7 @@
                 guardarFn = guardarCuentas;
             } else {
                 array = categorias[tipo];
-                guardarFn = guardarTransaccionesLocal;
+                guardarFn = guardarConfiguracionLocal;
             }
 
             const index = array.indexOf(nombre);
@@ -1443,7 +1444,7 @@
                     // 3. Guardar el nuevo nombre visible y el array de cuentas
                     guardarNombreCuentaAhorros(nuevoNombreLimpio); 
                     guardarCuentas();
-                    guardarTransaccionesLocal();
+                    guardarConfiguracionLocal(); // Guarda todo en localStorage
                     
                     // 4. Renderizar y recalcular
                     renderizarCuentas(); 

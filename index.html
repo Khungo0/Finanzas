@@ -376,8 +376,35 @@
 
     <script type="module">
         // --- 1. CONFIGURACIÓN DE SUPABASE Y LIBRERÍAS ---
-        import { createIcons, Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, ListChecks, XCircle, Wallet, Pencil, Edit, Repeat } from 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js';
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        let createIcons; // Declarar aquí
+        try {
+            const lucide = await import('https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js');
+            // Asignar solo las funciones necesarias
+            createIcons = lucide.createIcons;
+            // Definir un objeto global de iconos para que createIcons() funcione
+            window.lucideIcons = {
+                Home: lucide.Home,
+                DollarSign: lucide.DollarSign,
+                ArrowUpCircle: lucide.ArrowUpCircle,
+                ArrowDownCircle: lucide.ArrowDownCircle,
+                PlusCircle: lucide.PlusCircle,
+                Trash2: lucide.Trash2,
+                Gem: lucide.Gem,
+                ListChecks: lucide.ListChecks,
+                XCircle: lucide.XCircle,
+                Wallet: lucide.Wallet,
+                Pencil: lucide.Pencil,
+                Edit: lucide.Edit,
+                Repeat: lucide.Repeat
+            };
+        } catch (e) {
+            console.error("Error crítico al cargar Lucide icons:", e);
+            // Fallback: si Lucide falla, define createIcons como una función vacía
+            // para que el resto del script no falle.
+            createIcons = () => {}; 
+        }
+
+        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
 
         // TUS CREDENCIALES DE SUPABASE (INTEGRADAS)
         const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
@@ -579,7 +606,11 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
-        // (guardarConfiguracionLocal se define más abajo, antes de ser usada)
+        function guardarConfiguracionLocal() {
+             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
+             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
+        }
         
         async function cargarDatosDesdeSupabase() {
             // Selecciona 'cuenta' que es la columna requerida
@@ -914,7 +945,7 @@
             }).join('');
             
             try {
-                createIcons({ icons: { Trash2, Pencil } }); 
+                createIcons({ icons: window.lucideIcons }); 
             } catch (e) {
                  console.warn("Error al renderizar iconos de la tabla:", e.message);
             }
@@ -941,8 +972,7 @@
         }
         
         // --- FUNCIÓN CRUD LOCALES (para configuración) ---
-
-        // (NOTA: Esta función se define UNA SOLA VEZ aquí)
+        
         function guardarConfiguracionLocal() {
              localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
              localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
@@ -1272,7 +1302,7 @@
             });
 
             countEl.textContent = `(${cuentas.length} cuentas)`;
-            try { createIcons({ icons: { XCircle, Pencil, Edit } }); } catch(e) {}
+            try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
             
             addDragDropListeners(listaEl);
         }
@@ -1296,7 +1326,7 @@
                 
                 countEl.textContent = `(${categorias[tipo].length} categorías)`;
             });
-            try { createIcons({ icons: { XCircle } }); } catch(e) {}
+            try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
 
 
@@ -1459,7 +1489,7 @@
         cargarDatosDesdeSupabase(); 
 
         try {
-            createIcons({ icons: { Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, ListChecks, Wallet, Pencil, Edit, Repeat } });
+            createIcons({ icons: window.lucideIcons });
         } catch(e) {
              console.warn("Error al cargar iconos principales. La aplicación funcionará, pero los iconos pueden faltar.", e.message);
         }

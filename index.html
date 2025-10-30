@@ -942,6 +942,13 @@
         
         // --- FUNCIÓN CRUD LOCALES (para configuración) ---
 
+        function guardarTransaccionesLocal() {
+             // Guardamos las configuraciones locales
+             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
+             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
+        }
+
         function guardarCuentas() {
             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
         }
@@ -1056,15 +1063,6 @@
         });
         
         // Funciones para la pestaña Administrar Datos (DRAG & DROP y Edición)
-
-        function guardarCuentas() {
-            localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-        }
-
-        function guardarNombreCuentaAhorros(nuevoNombre) {
-            localStorage.setItem('finanzasNombreAhorrosActual', nuevoNombre);
-            nombreCuentaAhorrosActual = nuevoNombre;
-        }
 
         function agregarGeneral(tipo, nombre) {
             nombre = nombre.trim();
@@ -1286,8 +1284,6 @@
             
             cuentas = newOrder;
             guardarCuentas();
-            
-            actualizarCategoriasYCuentas(); 
         }
 
         function addDragDropListeners(list) {

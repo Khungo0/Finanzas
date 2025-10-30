@@ -721,77 +721,6 @@
             renderizarResumenCuentas(); 
         }
 
-        // --- LÓGICA DE CÁLCULO ---
-
-        function calcularSaldosCuentas() {
-            const saldos = {};
-            cuentas.forEach(c => saldos[c] = 0);
-            
-            const nombreCuentaAhorros = nombreCuentaAhorrosActual; 
-            
-            todasTransacciones.forEach(t => {
-                if (t.cuenta && saldos.hasOwnProperty(t.cuenta)) {
-                    
-                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') { 
-                        saldos[t.cuenta] += t.monto;
-                    } 
-                    
-                    else if (t.tipo === 'gasto' || t.tipo === 'intercambio_out') { 
-                        saldos[t.cuenta] -= t.monto;
-                    } 
-                    
-                    else if (t.tipo === 'ahorro') {
-                        
-                        if (t.cuenta === nombreCuentaAhorros) {
-                            saldos[t.cuenta] += t.monto;
-                        } else {
-                            saldos[t.cuenta] -= t.monto;
-                        }
-                    }
-                }
-            });
-            return saldos;
-        }
-
-        function calcularResumenMensual() {
-            let ingresosMes = 0;
-            let gastosMes = 0;
-            let gastosPorCategoria = {};
-            let ahorroAcumulado = 0;
-            let saldoInicial = 0;
-            
-            const mesActualSeleccionado = mesSeleccionado;
-
-            todasTransacciones.forEach(t => {
-                const monto = t.monto;
-
-                if (t.tipo === 'ahorro') {
-                    ahorroAcumulado += monto;
-                }
-
-                if (t.mesAnio < mesActualSeleccionado) {
-                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
-                        saldoInicial += monto;
-                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
-                        saldoInicial -= monto;
-                    }
-                } else if (t.mesAnio === mesActualSeleccionado) {
-                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
-                        ingresosMes += monto;
-                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
-                        gastosMes += monto; 
-
-                        if (t.tipo === 'gasto') {
-                            gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + monto;
-                        }
-                    }
-                }
-            });
-            const balanceNeto = saldoInicial + ingresosMes - gastosMes;
-
-            return { ingresosTotales: ingresosMes, gastosTotales: gastosMes, balanceNeto: balanceNeto, saldoInicial: saldoInicial, gastosPorCategoria: gastosPorCategoria, ahorroAcumulado: ahorroAcumulado };
-        }
-
 
         // --- 6. LÓGICA DE RENDERIZACIÓN DE LA UI ---
         
@@ -1149,7 +1078,7 @@
                 guardarFn = guardarCuentas;
             } else {
                 array = categorias[tipo];
-                guardarFn = guardarTransaccionesLocal; // Guarda las categorías
+                guardarFn = guardarTransaccionesLocal;
             }
             
             if (tipo === 'cuenta' && (nombre === NOMBRE_CUENTA_AHORROS_CLAVE || nombre === nombreCuentaAhorrosActual)) {
@@ -1357,6 +1286,8 @@
             
             cuentas = newOrder;
             guardarCuentas();
+            
+            actualizarCategoriasYCuentas(); 
         }
 
         function addDragDropListeners(list) {

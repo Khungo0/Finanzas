@@ -579,6 +579,13 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
+        function guardarTransaccionesLocal() {
+             // Guardamos las configuraciones locales
+             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
+             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
+        }
+        
         async function cargarDatosDesdeSupabase() {
             // Selecciona 'cuenta' que es la columna requerida
             const { data, error } = await supabase
@@ -1325,6 +1332,28 @@
                     renderizarCuentas(); 
                     filtrarYRenderizar(); 
                 }
+            }
+        });
+
+        // --- MANEJADORES DE EVENTOS DE ADMINISTRACIÓN DE DATOS ---
+
+        // 1. Botones de AGREGAR (Cuentas/Categorías)
+        btnAgregarGeneral.forEach(button => {
+            button.addEventListener('click', () => {
+                const tipo = button.dataset.tipo;
+                const input = categoriasInputs[tipo];
+                agregarGeneral(tipo, input.value);
+            });
+        });
+
+        // 2. Botones de ELIMINAR (X) y EDICIÓN de cuentas/categorías
+        document.getElementById('seccion-categorias').addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.btn-eliminar-general');
+            
+            if (deleteButton) {
+                const nombre = deleteButton.dataset.nombre;
+                const tipo = deleteButton.dataset.tipo;
+                eliminarGeneral(tipo, nombre);
             }
         });
 

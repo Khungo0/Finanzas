@@ -579,12 +579,7 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
-        function guardarTransaccionesLocal() {
-             // Guardamos las configuraciones locales
-             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
-             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
-        }
+        // (guardarTransaccionesLocal ahora está en la Sección 7)
         
         async function cargarDatosDesdeSupabase() {
             // Selecciona 'cuenta' que es la columna requerida
@@ -918,11 +913,10 @@
                 `;
             }).join('');
             
-            // Renderizado de iconos separado
             try {
                 createIcons({ icons: { Trash2, Pencil } }); 
             } catch (e) {
-                console.warn("Error al renderizar iconos de la tabla:", e);
+                 console.warn("Error al renderizar iconos de la tabla:", e.message);
             }
         }
 
@@ -947,8 +941,8 @@
         
         // --- FUNCIÓN CRUD LOCALES (para configuración) ---
 
+        // (NOTA: Esta función se define UNA SOLA VEZ aquí)
         function guardarTransaccionesLocal() {
-             // Guardamos las configuraciones locales
              localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
              localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
              localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
@@ -1036,17 +1030,17 @@
             }
         });
 
+        // --- LISTENERS DE ACCIONES DE LA TABLA Y MODALES ---
 
         listaTransaccionesEl.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-eliminar');
-            const editButton = e.target.closest('.btn-editar'); // AÑADIDO
+            const editButton = e.target.closest('.btn-editar'); 
 
             if (deleteButton) {
                 const id = deleteButton.dataset.id;
                 mostrarModalConfirmacion(id);
             }
-            
-            if (editButton) { // AÑADIDO
+            if (editButton) { 
                 const id = editButton.dataset.id;
                 mostrarModalEdicion(id);
             }
@@ -1073,8 +1067,6 @@
             modalContainerConfirm.classList.add('hidden');
             idAeliminar = null;
         });
-        
-        // --- Eventos de Edición (Modal) ---
         
         function actualizarOpcionesEdicion(currentTipo, currentCategoria, currentCuenta) {
             
@@ -1113,7 +1105,6 @@
             };
 
             if (transaccionEditada.descripcion && transaccionEditada.monto > 0 && transaccionEditada.cuenta) {
-                // Aquí llamamos a una función de Supabase para ACTUALIZAR
                 actualizarTransaccionSupabase(transaccionEditada);
             } else {
                 alert("Por favor, complete todos los campos correctamente en el formulario de edición.");
@@ -1164,7 +1155,7 @@
             modalContainerEdicion.classList.add('flex');
         }
 
-        // --- Eventos de Administrar Datos (CORREGIDOS) ---
+        // --- Funciones para la pestaña Administrar Datos (DRAG & DROP y Edición) ---
 
         function agregarGeneral(tipo, nombre) {
             nombre = nombre.trim();
@@ -1402,9 +1393,28 @@
             });
         }
         
-        // --- Evento de Edición de Nombre de Cuenta de Ahorros ---
+        // --- Eventos de Administración de Datos (Asegurados) ---
+        
+        // 1. Botones de AGREGAR (Cuentas/Categorías)
+        btnAgregarGeneral.forEach(button => {
+            button.addEventListener('click', () => {
+                const tipo = button.dataset.tipo;
+                const input = categoriasInputs[tipo];
+                agregarGeneral(tipo, input.value);
+            });
+        });
+
+        // 2. Botones de ELIMINAR (X) y EDICIÓN de cuentas/categorías
         document.getElementById('seccion-categorias').addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.btn-eliminar-general');
             const editBtn = e.target.closest('.btn-editar-nombre-ahorros');
+
+            if (deleteButton) {
+                const nombre = deleteButton.dataset.nombre;
+                const tipo = deleteButton.dataset.tipo;
+                eliminarGeneral(tipo, nombre);
+            }
+            
             if (editBtn) {
                 const nombreAnterior = editBtn.dataset.nombre;
                 const nuevoNombre = prompt(`Introduce el nuevo nombre para la cuenta de ahorros:`, nombreAnterior);
@@ -1428,7 +1438,7 @@
                     // 3. Guardar el nuevo nombre visible y el array de cuentas
                     guardarNombreCuentaAhorros(nuevoNombreLimpio); 
                     guardarCuentas();
-                    guardarTransaccionesLocal();
+                    guardarTransaccionesLocal(); // Guarda todo en localStorage
                     
                     // 4. Renderizar y recalcular
                     renderizarCuentas(); 
@@ -1450,7 +1460,7 @@
         try {
             createIcons({ icons: { Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, ListChecks, Wallet, Pencil, Edit, Repeat } });
         } catch(e) {
-             console.warn("Error al cargar iconos principales. La aplicación funcionará, pero los iconos pueden faltar.", e);
+             console.warn("Error al cargar iconos principales. La aplicación funcionará, pero los iconos pueden faltar.", e.message);
         }
     </script>
 </body>

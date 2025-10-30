@@ -579,7 +579,6 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
-        // (guardarTransaccionesLocal ahora se llama guardarConfiguracionLocal)
         function guardarConfiguracionLocal() {
              localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
              localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
@@ -946,8 +945,7 @@
         }
         
         // --- FUNCIÓN CRUD LOCALES (para configuración) ---
-
-        // (NOTA: Esta función se define UNA SOLA VEZ aquí)
+        
         function guardarConfiguracionLocal() {
              localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
              localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));

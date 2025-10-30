@@ -1172,8 +1172,7 @@ function guardarNombreCuentaAhorros(nuevoNombre) {
         });
         
         function mostrarModalEdicion(id) {
-            const transaccion = todasTransacciones.find(t => t.id === parseInt(id));
-            if (!transaccion) return;
+const transaccion = todasTransacciones.find(t => t.id === id);            if (!transaccion) return;
 
             editIdInput.value = transaccion.id;
             editMontoInput.value = transaccion.monto.toFixed(2);
@@ -1496,4 +1495,5 @@ function guardarNombreCuentaAhorros(nuevoNombre) {
     </script>
 </body>
 </html>
+
 

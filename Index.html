@@ -14,6 +14,11 @@
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); }
         .category-bar-container { height: 1.5rem; border-radius: 0.5rem; overflow: hidden; display: flex; }
         .category-bar-segment { height: 100%; }
+        
+        /* Estilos para arrastrar y soltar */
+        .draggable-item { cursor: grab; transition: background-color 0.2s; }
+        .dragging { opacity: 0.5; }
+        .drag-over { background-color: #e0e7ff; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -38,144 +43,271 @@
     
     <main class="max-w-7xl mx-auto">
         
-        <section id="resumen-dashboard" class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-gray-500">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-gray-500">Saldo Inicial</h2>
-                    <i data-lucide="home" class="w-6 h-6 text-gray-500"></i>
-                </div>
-                <p id="saldo-inicial" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
-                <p class="text-sm text-gray-400 mt-1">Saldo del mes anterior</p>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-green-500">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-gray-500">Ingresos</h2>
-                    <i data-lucide="arrow-up-circle" class="w-6 h-6 text-green-500"></i>
-                </div>
-                <p id="ingresos-totales" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
-                <p class="text-sm text-gray-400 mt-1">Total de entradas del mes</p>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-red-500">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-gray-500">Gastos</h2>
-                    <i data-lucide="arrow-down-circle" class="w-6 h-6 text-red-500"></i>
-                </div>
-                <p id="gastos-totales" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
-                <p class="text-sm text-gray-400 mt-1">Total de salidas del mes</p>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-blue-500">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-gray-500">Saldo Final</h2>
-                    <i data-lucide="dollar-sign" class="w-6 h-6 text-blue-500"></i>
-                </div>
-                <p id="balance-neto" class="text-3xl font-bold mt-2 text-blue-600">$0.00</p>
-                <p class="text-sm text-gray-400 mt-1">Saldo Inicial + Ingresos - Gastos</p>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-emerald-500">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-gray-500">Ahorro Total</h2>
-                    <i data-lucide="gem" class="w-6 h-6 text-emerald-500"></i>
-                </div>
-                <p id="ahorro-acumulado-total" class="text-3xl font-bold text-emerald-600 mt-2">$0.00</p>
-                <p class="text-sm text-gray-400 mt-1">Ahorro acumulado histórico</p>
+        <section id="tabs-container" class="mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button id="tab-resumen" class="tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition duration-150 border-indigo-500 text-indigo-600" data-target="seccion-resumen">
+                        Resumen y Transacciones
+                    </button>
+                    <button id="tab-categorias" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition duration-150" data-target="seccion-categorias">
+                        Administrar Datos
+                    </button>
+                </nav>
             </div>
         </section>
 
-        <section id="analisis-resultado" class="hidden"></section>
-
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div id="seccion-resumen" class="tab-content">
             
-            <div class="lg:col-span-1 bg-white p-6 rounded-xl card-shadow">
+            <section id="resumen-dashboard" class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-gray-500">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-500">Saldo Inicial</h2>
+                        <i data-lucide="home" class="w-6 h-6 text-gray-500"></i>
+                    </div>
+                    <p id="saldo-inicial" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
+                    <p class="text-sm text-gray-400 mt-1">Saldo del mes anterior</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-green-500">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-500">Ingresos</h2>
+                        <i data-lucide="arrow-up-circle" class="w-6 h-6 text-green-500"></i>
+                    </div>
+                    <p id="ingresos-totales" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
+                    <p class="text-sm text-gray-400 mt-1">Total de entradas del mes</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-red-500">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-500">Gastos</h2>
+                        <i data-lucide="arrow-down-circle" class="w-6 h-6 text-red-500"></i>
+                    </div>
+                    <p id="gastos-totales" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
+                    <p class="text-sm text-gray-400 mt-1">Total de salidas del mes</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-blue-500">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-500">Saldo Final</h2>
+                        <i data-lucide="dollar-sign" class="w-6 h-6 text-blue-500"></i>
+                    </div>
+                    <p id="balance-neto" class="text-3xl font-bold mt-2 text-blue-600">$0.00</p>
+                    <p class="text-sm text-gray-400 mt-1">Saldo Inicial + Ingresos - Gastos</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-emerald-500">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-500">Ahorro Total</h2>
+                        <i data-lucide="gem" class="w-6 h-6 text-emerald-500"></i>
+                    </div>
+                    <p id="ahorro-acumulado-total" class="text-3xl font-bold text-emerald-600 mt-2">$0.00</p>
+                    <p class="text-sm text-gray-400 mt-1">Ahorro acumulado histórico</p>
+                </div>
+            </section>
+            
+            <section class="bg-white p-6 rounded-xl card-shadow mb-8">
                 <h2 class="text-2xl font-bold mb-4 text-gray-700 flex items-center">
-                    <i data-lucide="plus-circle" class="w-6 h-6 mr-2 text-indigo-500"></i>
-                    Nueva Transacción
+                    <i data-lucide="wallet" class="w-6 h-6 mr-2 text-purple-500"></i>
+                    Resumen de Fondos por Cuenta
                 </h2>
-                <form id="form-transaccion" class="space-y-4">
-                    
-                    <div>
-                        <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
-                        <select id="tipo" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="ingreso">Ingreso</option>
-                            <option value="gasto">Gasto</option>
-                            <option value="ahorro">Ahorro</option>
-                        </select>
-                    </div>
+                <div id="resumen-cuentas" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <p class="text-gray-500">Calculando saldos...</p>
+                </div>
+            </section>
 
-                    <div>
-                        <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
-                        <select id="categoria" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                            </select>
-                    </div>
+            <section id="analisis-resultado" class="hidden"></section>
 
-                    <div id="ahorro-sugerencia-container" class="space-y-2 hidden"></div>
-
-                    <div>
-                        <label for="monto" class="block text-sm font-medium text-gray-700">Monto ($)</label>
-                        <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-
-                    <div>
-                        <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-                        <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    
-                    <div>
-                        <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
-                        <input type="date" id="fecha" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-
-                    <button type="submit" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-150">
-                        Guardar Transacción
-                    </button>
-                    <div id="form-message" class="text-center mt-2 text-sm hidden"></div>
-                </form>
-            </div>
-
-            <div class="lg:col-span-2 bg-white p-6 rounded-xl card-shadow">
-                <h2 class="text-2xl font-bold mb-4 text-gray-700">Distribución de Gastos</h2>
+            <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
                 
-                <div id="chart-container" class="space-y-4">
-                    <div class="mb-6">
-                        <p class="text-lg font-medium text-gray-600">Total Gastado vs. Total Fondos (Mensual)</p>
-                        <div class="category-bar-container bg-gray-200 mt-2">
+                <div class="lg:col-span-1 space-y-6">
+                    
+                    <div class="bg-white p-6 rounded-xl card-shadow">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-700 flex items-center">
+                            <i data-lucide="plus-circle" class="w-6 h-6 mr-2 text-indigo-500"></i>
+                            Nueva Transacción
+                        </h2>
+                        <form id="form-transaccion" class="space-y-4">
+                            
+                            <div>
+                                <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
+                                <select id="tipo" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="ingreso">Ingreso</option>
+                                    <option value="gasto">Gasto</option>
+                                    <option value="ahorro">Ahorro</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="cuenta" class="block text-sm font-medium text-gray-700">Cuenta/Fondo</label>
+                                <select id="cuenta" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
+                                <select id="categoria" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    </select>
+                            </div>
+
+                            <div id="ahorro-sugerencia-container" class="space-y-2 hidden">
+                                <label for="ahorro-porcentaje" class="block text-sm font-medium text-gray-700">Porcentaje de Ahorro (%)</label>
+                                <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="10" placeholder="Ej: 15" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                <p id="ahorro-sugerencia-monto" class="text-sm text-indigo-600 font-semibold mt-1">Sugerencia: $0.00</p>
+                            </div>
+
+                            <div>
+                                <label for="monto" class="block text-sm font-medium text-gray-700">Monto ($)</label>
+                                <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+
+                            <div>
+                                <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                                <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            
+                            <div>
+                                <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+                                <input type="date" id="fecha" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+
+                            <button type="submit" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-150">
+                                Guardar Transacción
+                            </button>
+                            <div id="form-message" class="text-center mt-2 text-sm hidden"></div>
+                        </form>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-gray-400">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-700 flex items-center">
+                            <i data-lucide="repeat" class="w-6 h-6 mr-2 text-gray-500"></i>
+                            Intercambio de Saldos
+                        </h2>
+                        <form id="form-intercambio" class="space-y-4">
+                            <div>
+                                <label for="monto-enviado" class="block text-sm font-medium text-gray-700">Monto Enviado (Sale de Origen) ($)</label>
+                                <input type="number" id="monto-enviado" required min="0.01" step="0.01" placeholder="Ej: 100.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                            </div>
+
+                            <div>
+                                <label for="monto-recibido" class="block text-sm font-medium text-gray-700">Monto Recibido (Entra a Destino) ($)</label>
+                                <input type="number" id="monto-recibido" required min="0.00" step="0.01" placeholder="Ej: 99.50 (Comisión de 0.50)" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                            </div>
+
+                            <div>
+                                <label for="cuenta-origen" class="block text-sm font-medium text-gray-700">Origen (Resta)</label>
+                                <select id="cuenta-origen" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="cuenta-destino" class="block text-sm font-medium text-gray-700">Destino (Suma)</label>
+                                <select id="cuenta-destino" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                                </select>
+                            </div>
+
+                            <button type="submit" class="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md transition duration-150">
+                                Realizar Intercambio
+                            </button>
+                            <div id="intercambio-message" class="text-center mt-2 text-sm hidden"></div>
+                        </form>
+                    </div>
+
+                </div>
+                <div class="lg:col-span-3 bg-white p-6 rounded-xl card-shadow">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-700">Distribución de Gastos</h2>
+                    
+                    <div id="chart-container" class="space-y-4">
+                        <div class="mb-6">
+                            <p class="text-lg font-medium text-gray-600">Total Gastado vs. Total Fondos (Mensual)</p>
                             <div id="gasto-bar-total" class="category-bar-segment transition-all duration-500" style="width: 0%;"></div>
                         </div>
                         <p id="gasto-porcentaje" class="text-right text-sm text-gray-500 mt-1">0% de los fondos disponibles gastados</p>
                     </div>
-                    
+                        
                     <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Gastos por Categoría</h3>
                     <div id="gastos-por-categoria" class="space-y-3">
                         <p class="text-gray-500 text-center">No hay gastos registrados aún.</p>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="bg-white p-6 rounded-xl card-shadow">
-            <h2 class="text-2xl font-bold mb-4 text-gray-700">Historial de Transacciones del Mes</h2>
-            
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lista-transacciones" class="bg-white divide-y divide-gray-200">
-                        <tr><td colspan="6" class="p-4 text-center text-gray-500">Cargando transacciones...</td></tr>
-                    </tbody>
-                </table>
+            <section class="bg-white p-6 rounded-xl card-shadow">
+                <h2 class="text-2xl font-bold mb-4 text-gray-700">Historial de Transacciones del Mes</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuenta</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-transacciones" class="bg-white divide-y divide-gray-200">
+                            <tr><td colspan="7" class="p-4 text-center text-gray-500">Cargando transacciones...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <div id="seccion-categorias" class="tab-content hidden">
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700 flex items-center">
+                    <i data-lucide="list-checks" class="w-6 h-6 mr-2 text-indigo-500"></i>
+                    Administración de Categorías y Cuentas
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    
+                    <div id="admin-cuentas-container">
+                        <h3 class="text-xl font-semibold mb-3 text-purple-700 border-b pb-1">Cuentas/Fondos <span id="count-cuenta" class="text-sm font-normal text-gray-500"></span></h3>
+                        <ul id="lista-cuenta" class="space-y-2">
+                            </ul>
+                        <div class="mt-4">
+                            <input type="text" id="input-cuenta" placeholder="Nueva cuenta (Ej: Binance)" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2">
+                            <button data-tipo="cuenta" class="btn-agregar-general w-full py-2 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar Cuenta</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-green-700 border-b pb-1">Ingresos <span id="count-ingreso" class="text-sm font-normal text-gray-500"></span></h3>
+                        <ul id="lista-ingreso" class="space-y-2">
+                        </ul>
+                        <div class="mt-4">
+                            <input type="text" id="input-ingreso" placeholder="Nueva categoría de Ingreso" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2">
+                            <button data-tipo="ingreso" class="btn-agregar-general w-full py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-red-700 border-b pb-1">Gastos <span id="count-gasto" class="text-sm font-normal text-gray-500"></span></h3>
+                        <ul id="lista-gasto" class="space-y-2">
+                        </ul>
+                        <div class="mt-4">
+                            <input type="text" id="input-gasto" placeholder="Nueva categoría de Gasto" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2">
+                            <button data-tipo="gasto" class="btn-agregar-general w-full py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-blue-700 border-b pb-1">Ahorros <span id="count-ahorro" class="text-sm font-normal text-gray-500"></span></h3>
+                        <ul id="lista-ahorro" class="space-y-2">
+                        </ul>
+                        <div class="mt-4">
+                            <input type="text" id="input-ahorro" placeholder="Nueva categoría de Ahorro" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2">
+                            <button data-tipo="ahorro" class="btn-agregar-general w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar</button>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
-        </section>
+        </div>
 
         <div id="modal-container" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden items-center justify-center p-4">
             <div class="bg-white rounded-lg p-6 max-w-sm w-full card-shadow">
@@ -188,16 +320,65 @@
             </div>
         </div>
 
+        <div id="modal-container-edicion" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden items-center justify-center p-4">
+            <div class="bg-white rounded-lg p-6 max-w-lg w-full card-shadow">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Editar Transacción</h3>
+                <form id="form-edicion" class="space-y-4">
+                    <input type="hidden" id="edit-id">
+
+                    <div>
+                        <label for="edit-tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
+                        <select id="edit-tipo" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="ingreso">Ingreso</option>
+                            <option value="gasto">Gasto</option>
+                            <option value="ahorro">Ahorro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="edit-cuenta" class="block text-sm font-medium text-gray-700">Cuenta/Fondo</label>
+                        <select id="edit-cuenta" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            </select>
+                    </div>
+
+                    <div>
+                        <label for="edit-categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
+                        <select id="edit-categoria" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            </select>
+                    </div>
+                    
+                    <div>
+                        <label for="edit-monto" class="block text-sm font-medium text-gray-700">Monto ($)</label>
+                        <input type="number" id="edit-monto" required min="0.01" step="0.01" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label for="edit-descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                        <input type="text" id="edit-descripcion" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label for="edit-fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+                        <input type="date" id="edit-fecha" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" id="modal-cancel-edicion" class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </main>
 
     <script type="module">
         // --- 1. CONFIGURACIÓN DE SUPABASE Y LIBRERÍAS ---
-        import { createIcons, Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem } from 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js';
+        import { createIcons, Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, ListChecks, XCircle, Wallet, Pencil, Edit, Repeat } from 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js';
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        // TUS CREDENCIALES DE SUPABASE (CORREGIDAS)
+        // TUS CREDENCIALES DE SUPABASE
         const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
-        // CLAVE DE API ACTUALIZADA
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis'; 
         const TABLA_TRANSACCIONES = 'transacciones';
         
@@ -209,42 +390,210 @@
         let mesSeleccionado = ''; 
         let resumenMensual = {}; 
         
-        const categorias = {
+        let categorias = JSON.parse(localStorage.getItem('finanzasCategorias')) || {
             ingreso: ['Salario', 'Freelance', 'Inversiones', 'Venta', 'Regalo', 'Otro Ingreso'],
             gasto: ['Vivienda', 'Alimentación', 'Transporte', 'Ocio', 'Deudas', 'Servicios', 'Salud', 'Educación', 'Otro Gasto'],
             ahorro: ['Fondo de Emergencia', 'Meta Viaje', 'Meta Casa', 'Inversión Crecimiento']
         };
+        
+        // --- CONFIGURACIÓN DE CUENTAS ---
+        const NOMBRE_CUENTA_AHORROS_CLAVE = 'Cuenta de Ahorros'; 
+        let nombreCuentaAhorrosActual = localStorage.getItem('finanzasNombreAhorrosActual') || NOMBRE_CUENTA_AHORROS_CLAVE;
+
+        let cuentas = JSON.parse(localStorage.getItem('finanzasCuentas')) || [
+            'Efectivo', 'Mercantil', 'Binance', 'Zinli', nombreCuentaAhorrosActual
+        ];
+        
+        // Asegurar la consistencia de la cuenta de ahorro al inicio
+        (function initialAccountSetup() {
+            const index = cuentas.indexOf(nombreCuentaAhorrosActual);
+            if (index === -1) {
+                 cuentas.push(nombreCuentaAhorrosActual);
+            } else if (index !== cuentas.length - 1) {
+                cuentas.splice(index, 1);
+                cuentas.push(nombreCuentaAhorrosActual);
+            }
+        })();
+        // --- FIN CONFIGURACIÓN DE CUENTAS ---
 
         // Referencias del DOM
         const tipoSelect = document.getElementById('tipo');
         const categoriaSelect = document.getElementById('categoria');
+        const cuentaSelect = document.getElementById('cuenta'); 
         const formTransaccion = document.getElementById('form-transaccion');
         const listaTransaccionesEl = document.getElementById('lista-transacciones');
         const gastosPorCategoriaEl = document.getElementById('gastos-por-categoria');
         const gastoBarTotalEl = document.getElementById('gasto-bar-total');
         const gastoPorcentajeEl = document.getElementById('gasto-porcentaje');
         const formMessageEl = document.getElementById('form-message');
-        const modalContainer = document.getElementById('modal-container');
-        const modalConfirm = document.getElementById('modal-confirm');
-        const modalCancel = document.getElementById('modal-cancel');
         const fechaInput = document.getElementById('fecha');
         const selectorMesEl = document.getElementById('selector-mes');
+        const ahorroPorcentajeInput = document.getElementById('ahorro-porcentaje'); 
+        const ahorroSugerenciaContainer = document.getElementById('ahorro-sugerencia-container');
         
-        // --- 3. LÓGICA DE UTILIDAD ---
+        // DOM Intercambio (NUEVO)
+        const formIntercambio = document.getElementById('form-intercambio');
+        const cuentaOrigenSelect = document.getElementById('cuenta-origen');
+        const cuentaDestinoSelect = document.getElementById('cuenta-destino');
+        const montoEnviadoInput = document.getElementById('monto-enviado'); 
+        const montoRecibidoInput = document.getElementById('monto-recibido'); 
+        const intercambioMessageEl = document.getElementById('intercambio-message');
+
+
+        // Referencias del DOM de UI Avanzada
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const categoriasListas = {
+            ingreso: document.getElementById('lista-ingreso'),
+            gasto: document.getElementById('lista-gasto'),
+            ahorro: document.getElementById('lista-ahorro'),
+            cuenta: document.getElementById('lista-cuenta') 
+        };
+        const categoriasInputs = {
+            ingreso: document.getElementById('input-ingreso'),
+            gasto: document.getElementById('input-gasto'),
+            ahorro: document.getElementById('input-ahorro'),
+            cuenta: document.getElementById('input-cuenta') 
+        };
+        const categoriasCounts = {
+            ingreso: document.getElementById('count-ingreso'),
+            gasto: document.getElementById('count-gasto'),
+            ahorro: document.getElementById('count-ahorro'),
+            cuenta: document.getElementById('count-cuenta') 
+        };
+        const btnAgregarGeneral = document.querySelectorAll('.btn-agregar-general');
+        
+        const modalContainerConfirm = document.getElementById('modal-container');
+        const modalConfirmDelete = document.getElementById('modal-confirm');
+        const modalCancelConfirm = document.getElementById('modal-cancel');
+        const modalContainerEdicion = document.getElementById('modal-container-edicion');
+        const formEdicion = document.getElementById('form-edicion');
+        const modalCancelEdicion = document.getElementById('modal-cancel-edicion');
+        const editTipoSelect = document.getElementById('edit-tipo');
+        const editCuentaSelect = document.getElementById('edit-cuenta');
+        const editCategoriaSelect = document.getElementById('edit-categoria');
+        const editMontoInput = document.getElementById('edit-monto');
+        const editDescripcionInput = document.getElementById('edit-descripcion');
+        const editFechaInput = document.getElementById('edit-fecha');
+        const editIdInput = document.getElementById('edit-id');
+
+        
+        // --- 3. LÓGICA DE UTILIDAD Y CÁLCULO ---
         const formatCurrency = (amount) => {
             return new Intl.NumberFormat('es-US', { style: 'currency', currency: 'USD' }).format(amount);
         };
         
-        // --- 4. FUNCIONES CRUD CON SUPABASE ---
+        function calcularSugerenciaAhorro() {
+            const tipo = tipoSelect.value;
+            const porcentaje = parseFloat(ahorroPorcentajeInput.value) || 0;
+            const porcentajeValido = isNaN(porcentaje) || porcentaje < 0 ? 0 : porcentaje;
+            
+            const ingresosTotales = resumenMensual.ingresosTotales || 0;
+            
+            const montoSugerido = ingresosTotales * (porcentajeValido / 100);
 
+            document.getElementById('ahorro-sugerencia-monto').textContent = `Sugerencia (${porcentajeValido}% de ${formatCurrency(ingresosTotales)}): ${formatCurrency(montoSugerido)}`;
+            
+            if (tipo === 'ahorro') {
+                ahorroSugerenciaContainer.classList.remove('hidden');
+                if (montoSugerido > 0) {
+                    document.getElementById('monto').value = montoSugerido.toFixed(2);
+                } else {
+                     document.getElementById('monto').value = ''; 
+                }
+            } else {
+                ahorroSugerenciaContainer.classList.add('hidden');
+            }
+        }
+        
+        function calcularSaldosCuentas() {
+            const saldos = {};
+            cuentas.forEach(c => saldos[c] = 0);
+            
+            const nombreCuentaAhorros = nombreCuentaAhorrosActual; 
+            
+            todasTransacciones.forEach(t => {
+                if (t.cuenta && saldos.hasOwnProperty(t.cuenta)) {
+                    
+                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') { 
+                        saldos[t.cuenta] += t.monto;
+                    } 
+                    
+                    else if (t.tipo === 'gasto' || t.tipo === 'intercambio_out') { 
+                        saldos[t.cuenta] -= t.monto;
+                    } 
+                    
+                    else if (t.tipo === 'ahorro') {
+                        
+                        if (t.cuenta === nombreCuentaAhorros) {
+                            saldos[t.cuenta] += t.monto;
+                        } else {
+                            saldos[t.cuenta] -= t.monto;
+                        }
+                    }
+                }
+            });
+            return saldos;
+        }
+
+        function calcularResumenMensual() {
+            let ingresosMes = 0;
+            let gastosMes = 0;
+            let gastosPorCategoria = {};
+            let ahorroAcumulado = 0;
+            let saldoInicial = 0;
+            
+            const mesActualSeleccionado = mesSeleccionado;
+
+            todasTransacciones.forEach(t => {
+                const monto = t.monto;
+
+                if (t.tipo === 'ahorro') {
+                    ahorroAcumulado += monto;
+                }
+
+                if (t.mesAnio < mesActualSeleccionado) {
+                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
+                        saldoInicial += monto;
+                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
+                        saldoInicial -= monto;
+                    }
+                } else if (t.mesAnio === mesActualSeleccionado) {
+                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
+                        ingresosMes += monto;
+                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
+                        gastosMes += monto; 
+
+                        if (t.tipo === 'gasto') {
+                            gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + monto;
+                        }
+                    }
+                }
+            });
+            const balanceNeto = saldoInicial + ingresosMes - gastosMes;
+
+            return { ingresosTotales: ingresosMes, gastosTotales: gastosMes, balanceNeto: balanceNeto, saldoInicial: saldoInicial, gastosPorCategoria: gastosPorCategoria, ahorroAcumulado: ahorroAcumulado };
+        }
+
+        // --- 4. FUNCIONES CRUD CON SUPABASE ---
+        
+        function guardarTransaccionesLocal() {
+             // Ya no se usa local storage para transacciones en esta versión
+             // Pero guardamos las configuraciones locales
+             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
+             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
+        }
+        
         async function cargarDatosDesdeSupabase() {
             const { data, error } = await supabase
                 .from(TABLA_TRANSACCIONES)
-                .select('*'); 
+                // Se agregó la columna 'cuenta' al select para que funcione el resumen de fondos
+                .select('id, tipo, categoria, descripcion, monto, fecha, cuenta'); 
             
             if (error) {
                 console.error("Error al cargar datos de Supabase:", error);
-                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. Verifica las políticas RLS.</td></tr>`;
+                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. Verifica las políticas RLS.</td></tr>`;
                 todasTransacciones = [];
             } else {
                 todasTransacciones = data.map(t => ({
@@ -257,34 +606,89 @@
             filtrarYRenderizar();
         }
 
-        async function guardarTransaccion(transaccion) {
+        // FUNCIÓN CLAVE: Ahora maneja inserciones a Supabase con todos los campos
+        async function guardarTransaccion(transaccion, esIntercambio = false) {
             
-            const { data, error } = await supabase
+            const categoriaFinal = esIntercambio ? 'Intercambio' : transaccion.categoria;
+
+            const { error } = await supabase
                 .from(TABLA_TRANSACCIONES)
                 .insert([{
                     tipo: transaccion.tipo,
-                    categoria: transaccion.categoria,
+                    categoria: categoriaFinal,
                     descripcion: transaccion.descripcion,
                     monto: parseFloat(transaccion.monto),
                     fecha: transaccion.fecha,
+                    cuenta: transaccion.cuenta, // CAMPO REQUERIDO
                 }]);
                 
             if (error) {
                 console.error("Error al guardar en Supabase:", error);
-                formMessageEl.textContent = `Error al guardar: ${error.message}`;
-                formMessageEl.classList.remove('hidden', 'text-green-500');
-                formMessageEl.classList.add('text-red-500');
-            } else {
-                await cargarDatosDesdeSupabase(); 
-
-                formMessageEl.textContent = "¡Transacción guardada con éxito en la nube!";
-                formMessageEl.classList.remove('hidden', 'text-red-500');
-                formMessageEl.classList.add('text-green-500');
-                formTransaccion.reset();
-                fechaInput.value = new Date().toISOString().substring(0, 10);
-                setTimeout(() => formMessageEl.classList.add('hidden'), 3000);
-            }
+                return { success: false, error: error };
+            } 
+            return { success: true };
         }
+
+        // FUNCIÓN CLAVE: Manejo de Intercambios (Doble Inserción a Supabase)
+        async function manejarIntercambio(origen, destino, montoEnviado, montoRecibido, fecha) {
+            if (origen === destino) {
+                intercambioMessageEl.textContent = "Error: Las cuentas de origen y destino no pueden ser iguales.";
+                intercambioMessageEl.classList.remove('hidden', 'text-green-500');
+                intercambioMessageEl.classList.add('text-red-500');
+                return;
+            }
+            
+            const montoEnviadoFloat = parseFloat(montoEnviado);
+            const montoRecibidoFloat = parseFloat(montoRecibido);
+            const comision = montoEnviadoFloat - montoRecibidoFloat;
+            
+            if (comision < 0) {
+                 intercambioMessageEl.textContent = "Error: El monto recibido no puede ser mayor que el monto enviado.";
+                 intercambioMessageEl.classList.remove('hidden', 'text-green-500');
+                 intercambioMessageEl.classList.add('text-red-500');
+                 return;
+            }
+            
+            // 1. Transacción de Salida (Resta el MONTO ENVIADO de la cuenta de origen)
+            const resultOut = await guardarTransaccion({
+                tipo: 'intercambio_out',
+                cuenta: origen,
+                monto: montoEnviadoFloat, 
+                descripcion: `Transferencia a ${destino} (Comisión: ${formatCurrency(comision)})`,
+                fecha: fecha,
+            }, true);
+            
+            if (!resultOut.success) {
+                 intercambioMessageEl.textContent = `Error al guardar salida: ${resultOut.error.message}`;
+                 intercambioMessageEl.classList.add('text-red-500');
+                 return;
+            }
+
+            // 2. Transacción de Entrada (Suma el MONTO RECIBIDO a la cuenta de destino)
+            const resultIn = await guardarTransaccion({
+                tipo: 'intercambio_in',
+                cuenta: destino,
+                monto: montoRecibidoFloat, 
+                descripcion: `Transferencia de ${origen} (Comisión: ${formatCurrency(comision)})`,
+                fecha: fecha,
+            }, true);
+            
+            if (!resultIn.success) {
+                 intercambioMessageEl.textContent = `Error al guardar entrada: ${resultIn.error.message}`;
+                 intercambioMessageEl.classList.add('text-red-500');
+                 return;
+            }
+            
+
+            await cargarDatosDesdeSupabase();
+            
+            intercambioMessageEl.textContent = "¡Intercambio realizado con éxito!";
+            intercambioMessageEl.classList.remove('hidden', 'text-red-500');
+            intercambioMessageEl.classList.add('text-green-500');
+            formIntercambio.reset();
+            setTimeout(() => intercambioMessageEl.classList.add('hidden'), 3000);
+        }
+
 
         async function eliminarTransaccion(id) {
             
@@ -300,7 +704,7 @@
             }
         }
         
-        // --- 5. LÓGICA DE FILTRADO Y CÁLCULO (Mantenida) ---
+        // --- 5. LÓGICA DE FILTRADO Y CÁLCULO ---
 
         function filtrarYRenderizar() {
             transaccionesMesActual = todasTransacciones
@@ -312,6 +716,40 @@
             const { ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado } = resumenMensual;
             renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado);
             renderizarListaTransacciones();
+            calcularSugerenciaAhorro(); 
+            renderizarResumenCuentas(); 
+        }
+
+        // --- LÓGICA DE CÁLCULO (Ajustada para Intercambio) ---
+
+        function calcularSaldosCuentas() {
+            const saldos = {};
+            cuentas.forEach(c => saldos[c] = 0);
+            
+            const nombreCuentaAhorros = nombreCuentaAhorrosActual; 
+            
+            todasTransacciones.forEach(t => {
+                if (t.cuenta && saldos.hasOwnProperty(t.cuenta)) {
+                    
+                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') { 
+                        saldos[t.cuenta] += t.monto;
+                    } 
+                    
+                    else if (t.tipo === 'gasto' || t.tipo === 'intercambio_out') { 
+                        saldos[t.cuenta] -= t.monto;
+                    } 
+                    
+                    else if (t.tipo === 'ahorro') {
+                        
+                        if (t.cuenta === nombreCuentaAhorros) {
+                            saldos[t.cuenta] += t.monto;
+                        } else {
+                            saldos[t.cuenta] -= t.monto;
+                        }
+                    }
+                }
+            });
+            return saldos;
         }
 
         function calcularResumenMensual() {
@@ -321,6 +759,8 @@
             let ahorroAcumulado = 0;
             let saldoInicial = 0;
             
+            const mesActualSeleccionado = mesSeleccionado;
+
             todasTransacciones.forEach(t => {
                 const monto = t.monto;
 
@@ -328,16 +768,16 @@
                     ahorroAcumulado += monto;
                 }
 
-                if (t.mesAnio < mesSeleccionado) {
-                    if (t.tipo === 'ingreso') {
+                if (t.mesAnio < mesActualSeleccionado) {
+                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
                         saldoInicial += monto;
-                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro') {
+                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
                         saldoInicial -= monto;
                     }
-                } else if (t.mesAnio === mesSeleccionado) {
-                    if (t.tipo === 'ingreso') {
+                } else if (t.mesAnio === mesActualSeleccionado) {
+                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
                         ingresosMes += monto;
-                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro') {
+                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
                         gastosMes += monto; 
 
                         if (t.tipo === 'gasto') {
@@ -351,8 +791,9 @@
             return { ingresosTotales: ingresosMes, gastosTotales: gastosMes, balanceNeto: balanceNeto, saldoInicial: saldoInicial, gastosPorCategoria: gastosPorCategoria, ahorroAcumulado: ahorroAcumulado };
         }
 
-        // --- 6. LÓGICA DE RENDERIZACIÓN DE LA UI (Mantenida) ---
 
+        // --- 6. LÓGICA DE RENDERIZACIÓN DE LA UI ---
+        
         function inicializarSelectorMes() {
             const hoy = new Date();
             const year = hoy.getFullYear();
@@ -376,6 +817,63 @@
             selectorMesEl.addEventListener('change', (e) => {
                 mesSeleccionado = e.target.value;
                 filtrarYRenderizar();
+            });
+        }
+        
+        function inicializarPestanas() {
+            document.getElementById('tab-resumen').classList.add('border-indigo-500', 'text-indigo-600');
+            document.getElementById('seccion-resumen').classList.remove('hidden');
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+
+                    tabContents.forEach(content => content.classList.add('hidden'));
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('border-indigo-500', 'text-indigo-600');
+                        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    });
+
+                    document.getElementById(targetId).classList.remove('hidden');
+                    button.classList.add('border-indigo-500', 'text-indigo-600');
+                    button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+
+                    if (targetId === 'seccion-categorias') {
+                        renderizarCategorias();
+                        renderizarCuentas(); 
+                    }
+                    
+                    if (targetId === 'seccion-resumen') {
+                         actualizarCategoriasYCuentas(); 
+                    }
+                });
+            });
+        }
+        
+        function renderizarResumenCuentas() {
+            const saldos = calcularSaldosCuentas();
+            const resumenCuentasEl = document.getElementById('resumen-cuentas');
+            resumenCuentasEl.innerHTML = '';
+            
+            const saldosOrdenados = cuentas.map(c => [c, saldos[c] !== undefined ? saldos[c] : 0]);
+
+            if (saldosOrdenados.length === 0) {
+                resumenCuentasEl.innerHTML = '<p class="text-gray-500">No hay cuentas configuradas o transacciones registradas.</p>';
+                return;
+            }
+
+            saldosOrdenados.forEach(([cuenta, saldo]) => {
+                const color = saldo >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                const html = `
+                    <div class="${color} p-3 rounded-lg border border-gray-200">
+                        <p class="text-sm font-semibold">${cuenta}</p>
+                        <p class="text-xl font-bold mt-1">${formatCurrency(saldo)}</p>
+                    </div>
+                `;
+                resumenCuentasEl.insertAdjacentHTML('beforeend', html);
             });
         }
 
@@ -444,16 +942,29 @@
 
         function renderizarListaTransacciones() {
             if (transaccionesMesActual.length === 0) {
-                listaTransaccionesEl.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">No hay transacciones registradas para este mes.</td></tr>`;
+                listaTransaccionesEl.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500">No hay transacciones registradas para este mes.</td></tr>`;
                 return;
             }
 
             listaTransaccionesEl.innerHTML = transaccionesMesActual.map(t => {
                 const esIngreso = t.tipo === 'ingreso';
                 const esAhorro = t.tipo === 'ahorro';
-                const montoClase = esIngreso ? 'text-green-600 font-semibold' : esAhorro ? 'text-blue-600 font-semibold' : 'text-red-600 font-semibold';
-                const tipoClase = esIngreso ? 'bg-green-100 text-green-800' : esAhorro ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800';
-                const tipoTexto = esIngreso ? 'INGRESO' : esAhorro ? 'AHORRO' : 'GASTO';
+                const esIntercambio = t.tipo === 'intercambio_in' || t.tipo === 'intercambio_out';
+
+                let montoClase;
+                let tipoClase;
+                let tipoTexto;
+
+                if (esIntercambio) {
+                    tipoClase = 'bg-gray-100 text-gray-800';
+                    tipoTexto = t.tipo === 'intercambio_in' ? 'INTERCAMBIO (+)' : 'INTERCAMBIO (-)';
+                    montoClase = 'text-gray-600 font-semibold'; 
+                } else {
+                    montoClase = esIngreso ? 'text-green-600 font-semibold' : esAhorro ? 'text-blue-600 font-semibold' : 'text-red-600 font-semibold';
+                    tipoClase = esIngreso ? 'bg-green-100 text-green-800' : esAhorro ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800';
+                    tipoTexto = esIngreso ? 'INGRESO' : esAhorro ? 'AHORRO' : 'GASTO';
+                }
+                
 
                 return `
                     <tr class="hover:bg-gray-50 transition">
@@ -461,10 +972,14 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${tipoClase}">${tipoTexto}</span>
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${t.cuenta || 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${t.categoria}</td>
                         <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">${t.descripcion}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm ${montoClase}">${formatCurrency(t.monto)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <button data-id="${t.id}" class="btn-editar text-indigo-500 hover:text-indigo-700 transition" title="Editar Transacción">
+                                <i data-lucide="pencil" class="w-5 h-5 inline-block"></i>
+                            </button>
                             <button data-id="${t.id}" class="btn-eliminar text-red-500 hover:text-red-700 transition" title="Eliminar Transacción">
                                 <i data-lucide="trash-2" class="w-5 h-5 inline-block"></i>
                             </button>
@@ -473,7 +988,7 @@
                 `;
             }).join('');
             
-            createIcons({ icons: { Trash2 } }); 
+            createIcons({ icons: { Trash2, Pencil } }); 
         }
 
         // --- 7. MANEJO DE EVENTOS ---
@@ -486,7 +1001,7 @@
 
         tipoSelect.addEventListener('change', actualizarCategorias);
         
-        formTransaccion.addEventListener('submit', (e) => {
+        formTransaccion.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const fechaTransaccion = document.getElementById('fecha').value;
@@ -505,16 +1020,54 @@
                 monto: parseFloat(document.getElementById('monto').value),
                 descripcion: document.getElementById('descripcion').value.trim(),
                 fecha: fechaTransaccion,
+                cuenta: cuentaSelect.value, // CAMPO AÑADIDO PARA SUBIR A SUPABASE
             };
 
-            if (transaccion.descripcion && transaccion.monto > 0) {
-                guardarTransaccion(transaccion);
+            if (transaccion.descripcion && transaccion.monto > 0 && transaccion.cuenta) {
+                const result = await guardarTransaccion(transaccion);
+
+                if (result.success) {
+                    await cargarDatosDesdeSupabase(); 
+                    formMessageEl.textContent = "¡Transacción guardada con éxito en la nube!";
+                    formMessageEl.classList.remove('hidden', 'text-red-500');
+                    formMessageEl.classList.add('text-green-500');
+                    formTransaccion.reset();
+                    fechaInput.value = new Date().toISOString().substring(0, 10);
+                    setTimeout(() => formMessageEl.classList.add('hidden'), 3000);
+                } else {
+                    formMessageEl.textContent = `Error al guardar: ${result.error.message}`;
+                    formMessageEl.classList.remove('hidden', 'text-green-500');
+                    formMessageEl.classList.add('text-red-500');
+                }
             } else {
-                formMessageEl.textContent = "Por favor, complete todos los campos correctamente.";
+                formMessageEl.textContent = "Por favor, complete todos los campos (incluida la cuenta) correctamente.";
                 formMessageEl.classList.remove('hidden', 'text-green-500');
                 formMessageEl.classList.add('text-red-500');
             }
         });
+        
+        // Evento de Intercambio (MODIFICADO)
+        formIntercambio.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const origen = cuentaOrigenSelect.value;
+            const destino = cuentaDestinoSelect.value;
+            const montoEnviado = montoEnviadoInput.value;
+            const montoRecibido = montoRecibidoInput.value;
+            const fecha = new Date().toISOString().substring(0, 10);
+            
+            const montoEnviadoFloat = parseFloat(montoEnviado);
+            const montoRecibidoFloat = parseFloat(montoRecibido);
+            
+            if (montoEnviadoFloat > 0 && montoRecibidoFloat >= 0 && montoEnviadoFloat >= montoRecibidoFloat) {
+                 manejarIntercambio(origen, destino, montoEnviadoFloat, montoRecibidoFloat, fecha);
+            } else {
+                intercambioMessageEl.textContent = "Error: El monto enviado debe ser mayor o igual al recibido, y ambos válidos.";
+                intercambioMessageEl.classList.remove('hidden', 'text-green-500');
+                intercambioMessageEl.classList.add('text-red-500');
+            }
+        });
+
 
         listaTransaccionesEl.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-eliminar');
@@ -527,32 +1080,32 @@
         let idAeliminar = null;
         function mostrarModalConfirmacion(id) {
             idAeliminar = id;
-            modalContainer.classList.remove('hidden');
-            modalContainer.classList.add('flex');
+            modalContainerConfirm.classList.remove('hidden');
+            modalContainerConfirm.classList.add('flex');
         }
 
-        modalCancel.addEventListener('click', () => {
-            modalContainer.classList.remove('flex');
-            modalContainer.classList.add('hidden');
+        modalCancelConfirm.addEventListener('click', () => {
+            modalContainerConfirm.classList.remove('flex');
+            modalContainerConfirm.classList.add('hidden');
             idAeliminar = null;
         });
 
-        modalConfirm.addEventListener('click', () => {
+        modalConfirmDelete.addEventListener('click', () => {
             if (idAeliminar) {
                 eliminarTransaccion(idAeliminar);
             }
-            modalContainer.classList.remove('flex');
-            modalContainer.classList.add('hidden');
+            modalContainerConfirm.classList.remove('flex');
+            modalContainerConfirm.classList.add('hidden');
             idAeliminar = null;
         });
-
+        
         // --- 8. INICIO DE LA APLICACIÓN ---
         
         inicializarSelectorMes();
         actualizarCategorias();
         cargarDatosDesdeSupabase(); 
 
-        createIcons({ icons: { Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem } });
+        createIcons({ icons: { Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, Repeat, Wallet, Pencil, Edit } });
     </script>
 </body>
 </html>

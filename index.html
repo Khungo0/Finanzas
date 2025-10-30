@@ -579,6 +579,12 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
+        function guardarConfiguracionLocal() {
+             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
+             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
+        }
+        
         async function cargarDatosDesdeSupabase() {
             // Selecciona 'cuenta' que es la columna requerida
             const { data, error } = await supabase
@@ -925,9 +931,10 @@
             actualizarCategorias();
             
             // Actualiza los selectores de cuenta en el formulario de Intercambio
-            cuentaSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
-            cuentaOrigenSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
-            cuentaDestinoSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
+            const opcionesCuentas = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
+            cuentaSelect.innerHTML = opcionesCuentas;
+            cuentaOrigenSelect.innerHTML = opcionesCuentas;
+            cuentaDestinoSelect.innerHTML = opcionesCuentas;
         }
 
         function actualizarCategorias() {
@@ -1391,9 +1398,28 @@
             });
         }
         
-        // --- Evento de Edición de Nombre de Cuenta de Ahorros ---
+        // --- Eventos de Administración de Datos (Asegurados) ---
+
+        // 1. Botones de AGREGAR (Cuentas/Categorías)
+        btnAgregarGeneral.forEach(button => {
+            button.addEventListener('click', () => {
+                const tipo = button.dataset.tipo;
+                const input = categoriasInputs[tipo];
+                agregarGeneral(tipo, input.value);
+            });
+        });
+
+        // 2. Botones de ELIMINAR (X) y EDICIÓN de cuentas/categorías
         document.getElementById('seccion-categorias').addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.btn-eliminar-general');
             const editBtn = e.target.closest('.btn-editar-nombre-ahorros');
+
+            if (deleteButton) {
+                const nombre = deleteButton.dataset.nombre;
+                const tipo = deleteButton.dataset.tipo;
+                eliminarGeneral(tipo, nombre);
+            }
+            
             if (editBtn) {
                 const nombreAnterior = editBtn.dataset.nombre;
                 const nuevoNombre = prompt(`Introduce el nuevo nombre para la cuenta de ahorros:`, nombreAnterior);
@@ -1423,27 +1449,6 @@
                     renderizarCuentas(); 
                     filtrarYRenderizar(); 
                 }
-            }
-        });
-        
-        // --- Eventos de Administración de Datos (Asegurados) ---
-
-        // 1. Botones de AGREGAR (Cuentas/Categorías)
-        btnAgregarGeneral.forEach(button => {
-            button.addEventListener('click', () => {
-                const tipo = button.dataset.tipo;
-                const input = categoriasInputs[tipo];
-                agregarGeneral(tipo, input.value);
-            });
-        });
-
-        // 2. Botones de ELIMINAR (X)
-        document.getElementById('seccion-categorias').addEventListener('click', (e) => {
-            const deleteButton = e.target.closest('.btn-eliminar-general');
-            if (deleteButton) {
-                const nombre = deleteButton.dataset.nombre;
-                const tipo = deleteButton.dataset.tipo;
-                eliminarGeneral(tipo, nombre);
             }
         });
 

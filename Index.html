@@ -104,7 +104,7 @@
                     <p class="text-sm text-gray-400 mt-1">Ahorro acumulado histórico</p>
                 </div>
             </section>
-            
+
             <section class="bg-white p-6 rounded-xl card-shadow mb-8">
                 <h2 class="text-2xl font-bold mb-4 text-gray-700 flex items-center">
                     <i data-lucide="wallet" class="w-6 h-6 mr-2 text-purple-500"></i>
@@ -219,14 +219,16 @@
                     <div id="chart-container" class="space-y-4">
                         <div class="mb-6">
                             <p class="text-lg font-medium text-gray-600">Total Gastado vs. Total Fondos (Mensual)</p>
-                            <div id="gasto-bar-total" class="category-bar-segment transition-all duration-500" style="width: 0%;"></div>
+                            <div class="category-bar-container bg-gray-200 mt-2">
+                                <div id="gasto-bar-total" class="category-bar-segment transition-all duration-500" style="width: 0%;"></div>
+                            </div>
+                            <p id="gasto-porcentaje" class="text-right text-sm text-gray-500 mt-1">0% de los fondos disponibles gastados</p>
                         </div>
-                        <p id="gasto-porcentaje" class="text-right text-sm text-gray-500 mt-1">0% de los fondos disponibles gastados</p>
-                    </div>
                         
-                    <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Gastos por Categoría</h3>
-                    <div id="gastos-por-categoria" class="space-y-3">
-                        <p class="text-gray-500 text-center">No hay gastos registrados aún.</p>
+                        <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Gastos por Categoría</h3>
+                        <div id="gastos-por-categoria" class="space-y-3">
+                            <p class="text-gray-500 text-center">No hay gastos registrados aún.</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -377,7 +379,7 @@
         import { createIcons, Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, ListChecks, XCircle, Wallet, Pencil, Edit, Repeat } from 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js';
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        // TUS CREDENCIALES DE SUPABASE
+        // TUS CREDENCIALES DE SUPABASE (INTEGRADAS)
         const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis'; 
         const TABLA_TRANSACCIONES = 'transacciones';
@@ -578,22 +580,21 @@
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
         function guardarTransaccionesLocal() {
-             // Ya no se usa local storage para transacciones en esta versión
-             // Pero guardamos las configuraciones locales
+             // Guardamos las configuraciones locales
              localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
              localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
              localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
         }
         
         async function cargarDatosDesdeSupabase() {
+            // Selecciona 'cuenta' que es la columna requerida
             const { data, error } = await supabase
                 .from(TABLA_TRANSACCIONES)
-                // Se agregó la columna 'cuenta' al select para que funcione el resumen de fondos
                 .select('id, tipo, categoria, descripcion, monto, fecha, cuenta'); 
             
             if (error) {
                 console.error("Error al cargar datos de Supabase:", error);
-                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. Verifica las políticas RLS.</td></tr>`;
+                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. ¿Añadiste la columna 'cuenta' a la tabla 'transacciones'?</td></tr>`;
                 todasTransacciones = [];
             } else {
                 todasTransacciones = data.map(t => ({
@@ -619,7 +620,7 @@
                     descripcion: transaccion.descripcion,
                     monto: parseFloat(transaccion.monto),
                     fecha: transaccion.fecha,
-                    cuenta: transaccion.cuenta, // CAMPO REQUERIDO
+                    cuenta: transaccion.cuenta, 
                 }]);
                 
             if (error) {
@@ -720,7 +721,7 @@
             renderizarResumenCuentas(); 
         }
 
-        // --- LÓGICA DE CÁLCULO (Ajustada para Intercambio) ---
+        // --- LÓGICA DE CÁLCULO ---
 
         function calcularSaldosCuentas() {
             const saldos = {};
@@ -993,14 +994,40 @@
 
         // --- 7. MANEJO DE EVENTOS ---
 
+        function actualizarCategoriasYCuentas() {
+            // Actualiza los selectores de categoría y cuenta en el formulario principal
+            actualizarCategorias();
+            
+            // Actualiza los selectores de cuenta en el formulario de Intercambio
+            cuentaSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
+            cuentaOrigenSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
+            cuentaDestinoSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
         function actualizarCategorias() {
             const tipo = tipoSelect.value;
             const cats = categorias[tipo] || [];
             categoriaSelect.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            calcularSugerenciaAhorro(); // Recalcula la sugerencia al cambiar el tipo
+        }
+        
+        // --- FUNCIÓN CRUD LOCALES (para configuración) ---
+
+        function guardarCuentas() {
+            localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
         }
 
-        tipoSelect.addEventListener('change', actualizarCategorias);
+        function guardarNombreCuentaAhorros(nuevoNombre) {
+            localStorage.setItem('finanzasNombreAhorrosActual', nuevoNombre);
+            nombreCuentaAhorrosActual = nuevoNombre;
+        }
+
+        // --- EVENT HANDLERS ---
         
+        tipoSelect.addEventListener('change', actualizarCategorias);
+        document.getElementById('monto').addEventListener('input', calcularSugerenciaAhorro);
+        ahorroPorcentajeInput.addEventListener('input', calcularSugerenciaAhorro);
+
         formTransaccion.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1035,7 +1062,7 @@
                     fechaInput.value = new Date().toISOString().substring(0, 10);
                     setTimeout(() => formMessageEl.classList.add('hidden'), 3000);
                 } else {
-                    formMessageEl.textContent = `Error al guardar: ${result.error.message}`;
+                    formMessageEl.textContent = `Error al guardar: ${result.error.message}. ¿Añadiste la columna 'cuenta' a Supabase?`;
                     formMessageEl.classList.remove('hidden', 'text-green-500');
                     formMessageEl.classList.add('text-red-500');
                 }
@@ -1101,11 +1128,14 @@
         
         // --- 8. INICIO DE LA APLICACIÓN ---
         
+        inicializarPestanas(); 
         inicializarSelectorMes();
-        actualizarCategorias();
+        // Inicializa los selectores con las cuentas/categorías
+        actualizarCategoriasYCuentas(); 
+        // Carga los datos de Supabase y renderiza el resumen
         cargarDatosDesdeSupabase(); 
 
-        createIcons({ icons: { Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, Repeat, Wallet, Pencil, Edit } });
+        createIcons({ icons: { Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, ListChecks, Wallet, Pencil, Edit, Repeat } });
     </script>
 </body>
 </html>

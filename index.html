@@ -376,20 +376,8 @@
 
     <script type="module">
         // --- 1. CONFIGURACIÓN DE SUPABASE Y LIBRERÍAS ---
-        let createIcons; // Declarar aquí
-        try {
-            const lucide = await import('https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js');
-            // Asignar solo las funciones necesarias
-            createIcons = lucide.createIcons;
-            window.lucide = lucide; // Hacerlo global si es necesario
-        } catch (e) {
-            console.error("Error crítico al cargar Lucide icons:", e);
-            // Fallback: si Lucide falla, define createIcons como una función vacía
-            // para que el resto del script no falle.
-            createIcons = () => {}; 
-        }
-
-        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+        import { createIcons, Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, ListChecks, XCircle, Wallet, Pencil, Edit, Repeat } from 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js';
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
         // TUS CREDENCIALES DE SUPABASE (INTEGRADAS)
         const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 

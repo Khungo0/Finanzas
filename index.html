@@ -376,8 +376,20 @@
 
     <script type="module">
         // --- 1. CONFIGURACIÓN DE SUPABASE Y LIBRERÍAS ---
-        import { createIcons, Home, DollarSign, ArrowUpCircle, ArrowDownCircle, PlusCircle, Trash2, Gem, ListChecks, XCircle, Wallet, Pencil, Edit, Repeat } from 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js';
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        let createIcons; // Declarar aquí
+        try {
+            const lucide = await import('https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js');
+            // Asignar solo las funciones necesarias
+            createIcons = lucide.createIcons;
+            window.lucide = lucide; // Hacerlo global si es necesario
+        } catch (e) {
+            console.error("Error crítico al cargar Lucide icons:", e);
+            // Fallback: si Lucide falla, define createIcons como una función vacía
+            // para que el resto del script no falle.
+            createIcons = () => {}; 
+        }
+
+        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
 
         // TUS CREDENCIALES DE SUPABASE (INTEGRADAS)
         const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
@@ -579,11 +591,7 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
-        function guardarConfiguracionLocal() {
-             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
-             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
-        }
+        // (guardarConfiguracionLocal se define más abajo, antes de ser usada)
         
         async function cargarDatosDesdeSupabase() {
             // Selecciona 'cuenta' que es la columna requerida
@@ -945,7 +953,8 @@
         }
         
         // --- FUNCIÓN CRUD LOCALES (para configuración) ---
-        
+
+        // (NOTA: Esta función se define UNA SOLA VEZ aquí)
         function guardarConfiguracionLocal() {
              localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
              localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));

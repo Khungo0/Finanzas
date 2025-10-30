@@ -579,13 +579,6 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
-        function guardarTransaccionesLocal() {
-             // Guardamos las configuraciones locales
-             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
-             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
-        }
-        
         async function cargarDatosDesdeSupabase() {
             // Selecciona 'cuenta' que es la columna requerida
             const { data, error } = await supabase
@@ -1246,7 +1239,7 @@
         }
 
         function handleDrop(e) {
-            e.stopPropagation();
+            if (e.stopPropagation) e.stopPropagation();
             
             const targetEl = e.target.closest('li');
 

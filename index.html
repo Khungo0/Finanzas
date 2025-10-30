@@ -579,13 +579,6 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
-        function guardarTransaccionesLocal() {
-             // Guardamos las configuraciones locales
-             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
-             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
-        }
-        
         async function cargarDatosDesdeSupabase() {
             // Selecciona 'cuenta' que es la columna requerida
             const { data, error } = await supabase
@@ -928,29 +921,31 @@
         // --- 7. MANEJO DE EVENTOS ---
 
         function actualizarCategoriasYCuentas() {
+            // Actualiza los selectores de categoría y cuenta en el formulario principal
             actualizarCategorias();
             
-            const opcionesCuentas = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
-            cuentaSelect.innerHTML = opcionesCuentas;
-            cuentaOrigenSelect.innerHTML = opcionesCuentas;
-            cuentaDestinoSelect.innerHTML = opcionesCuentas;
+            // Actualiza los selectores de cuenta en el formulario de Intercambio
+            cuentaSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
+            cuentaOrigenSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
+            cuentaDestinoSelect.innerHTML = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
         }
 
         function actualizarCategorias() {
             const tipo = tipoSelect.value;
             const cats = categorias[tipo] || [];
             categoriaSelect.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-            calcularSugerenciaAhorro(); 
+            calcularSugerenciaAhorro(); // Recalcula la sugerencia al cambiar el tipo
         }
         
         // --- FUNCIÓN CRUD LOCALES (para configuración) ---
-        // (Movida aquí para asegurar que está definida antes de ser usada)
+
+        // (NOTA: Esta función se define UNA SOLA VEZ aquí)
         function guardarTransaccionesLocal() {
              localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
              localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
              localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
         }
-        
+
         function guardarCuentas() {
             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
         }
@@ -985,7 +980,7 @@
                 monto: parseFloat(document.getElementById('monto').value),
                 descripcion: document.getElementById('descripcion').value.trim(),
                 fecha: fechaTransaccion,
-                cuenta: cuentaSelect.value, 
+                cuenta: cuentaSelect.value, // CAMPO AÑADIDO PARA SUBIR A SUPABASE
             };
 
             if (transaccion.descripcion && transaccion.monto > 0 && transaccion.cuenta) {
@@ -1011,6 +1006,7 @@
             }
         });
         
+        // Evento de Intercambio (MODIFICADO)
         formIntercambio.addEventListener('submit', (e) => {
             e.preventDefault();
             
@@ -1032,10 +1028,11 @@
             }
         });
 
+        // --- LISTENERS DE ACCIONES DE LA TABLA Y MODALES ---
 
         listaTransaccionesEl.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-eliminar');
-            const editButton = e.target.closest('.btn-editar'); // CORREGIDO: Listener de Edición
+            const editButton = e.target.closest('.btn-editar'); 
 
             if (deleteButton) {
                 const id = deleteButton.dataset.id;
@@ -1440,7 +1437,7 @@
             });
         });
 
-        // 2. Botones de ELIMINAR (X) y EDICIÓN de cuentas/categorías
+        // 2. Botones de ELIMINAR (X)
         document.getElementById('seccion-categorias').addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-eliminar-general');
             if (deleteButton) {

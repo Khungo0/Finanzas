@@ -1032,7 +1032,7 @@
 
         listaTransaccionesEl.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-eliminar');
-            const editButton = e.target.closest('.btn-editar'); 
+            const editButton = e.target.closest('.btn-editar'); // CORREGIDO: Listener de Edición
 
             if (deleteButton) {
                 const id = deleteButton.dataset.id;

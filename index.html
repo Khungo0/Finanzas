@@ -565,10 +565,15 @@
             return saldos;
         }
 
+        // --- CÓDIGO NUEVO (CORREGIDO) ---
         function calcularResumenMensual() {
-            let ingresosMes = 0;
-            let gastosMes = 0;
-            let gastosPorCategoria = {};
+            let totalEntradasMes = 0; // Flujo de entrada total (para balance)
+            let totalSalidasMes = 0;  // Flujo de salida total (para balance)
+            
+            let ingresosRealesMes = 0; // Para la tarjeta "Ingresos"
+            let gastosRealesMes = 0;   // Para la tarjeta "Gastos" (incluye Ahorro)
+
+            let gastosPorCategoria = {}; // Solo para 'gasto' real
             let ahorroAcumulado = 0;
             let saldoInicial = 0;
             
@@ -577,31 +582,61 @@
             todasTransacciones.forEach(t => {
                 const monto = t.monto;
 
+                // El ahorro acumulado total es histórico
                 if (t.tipo === 'ahorro') {
                     ahorroAcumulado += monto;
                 }
 
+                // 1. CÁLCULO DEL SALDO INICIAL (Transacciones de meses anteriores)
+                // Esta lógica está bien, ya que los intercambios afectan el saldo
                 if (t.mesAnio < mesActualSeleccionado) {
                     if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
                         saldoInicial += monto;
                     } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
                         saldoInicial -= monto;
                     }
+                
+                // 2. CÁLCULO DEL MES ACTUAL
                 } else if (t.mesAnio === mesActualSeleccionado) {
-                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
-                        ingresosMes += monto;
+                    
+                    // --- Flujos de ENTRADA (para el balance) ---
+                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') { 
+                        totalEntradasMes += monto;
+                        
+                        // Solo contamos 'ingreso' para la tarjeta de resumen
+                        if (t.tipo === 'ingreso') {
+                            ingresosRealesMes += monto;
+                        }
+                        
+                    // --- Flujos de SALIDA (para el balance) ---
                     } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
-                        gastosMes += monto; 
-
+                        totalSalidasMes += monto; 
+                        
+                        // Solo contamos 'gasto' y 'ahorro' para la tarjeta de resumen
                         if (t.tipo === 'gasto') {
+                            gastosRealesMes += monto;
+                            // El gráfico de categorías SÍ debe incluir solo gastos
                             gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + monto;
+                        } else if (t.tipo === 'ahorro') {
+                            // El ahorro también lo contamos como "gasto" en el resumen
+                            gastosRealesMes += monto; 
                         }
                     }
                 }
             });
-            const balanceNeto = saldoInicial + ingresosMes - gastosMes;
+            
+            // El Saldo Final (balanceNeto) se calcula con los flujos TOTALES
+            const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
 
-            return { ingresosTotales: ingresosMes, gastosTotales: gastosMes, balanceNeto: balanceNeto, saldoInicial: saldoInicial, gastosPorCategoria: gastosPorCategoria, ahorroAcumulado: ahorroAcumulado };
+            // Devolvemos los valores REALES para las tarjetas de resumen
+            return { 
+                ingresosTotales: ingresosRealesMes, 
+                gastosTotales: gastosRealesMes, 
+                balanceNeto: balanceNeto, 
+                saldoInicial: saldoInicial, 
+                gastosPorCategoria: gastosPorCategoria, 
+                ahorroAcumulado: ahorroAcumulado 
+            };
         }
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
@@ -1495,5 +1530,6 @@ const transaccion = todasTransacciones.find(t => t.id === id);            if (!t
     </script>
 </body>
 </html>
+
 
 

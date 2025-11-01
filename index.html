@@ -229,7 +229,14 @@
                         <div id="gastos-por-categoria" class="space-y-3">
                             <p class="text-gray-500 text-center">No hay gastos registrados aún.</p>
                         </div>
-                    </div>
+                        
+                        <div class="pt-6"> 
+                            <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Ingresos por Categoría</h3>
+                            <div id="ingresos-por-categoria" class="space-y-3">
+                                <p class="text-gray-500 text-center py-4">No hay ingresos registrados aún.</p>
+                            </div>
+                        </div>
+                        </div>
                 </div>
             </section>
 
@@ -574,6 +581,7 @@
             let gastosRealesMes = 0;   // Para la tarjeta "Gastos" (incluye Ahorro)
 
             let gastosPorCategoria = {}; // Solo para 'gasto' real
+            let ingresosPorCategoria = {}; // <-- ¡NUEVA VARIABLE!
             let ahorroAcumulado = 0;
             let saldoInicial = 0;
             
@@ -606,6 +614,8 @@
                         // Solo contamos 'ingreso' para la tarjeta de resumen
                         if (t.tipo === 'ingreso') {
                             ingresosRealesMes += monto;
+                            // El gráfico de categorías SÍ debe incluir solo ingresos reales
+                            ingresosPorCategoria[t.categoria] = (ingresosPorCategoria[t.categoria] || 0) + monto; // <-- ¡NUEVO CÁLCULO!
                         }
                         
                     // --- Flujos de SALIDA (para el balance) ---
@@ -635,6 +645,7 @@
                 balanceNeto: balanceNeto, 
                 saldoInicial: saldoInicial, 
                 gastosPorCategoria: gastosPorCategoria, 
+                ingresosPorCategoria: ingresosPorCategoria, // <-- ¡NUEVO RETORNO!
                 ahorroAcumulado: ahorroAcumulado 
             };
         }
@@ -900,6 +911,8 @@
             else gastoBarTotalEl.classList.add('bg-indigo-500');
 
             renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales);
+            // ¡NUEVA LLAMADA A FUNCIÓN!
+            renderizarIngresosPorCategoria(resumenMensual.ingresosPorCategoria, ingresosTotales);
         }
 
         function renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales) {
@@ -930,6 +943,41 @@
                 gastosPorCategoriaEl.insertAdjacentHTML('beforeend', html);
             });
         }
+        
+        // ============ NUEVA FUNCIÓN PARA RENDERIZAR INGRESOS ============
+        function renderizarIngresosPorCategoria(ingresosPorCategoria, ingresosTotales) {
+            const ingresosPorCategoriaEl = document.getElementById('ingresos-por-categoria'); // Referencia al nuevo DIV
+            ingresosPorCategoriaEl.innerHTML = '';
+            
+            if (ingresosTotales === 0) {
+                ingresosPorCategoriaEl.innerHTML = '<p class="text-gray-500 text-center py-4">No hay ingresos registrados en este mes.</p>';
+                return;
+            }
+            
+            // Nuevos colores para diferenciar los gráficos
+            const colores = ['#22c55e', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5']; 
+            let colorIndex = 0;
+            const categoriasOrdenadas = Object.entries(ingresosPorCategoria).sort(([, a], [, b]) => b - a);
+
+            categoriasOrdenadas.forEach(([categoria, monto]) => {
+                const porcentaje = (monto / ingresosTotales) * 100;
+                const color = colores[colorIndex % colores.length];
+                colorIndex++;
+                const html = `
+                    <div>
+                        <div class="flex justify-between text-sm font-medium">
+                            <span class="text-gray-700">${categoria}</span>
+                            <span class="text-gray-600">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
+                        </div>
+                        <div class="category-bar-container bg-gray-200 mt-1">
+                            <div class="category-bar-segment transition-all duration-500" style="width: ${porcentaje}%; background-color: ${color};"></div>
+                        </div>
+                    </div>
+                `;
+                ingresosPorCategoriaEl.insertAdjacentHTML('beforeend', html);
+            });
+        }
+        // =================================================================
 
         function renderizarListaTransacciones() {
             if (transaccionesMesActual.length === 0) {
@@ -1530,6 +1578,3 @@ const transaccion = todasTransacciones.find(t => t.id === id);            if (!t
     </script>
 </body>
 </html>
-
-
-

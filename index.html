@@ -1,1210 +1,1580 @@
-<script type="module">
-        // --- 1. CONFIGURACIÓN DE SUPABASE Y LIBRERÍAS (Estabilizado) ---
-        // Importación estática de Supabase y Lucide para evitar el error de "await import()"
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-        import * as lucide from 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js';
-        
-        let createIcons = lucide.createIcons;
-        // Asignar el objeto de iconos globalmente para el uso de createIcons()
-        window.lucideIcons = {
-            Home: lucide.Home,
-            DollarSign: lucide.DollarSign,
-            ArrowUpCircle: lucide.ArrowUpCircle,
-            ArrowDownCircle: lucide.ArrowDownCircle,
-            PlusCircle: lucide.PlusCircle,
-            Trash2: lucide.Trash2,
-            Gem: lucide.Gem,
-            ListChecks: lucide.ListChecks,
-            XCircle: lucide.XCircle,
-            Wallet: lucide.Wallet,
-            Pencil: lucide.Pencil,
-            Edit: lucide.Edit,
-            Repeat: lucide.Repeat
-        };
-
-        // TUS CREDENCIALES DE SUPABASE (INTEGRADAS)
-        const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis'; 
-        const TABLA_TRANSACCIONES = 'transacciones';
-        
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // --- 2. VARIABLES Y ESTADO ---
-        let todasTransacciones = []; 
-        let transaccionesMesActual = []; 
-        let mesSeleccionado = ''; 
-        let resumenMensual = {}; 
-        
-        let categorias = JSON.parse(localStorage.getItem('finanzasCategorias')) || {
-            ingreso: ['Salario', 'Freelance', 'Inversiones', 'Venta', 'Regalo', 'Otro Ingreso'],
-            gasto: ['Vivienda', 'Alimentación', 'Transporte', 'Ocio', 'Deudas', 'Servicios', 'Salud', 'Educación', 'Otro Gasto'],
-            ahorro: ['Fondo de Emergencia', 'Meta Viaje', 'Meta Casa', 'Inversión Crecimiento']
-        };
-        
-        // --- CONFIGURACIÓN DE CUENTAS ---
-        const NOMBRE_CUENTA_AHORROS_CLAVE = 'Cuenta de Ahorros'; 
-        let nombreCuentaAhorrosActual = localStorage.getItem('finanzasNombreAhorrosActual') || NOMBRE_CUENTA_AHORROS_CLAVE;
-
-        let cuentas = JSON.parse(localStorage.getItem('finanzasCuentas')) || [
-            'Efectivo', 'Mercantil', 'Binance', 'Zinli', nombreCuentaAhorrosActual
-        ];
-        
-        // Asegurar la consistencia de la cuenta de ahorro al inicio
-        (function initialAccountSetup() {
-            const index = cuentas.indexOf(nombreCuentaAhorrosActual);
-            if (index === -1) {
-                 cuentas.push(nombreCuentaAhorrosActual);
-            } else if (index !== cuentas.length - 1) {
-                cuentas.splice(index, 1);
-                cuentas.push(nombreCuentaAhorrosActual);
-            }
-        })();
-        // --- FIN CONFIGURACIÓN DE CUENTAS ---
-
-        // Referencias del DOM
-        const tipoSelect = document.getElementById('tipo');
-        const categoriaSelect = document.getElementById('categoria');
-        const cuentaSelect = document.getElementById('cuenta'); 
-        const formTransaccion = document.getElementById('form-transaccion');
-        const listaTransaccionesEl = document.getElementById('lista-transacciones');
-        const gastosPorCategoriaEl = document.getElementById('gastos-por-categoria');
-        const gastoBarTotalEl = document.getElementById('gasto-bar-total');
-        const gastoPorcentajeEl = document.getElementById('gasto-porcentaje');
-        const formMessageEl = document.getElementById('form-message');
-        const fechaInput = document.getElementById('fecha');
-        const selectorMesEl = document.getElementById('selector-mes');
-        const ahorroPorcentajeInput = document.getElementById('ahorro-porcentaje'); 
-        const ahorroSugerenciaContainer = document.getElementById('ahorro-sugerencia-container');
-        const montoInput = document.getElementById('monto'); // Referencia del monto
-        
-        // DOM Intercambio (NUEVO)
-        const formIntercambio = document.getElementById('form-intercambio');
-        const cuentaOrigenSelect = document.getElementById('cuenta-origen');
-        const cuentaDestinoSelect = document.getElementById('cuenta-destino');
-        const montoEnviadoInput = document.getElementById('monto-enviado'); 
-        const montoRecibidoInput = document.getElementById('monto-recibido'); 
-        const intercambioMessageEl = document.getElementById('intercambio-message');
-
-
-        // Referencias del DOM de UI Avanzada
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
-        const categoriasListas = {
-            ingreso: document.getElementById('lista-ingreso'),
-            gasto: document.getElementById('lista-gasto'),
-            ahorro: document.getElementById('lista-ahorro'),
-            cuenta: document.getElementById('lista-cuenta') 
-        };
-        const categoriasInputs = {
-            ingreso: document.getElementById('input-ingreso'),
-            gasto: document.getElementById('input-gasto'),
-            ahorro: document.getElementById('input-ahorro'),
-            cuenta: document.getElementById('input-cuenta') 
-        };
-        const categoriasCounts = {
-            ingreso: document.getElementById('count-ingreso'),
-            gasto: document.getElementById('count-gasto'),
-            ahorro: document.getElementById('count-ahorro'),
-            cuenta: document.getElementById('count-cuenta') 
-        };
-        const btnAgregarGeneral = document.querySelectorAll('.btn-agregar-general');
-        
-        const modalContainerConfirm = document.getElementById('modal-container');
-        const modalConfirmDelete = document.getElementById('modal-confirm');
-        const modalCancelConfirm = document.getElementById('modal-cancel');
-        const modalContainerEdicion = document.getElementById('modal-container-edicion');
-        const formEdicion = document.getElementById('form-edicion');
-        const modalCancelEdicion = document.getElementById('modal-cancel-edicion');
-        const editTipoSelect = document.getElementById('edit-tipo');
-        const editCuentaSelect = document.getElementById('edit-cuenta');
-        const editCategoriaSelect = document.getElementById('edit-categoria');
-        const editMontoInput = document.getElementById('edit-monto');
-        const editDescripcionInput = document.getElementById('edit-descripcion');
-        const editFechaInput = document.getElementById('edit-fecha');
-        const editIdInput = document.getElementById('edit-id');
-
-        
-        // --- 3. LÓGICA DE UTILIDAD Y CÁLCULO ---
-        const formatCurrency = (amount) => {
-            return new Intl.NumberFormat('es-US', { style: 'currency', currency: 'USD' }).format(amount);
-        };
-        
-        // MODIFICADA: Implementación de cálculo bidireccional (Monto ↔ Porcentaje)
-        function calcularSugerenciaAhorro(changedInput = 'porcentaje') {
-            const tipo = tipoSelect.value;
-            const ingresosTotales = resumenMensual.ingresosTotales || 0;
-            
-            if (tipo === 'ahorro') {
-                ahorroSugerenciaContainer.classList.remove('hidden');
-                
-                if (ingresosTotales > 0) {
-                    
-                    if (changedInput === 'monto') {
-                        // MODO: Monto introducido -> Calcular Porcentaje
-                        const monto = parseFloat(montoInput.value) || 0;
-                        let porcentajeCalculado = 0;
-                        if (monto > 0) {
-                            porcentajeCalculado = (monto / ingresosTotales) * 100;
-                        }
-                        // Limitar al 100% y actualizar el porcentaje
-                        porcentajeCalculado = Math.min(porcentajeCalculado, 100);
-                        ahorroPorcentajeInput.value = porcentajeCalculado.toFixed(0);
-                        
-                    } else {
-                        // MODO: Porcentaje introducido -> Calcular Monto (comportamiento por defecto)
-                        const porcentaje = parseFloat(ahorroPorcentajeInput.value) || 0;
-                        const porcentajeValido = isNaN(porcentaje) || porcentaje < 0 ? 0 : porcentaje;
-                        const montoSugerido = ingresosTotales * (porcentajeValido / 100);
-                        
-                        if (montoSugerido > 0) {
-                            montoInput.value = montoSugerido.toFixed(2);
-                        } else {
-                            montoInput.value = ''; 
-                        }
-                    }
-                    
-                    // Actualizar el texto de sugerencia/informativo
-                    const porcentajeFinal = parseFloat(ahorroPorcentajeInput.value) || 0;
-                    const montoFinal = parseFloat(montoInput.value) || 0;
-                    
-                    document.getElementById('ahorro-sugerencia-monto').textContent = `Monto: ${formatCurrency(montoFinal)} (${porcentajeFinal.toFixed(1)}% de ${formatCurrency(ingresosTotales)})`;
-                    
-                } else {
-                    // Si no hay ingresos, se muestra el mensaje estándar
-                    document.getElementById('ahorro-sugerencia-monto').textContent = `Sugerencia: ${formatCurrency(0.00)} (No hay ingresos registrados en el mes)`;
-                }
-            } else {
-                ahorroSugerenciaContainer.classList.add('hidden');
-            }
-        }
-        
-        function calcularSaldosCuentas() {
-            const saldos = {};
-            cuentas.forEach(c => saldos[c] = 0);
-            
-            const nombreCuentaAhorros = nombreCuentaAhorrosActual; 
-            
-            todasTransacciones.forEach(t => {
-                if (t.cuenta && saldos.hasOwnProperty(t.cuenta)) {
-                    
-                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') { 
-                        saldos[t.cuenta] += t.monto;
-                    } 
-                    
-                    else if (t.tipo === 'gasto' || t.tipo === 'intercambio_out') { 
-                        saldos[t.cuenta] -= t.monto;
-                    } 
-                    
-                    else if (t.tipo === 'ahorro') {
-                        
-                        if (t.cuenta === nombreCuentaAhorrosActual) {
-                            saldos[t.cuenta] += t.monto;
-                        } else {
-                            saldos[t.cuenta] -= t.monto;
-                        }
-                    }
-                }
-            });
-            return saldos;
-        }
-
-        // --- LÓGICA DE RESUMEN MENSUAL ---
-        function calcularResumenMensual() {
-            let totalEntradasMes = 0; 
-            let totalSalidasMes = 0;  
-            
-            let ingresosRealesMes = 0; 
-            let gastosRealesMes = 0;   
-
-            let gastosPorCategoria = {}; 
-            let ingresosPorCategoria = {}; 
-            let ahorroAcumulado = 0;
-            let saldoInicial = 0;
-            
-            const mesActualSeleccionado = mesSeleccionado;
-
-            todasTransacciones.forEach(t => {
-                const monto = t.monto;
-
-                // El ahorro acumulado total es histórico
-                if (t.tipo === 'ahorro') {
-                    ahorroAcumulado += monto;
-                }
-
-                // 1. CÁLCULO DEL SALDO INICIAL (Transacciones de meses anteriores)
-                if (t.mesAnio < mesActualSeleccionado) {
-                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
-                        saldoInicial += monto;
-                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
-                        saldoInicial -= monto;
-                    }
-                
-                // 2. CÁLCULO DEL MES ACTUAL
-                } else if (t.mesAnio === mesActualSeleccionado) {
-                    
-                    // --- Flujos de ENTRADA (para el balance) ---
-                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') { 
-                        totalEntradasMes += monto;
-                        
-                        // Solo contamos 'ingreso' para la tarjeta de resumen
-                        if (t.tipo === 'ingreso') {
-                            ingresosRealesMes += monto;
-                            // El gráfico de categorías SÍ debe incluir solo ingresos reales
-                            ingresosPorCategoria[t.categoria] = (ingresosPorCategoria[t.categoria] || 0) + monto; 
-                        }
-                        
-                    // --- Flujos de SALIDA (para el balance) ---
-                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
-                        totalSalidasMes += monto; 
-                        
-                        // Solo contamos 'gasto' y 'ahorro' para la tarjeta de resumen
-                        if (t.tipo === 'gasto') {
-                            gastosRealesMes += monto;
-                            // El gráfico de categorías SÍ debe incluir solo gastos
-                            gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + monto;
-                        } else if (t.tipo === 'ahorro') {
-                            // El ahorro también lo contamos como "gasto" en el resumen
-                            gastosRealesMes += monto; 
-                        }
-                    }
-                }
-            });
-            
-            // El Saldo Final (balanceNeto) se calcula con los flujos TOTALES
-            const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
-
-            // Devolvemos los valores REALES para las tarjetas de resumen
-            return { 
-                ingresosTotales: ingresosRealesMes, 
-                gastosTotales: gastosRealesMes, 
-                balanceNeto: balanceNeto, 
-                saldoInicial: saldoInicial, 
-                gastosPorCategoria: gastosPorCategoria, 
-                ingresosPorCategoria: ingresosPorCategoria,
-                ahorroAcumulado: ahorroAcumulado 
-            };
-        }
-
-        // --- 4. FUNCIONES CRUD CON SUPABASE ---
-        
-        function guardarConfiguracionLocal() {
-             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
-             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
-        }
-        
-        async function cargarDatosDesdeSupabase() {
-            // Es crítico que la columna 'cuenta' exista en la tabla 'transacciones' de Supabase
-            const { data, error } = await supabase
-                .from(TABLA_TRANSACCIONES)
-                .select('id, tipo, categoria, descripcion, monto, fecha, cuenta'); 
-            
-            if (error) {
-                console.error("Error al cargar datos de Supabase:", error);
-                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. **Asegúrate que la columna 'cuenta' exista en la tabla 'transacciones' de Supabase.**</td></tr>`;
-                todasTransacciones = [];
-            } else {
-                todasTransacciones = data.map(t => ({
-                    ...t,
-                    monto: parseFloat(t.monto), 
-                    mesAnio: t.fecha.substring(0, 7) 
-                }));
-            }
-            
-            filtrarYRenderizar();
-        }
-
-        // FUNCIÓN CLAVE: Ahora maneja inserciones a Supabase con todos los campos
-        async function guardarTransaccion(transaccion, esIntercambio = false) {
-            
-            const categoriaFinal = esIntercambio ? 'Intercambio' : transaccion.categoria;
-
-            const { error } = await supabase
-                .from(TABLA_TRANSACCIONES)
-                .insert([{
-                    tipo: transaccion.tipo,
-                    categoria: categoriaFinal,
-                    descripcion: transaccion.descripcion,
-                    monto: parseFloat(transaccion.monto),
-                    fecha: transaccion.fecha,
-                    cuenta: transaccion.cuenta, 
-                }]);
-                
-            if (error) {
-                console.error("Error al guardar en Supabase:", error);
-                return { success: false, error: error };
-            } 
-            return { success: true };
-        }
-
-        // FUNCIÓN CLAVE: Manejo de Intercambios (Doble Inserción a Supabase)
-        async function manejarIntercambio(origen, destino, montoEnviado, montoRecibido, fecha) {
-            if (origen === destino) {
-                intercambioMessageEl.textContent = "Error: Las cuentas de origen y destino no pueden ser iguales.";
-                intercambioMessageEl.classList.remove('hidden', 'text-green-500');
-                intercambioMessageEl.classList.add('text-red-500');
-                return;
-            }
-            
-            const montoEnviadoFloat = parseFloat(montoEnviado);
-            const montoRecibidoFloat = parseFloat(montoRecibido);
-            const comision = montoEnviadoFloat - montoRecibidoFloat;
-            
-            if (comision < 0) {
-                 intercambioMessageEl.textContent = "Error: El monto recibido no puede ser mayor que el monto enviado.";
-                 intercambioMessageEl.classList.remove('hidden', 'text-green-500');
-                 intercambioMessageEl.classList.add('text-red-500');
-                 return;
-            }
-            
-            // 1. Transacción de Salida (Resta el MONTO ENVIADO de la cuenta de origen)
-            const resultOut = await guardarTransaccion({
-                tipo: 'intercambio_out',
-                cuenta: origen,
-                monto: montoEnviadoFloat, 
-                descripcion: `Transferencia a ${destino} (Comisión: ${formatCurrency(comision)})`,
-                fecha: fecha,
-            }, true);
-            
-            if (!resultOut.success) {
-                 intercambioMessageEl.textContent = `Error al guardar salida: ${resultOut.error.message}`;
-                 intercambioMessageEl.classList.add('text-red-500');
-                 return;
-            }
-
-            // 2. Transacción de Entrada (Suma el MONTO RECIBIDO a la cuenta de destino)
-            const resultIn = await guardarTransaccion({
-                tipo: 'intercambio_in',
-                cuenta: destino,
-                monto: montoRecibidoFloat, 
-                descripcion: `Transferencia de ${origen} (Comisión: ${formatCurrency(comision)})`,
-                fecha: fecha,
-            }, true);
-            
-            if (!resultIn.success) {
-                 intercambioMessageEl.textContent = `Error al guardar entrada: ${resultIn.error.message}`;
-                 intercambioMessageEl.classList.add('text-red-500');
-                 return;
-            }
-            
-
-            await cargarDatosDesdeSupabase();
-            
-            intercambioMessageEl.textContent = "¡Intercambio realizado con éxito!";
-            intercambioMessageEl.classList.remove('hidden', 'text-red-500');
-            intercambioMessageEl.classList.add('text-green-500');
-            formIntercambio.reset();
-            setTimeout(() => intercambioMessageEl.classList.add('hidden'), 3000);
-        }
-
-
-        async function eliminarTransaccion(id) {
-            
-            const { error } = await supabase
-                .from(TABLA_TRANSACCIONES)
-                .delete()
-                .eq('id', id); 
-
-            if (error) {
-                console.error("Error al eliminar en Supabase:", error);
-            } else {
-                await cargarDatosDesdeSupabase();
-            }
-        }
-        
-        // --- 5. LÓGICA DE FILTRADO Y CÁLCULO ---
-
-        function filtrarYRenderizar() {
-            transaccionesMesActual = todasTransacciones
-                .filter(t => t.mesAnio === mesSeleccionado)
-                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-                
-            resumenMensual = calcularResumenMensual();
-
-            const { ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado } = resumenMensual;
-            renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado);
-            renderizarListaTransacciones();
-            calcularSugerenciaAhorro(); 
-            renderizarResumenCuentas(); 
-        }
-
-
-        // --- 6. LÓGICA DE RENDERIZACIÓN DE LA UI ---
-        
-        function inicializarSelectorMes() {
-            const hoy = new Date();
-            const year = hoy.getFullYear();
-            const month = hoy.getMonth();
-            
-            let opcionesHTML = '';
-            const mesesNombre = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
-            for (let i = 0; i <= 5; i++) {
-                const fecha = new Date(year, month + i, 1);
-                const valor = `${fecha.getFullYear()}-${(fecha.getMonth() + 1).toString().padStart(2, '0')}`;
-                const nombre = `${mesesNombre[fecha.getMonth()]} ${fecha.getFullYear()}`;
-                opcionesHTML += `<option value="${valor}">${nombre}</option>`;
-            }
-
-            selectorMesEl.innerHTML = opcionesHTML;
-            mesSeleccionado = `${year}-${(month + 1).toString().padStart(2, '0')}`;
-            selectorMesEl.value = mesSeleccionado;
-            fechaInput.value = hoy.toISOString().substring(0, 10);
-
-            selectorMesEl.addEventListener('change', (e) => {
-                mesSeleccionado = e.target.value;
-                filtrarYRenderizar();
-            });
-        }
-        
-        function inicializarPestanas() {
-            document.getElementById('tab-resumen').classList.add('border-indigo-500', 'text-indigo-600');
-            document.getElementById('seccion-resumen').classList.remove('hidden');
-
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const targetId = button.dataset.target;
-
-                    tabContents.forEach(content => content.classList.add('hidden'));
-                    tabButtons.forEach(btn => {
-                        btn.classList.remove('border-indigo-500', 'text-indigo-600');
-                        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                    });
-
-                    document.getElementById(targetId).classList.remove('hidden');
-                    button.classList.add('border-indigo-500', 'text-indigo-600');
-                    button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-
-                    if (targetId === 'seccion-categorias') {
-                        renderizarCategorias();
-                        renderizarCuentas(); 
-                    }
-                    
-                    if (targetId === 'seccion-resumen') {
-                         actualizarCategoriasYCuentas(); 
-                    }
-                });
-            });
-        }
-        
-        function renderizarResumenCuentas() {
-            const saldos = calcularSaldosCuentas();
-            const resumenCuentasEl = document.getElementById('resumen-cuentas');
-            resumenCuentasEl.innerHTML = '';
-            
-            const saldosOrdenados = cuentas.map(c => [c, saldos[c] !== undefined ? saldos[c] : 0]);
-
-            if (saldosOrdenados.length === 0) {
-                resumenCuentasEl.innerHTML = '<p class="text-gray-500">No hay cuentas configuradas o transacciones registradas.</p>';
-                return;
-            }
-
-            saldosOrdenados.forEach(([cuenta, saldo]) => {
-                const color = saldo >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-                const html = `
-                    <div class="${color} p-3 rounded-lg border border-gray-200">
-                        <p class="text-sm font-semibold">${cuenta}</p>
-                        <p class="text-xl font-bold mt-1">${formatCurrency(saldo)}</p>
-                    </div>
-                `;
-                resumenCuentasEl.insertAdjacentHTML('beforeend', html);
-            });
-        }
-
-        function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado) {
-            document.getElementById('saldo-inicial').textContent = formatCurrency(saldoInicial);
-            document.getElementById('ingresos-totales').textContent = formatCurrency(ingresosTotales);
-            document.getElementById('gastos-totales').textContent = formatCurrency(gastosTotales);
-            document.getElementById('ahorro-acumulado-total').textContent = formatCurrency(ahorroAcumulado); 
-            
-            const saldoInicialEl = document.getElementById('saldo-inicial');
-            saldoInicialEl.classList.remove('text-green-600', 'text-red-600', 'text-gray-800');
-            if (saldoInicial > 0) saldoInicialEl.classList.add('text-green-600'); 
-            else if (saldoInicial < 0) saldoInicialEl.classList.add('text-red-600'); 
-            else saldoInicialEl.classList.add('text-gray-800');
-
-            const balanceEl = document.getElementById('balance-neto');
-            balanceEl.textContent = formatCurrency(balanceNeto);
-            balanceEl.classList.remove('text-green-600', 'text-red-600', 'text-blue-600');
-            if (balanceNeto > 0) balanceEl.classList.add('text-green-600'); 
-            else if (balanceNeto < 0) balanceEl.classList.add('text-red-600'); 
-            else balanceEl.classList.add('text-blue-600');
-            
-            let totalDisponibleParaGasto = saldoInicial + ingresosTotales;
-            let porcentajeGasto = 0;
-            if (totalDisponibleParaGasto > 0) porcentajeGasto = (gastosTotales / totalDisponibleParaGasto) * 100;
-            porcentajeGasto = Math.min(porcentajeGasto, 100); 
-
-            gastoBarTotalEl.style.width = `${porcentajeGasto}%`;
-            gastoPorcentajeEl.textContent = `${porcentajeGasto.toFixed(1)}% de los fondos disponibles gastados`;
-            gastoBarTotalEl.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-indigo-500');
-            if (porcentajeGasto >= 80) gastoBarTotalEl.classList.add('bg-red-500'); 
-            else if (porcentajeGasto > 50) gastoBarTotalEl.classList.add('bg-yellow-500'); 
-            else gastoBarTotalEl.classList.add('bg-indigo-500');
-
-            renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales);
-            renderizarIngresosPorCategoria(resumenMensual.ingresosPorCategoria, ingresosTotales);
-        }
-
-        function renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales) {
-            gastosPorCategoriaEl.innerHTML = '';
-            if (gastosTotales === 0) {
-                gastosPorCategoriaEl.innerHTML = '<p class="text-gray-500 text-center py-4">No hay gastos reales (sin incluir ahorro) registrados en este mes.</p>';
-                return;
-            }
-            const colores = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f43f5e'];
-            let colorIndex = 0;
-            const categoriasOrdenadas = Object.entries(gastosPorCategoria).sort(([, a], [, b]) => b - a);
-
-            categoriasOrdenadas.forEach(([categoria, monto]) => {
-                const porcentaje = (monto / gastosTotales) * 100;
-                const color = colores[colorIndex % colores.length];
-                colorIndex++;
-                const html = `
-                    <div>
-                        <div class="flex justify-between text-sm font-medium">
-                            <span class="text-gray-700">${categoria}</span>
-                            <span class="text-gray-600">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
-                        </div>
-                        <div class="category-bar-container bg-gray-200 mt-1">
-                            <div class="category-bar-segment transition-all duration-500" style="width: ${porcentaje}%; background-color: ${color};"></div>
-                        </div>
-                    </div>
-                `;
-                gastosPorCategoriaEl.insertAdjacentHTML('beforeend', html);
-            });
-        }
-        
-        // ============ FUNCIÓN PARA RENDERIZAR INGRESOS ============
-        function renderizarIngresosPorCategoria(ingresosPorCategoria, ingresosTotales) {
-            const ingresosPorCategoriaEl = document.getElementById('ingresos-por-categoria'); // Referencia al nuevo DIV
-            ingresosPorCategoriaEl.innerHTML = '';
-            
-            if (ingresosTotales === 0) {
-                ingresosPorCategoriaEl.innerHTML = '<p class="text-gray-500 text-center py-4">No hay ingresos registrados en este mes.</p>';
-                return;
-            }
-            
-            // Nuevos colores para diferenciar los gráficos
-            const colores = ['#22c55e', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5']; 
-            let colorIndex = 0;
-            const categoriasOrdenadas = Object.entries(ingresosPorCategoria).sort(([, a], [, b]) => b - a);
-
-            categoriasOrdenadas.forEach(([categoria, monto]) => {
-                const porcentaje = (monto / ingresosTotales) * 100;
-                const color = colores[colorIndex % colores.length];
-                colorIndex++;
-                const html = `
-                    <div>
-                        <div class="flex justify-between text-sm font-medium">
-                            <span class="text-gray-700">${categoria}</span>
-                            <span class="text-gray-600">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
-                        </div>
-                        <div class="category-bar-container bg-gray-200 mt-1">
-                            <div class="category-bar-segment transition-all duration-500" style="width: ${porcentaje}%; background-color: ${color};"></div>
-                        </div>
-                    </div>
-                `;
-                ingresosPorCategoriaEl.insertAdjacentHTML('beforeend', html);
-            });
-        }
-        // =================================================================
-
-        function renderizarListaTransacciones() {
-            if (transaccionesMesActual.length === 0) {
-                listaTransaccionesEl.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500">No hay transacciones registradas para este mes.</td></tr>`;
-                return;
-            }
-
-            listaTransaccionesEl.innerHTML = transaccionesMesActual.map(t => {
-                const esIngreso = t.tipo === 'ingreso';
-                const esAhorro = t.tipo === 'ahorro';
-                const esIntercambio = t.tipo === 'intercambio_in' || t.tipo === 'intercambio_out';
-
-                let montoClase;
-                let tipoClase;
-                let tipoTexto;
-
-                if (esIntercambio) {
-                    tipoClase = 'bg-gray-100 text-gray-800';
-                    tipoTexto = t.tipo === 'intercambio_in' ? 'INTERCAMBIO (+)' : 'INTERCAMBIO (-)';
-                    montoClase = 'text-gray-600 font-semibold'; 
-                } else {
-                    montoClase = esIngreso ? 'text-green-600 font-semibold' : esAhorro ? 'text-blue-600 font-semibold' : 'text-red-600 font-semibold';
-                    tipoClase = esIngreso ? 'bg-green-100 text-green-800' : esAhorro ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800';
-                    tipoTexto = esIngreso ? 'INGRESO' : esAhorro ? 'AHORRO' : 'GASTO';
-                }
-                
-
-                return `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${t.fecha}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${tipoClase}">${tipoTexto}</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${t.cuenta || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${t.categoria}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">${t.descripcion}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm ${montoClase}">${formatCurrency(t.monto)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                            <button data-id="${t.id}" class="btn-editar text-indigo-500 hover:text-indigo-700 transition" title="Editar Transacción">
-                                <i data-lucide="pencil" class="w-5 h-5 inline-block"></i>
-                            </button>
-                            <button data-id="${t.id}" class="btn-eliminar text-red-500 hover:text-red-700 transition" title="Eliminar Transacción">
-                                <i data-lucide="trash-2" class="w-5 h-5 inline-block"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-            
-            try {
-                createIcons({ icons: window.lucideIcons }); 
-            } catch (e) {
-                 console.warn("Error al renderizar iconos de la tabla:", e.message);
-            }
-        }
-
-        // --- 7. MANEJO DE EVENTOS ---
-
-        function actualizarCategoriasYCuentas() {
-            // Actualiza los selectores de categoría y cuenta en el formulario principal
-            actualizarCategorias();
-            
-            // Actualiza los selectores de cuenta en el formulario de Intercambio
-            const opcionesCuentas = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
-            cuentaSelect.innerHTML = opcionesCuentas;
-            cuentaOrigenSelect.innerHTML = opcionesCuentas;
-            cuentaDestinoSelect.innerHTML = opcionesCuentas;
-        }
-
-        function actualizarCategorias() {
-            const tipo = tipoSelect.value;
-            const cats = categorias[tipo] || [];
-            categoriaSelect.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-            calcularSugerenciaAhorro(); // Recalcula la sugerencia al cambiar el tipo
-        }
-        
-        // --- FUNCIÓN CRUD LOCALES (para configuración) ---
-        
-        function guardarCuentas() {
-            localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-        }
-
-        function guardarNombreCuentaAhorros(nuevoNombre) {
-            localStorage.setItem('finanzasNombreAhorrosActual', nuevoNombre);
-            nombreCuentaAhorrosActual = nuevoNombre;
-        }
-
-        // --- EVENT HANDLERS MODIFICADOS PARA AHORRO BIDIRECCIONAL ---
-        
-        tipoSelect.addEventListener('change', actualizarCategorias);
-        
-        // Si cambias el MONTO, recalcula el PORCENTAJE
-        montoInput.addEventListener('input', () => calcularSugerenciaAhorro('monto')); 
-        
-        // Si cambias el PORCENTAJE, recalcula el MONTO
-        ahorroPorcentajeInput.addEventListener('input', () => calcularSugerenciaAhorro('porcentaje')); 
-
-        formTransaccion.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const fechaTransaccion = document.getElementById('fecha').value;
-            const mesAnioTransaccion = fechaTransaccion.substring(0, 7);
-
-            if (mesAnioTransaccion !== mesSeleccionado) {
-                 formMessageEl.textContent = `Advertencia: La transacción es del mes ${mesAnioTransaccion}, pero estás viendo ${mesSeleccionado}. Se guardará.`;
-                 formMessageEl.classList.remove('hidden', 'text-green-500');
-                 formMessageEl.classList.add('text-red-500');
-                 setTimeout(() => formMessageEl.classList.add('hidden'), 5000);
-            }
-
-            const transaccion = {
-                tipo: tipoSelect.value,
-                categoria: categoriaSelect.value,
-                monto: parseFloat(document.getElementById('monto').value),
-                descripcion: document.getElementById('descripcion').value.trim(),
-                fecha: fechaTransaccion,
-                cuenta: cuentaSelect.value, // CAMPO AÑADIDO PARA SUBIR A SUPABASE
-            };
-
-            if (transaccion.descripcion && transaccion.monto > 0 && transaccion.cuenta) {
-                const result = await guardarTransaccion(transaccion);
-
-                if (result.success) {
-                    await cargarDatosDesdeSupabase(); 
-                    formMessageEl.textContent = "¡Transacción guardada con éxito en la nube!";
-                    formMessageEl.classList.remove('hidden', 'text-red-500');
-                    formMessageEl.classList.add('text-green-500');
-                    formTransaccion.reset();
-                    fechaInput.value = new Date().toISOString().substring(0, 10);
-                    setTimeout(() => formMessageEl.classList.add('hidden'), 3000);
-                } else {
-                    formMessageEl.textContent = `Error al guardar: ${result.error.message}. **Asegúrate que la columna 'cuenta' exista en Supabase.**`;
-                    formMessageEl.classList.remove('hidden', 'text-green-500');
-                    formMessageEl.classList.add('text-red-500');
-                }
-            } else {
-                formMessageEl.textContent = "Por favor, complete todos los campos (incluida la cuenta) correctamente.";
-                formMessageEl.classList.remove('hidden', 'text-green-500');
-                formMessageEl.classList.add('text-red-500');
-            }
-        });
-        
-        // Evento de Intercambio (MODIFICADO)
-        formIntercambio.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const origen = cuentaOrigenSelect.value;
-            const destino = cuentaDestinoSelect.value;
-            const montoEnviado = montoEnviadoInput.value;
-            const montoRecibido = montoRecibidoInput.value;
-            const fecha = new Date().toISOString().substring(0, 10);
-            
-            const montoEnviadoFloat = parseFloat(montoEnviado);
-            const montoRecibidoFloat = parseFloat(montoRecibido);
-            
-            if (montoEnviadoFloat > 0 && montoRecibidoFloat >= 0 && montoEnviadoFloat >= montoRecibidoFloat) {
-                 manejarIntercambio(origen, destino, montoEnviadoFloat, montoRecibidoFloat, fecha);
-            } else {
-                intercambioMessageEl.textContent = "Error: El monto enviado debe ser mayor o igual al recibido, y ambos válidos.";
-                intercambioMessageEl.classList.remove('hidden', 'text-green-500');
-                intercambioMessageEl.classList.add('text-red-500');
-            }
-        });
-
-        // --- LISTENERS DE ACCIONES DE LA TABLA Y MODALES ---
-
-        listaTransaccionesEl.addEventListener('click', (e) => {
-            const deleteButton = e.target.closest('.btn-eliminar');
-            const editButton = e.target.closest('.btn-editar'); 
-
-            if (deleteButton) {
-                const id = deleteButton.dataset.id;
-                mostrarModalConfirmacion(id);
-            }
-            if (editButton) { 
-                const id = editButton.dataset.id;
-                mostrarModalEdicion(id);
-            }
-        });
-
-        let idAeliminar = null;
-        function mostrarModalConfirmacion(id) {
-            idAeliminar = id;
-            modalContainerConfirm.classList.remove('hidden');
-            modalContainerConfirm.classList.add('flex');
-        }
-
-        modalCancelConfirm.addEventListener('click', () => {
-            modalContainerConfirm.classList.remove('flex');
-            modalContainerConfirm.classList.add('hidden');
-            idAeliminar = null;
-        });
-
-        modalConfirmDelete.addEventListener('click', () => {
-            if (idAeliminar) {
-                eliminarTransaccion(idAeliminar);
-            }
-            modalContainerConfirm.classList.remove('flex');
-            modalContainerConfirm.classList.add('hidden');
-            idAeliminar = null;
-        });
-        
-        function actualizarOpcionesEdicion(currentTipo, currentCategoria, currentCuenta) {
-            
-            editCuentaSelect.innerHTML = cuentas.map(c => 
-                `<option value="${c}" ${c === currentCuenta ? 'selected' : ''}>${c}</option>`
-            ).join('');
-
-            const llenarCategorias = (tipo) => {
-                const cats = categorias[tipo] || [];
-                editCategoriaSelect.innerHTML = cats.map(cat => 
-                    `<option value="${cat}" ${cat === currentCategoria ? 'selected' : ''}>${cat}</option>`
-                ).join('');
-            };
-
-            editTipoSelect.value = currentTipo;
-            llenarCategorias(currentTipo);
-
-            editTipoSelect.onchange = null; 
-            editTipoSelect.onchange = () => {
-                const nuevoTipo = editTipoSelect.value;
-                llenarCategorias(nuevoTipo);
-            };
-        }
-        
-        formEdicion.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const transaccionEditada = {
-                id: editIdInput.value,
-                tipo: editTipoSelect.value,
-                cuenta: editCuentaSelect.value,
-                categoria: editCategoriaSelect.value,
-                monto: parseFloat(editMontoInput.value),
-                descripcion: editDescripcionInput.value.trim(),
-                fecha: editFechaInput.value,
-            };
-
-            if (transaccionEditada.descripcion && transaccionEditada.monto > 0 && transaccionEditada.cuenta) {
-                actualizarTransaccionSupabase(transaccionEditada);
-            } else {
-                alert("Por favor, complete todos los campos correctamente en el formulario de edición.");
-            }
-        });
-        
-        async function actualizarTransaccionSupabase(transaccion) {
-             const { error } = await supabase
-                .from(TABLA_TRANSACCIONES)
-                .update({ 
-                    tipo: transaccion.tipo,
-                    categoria: transaccion.categoria,
-                    monto: transaccion.monto,
-                    descripcion: transaccion.descripcion,
-                    fecha: transaccion.fecha,
-                    cuenta: transaccion.cuenta
-                 })
-                .eq('id', transaccion.id);
-
-            if (error) {
-                console.error("Error al actualizar en Supabase:", error);
-                alert("Error al actualizar: " + error.message);
-            } else {
-                modalContainerEdicion.classList.add('hidden');
-                await cargarDatosDesdeSupabase();
-            }
-        }
-
-
-        modalCancelEdicion.addEventListener('click', () => {
-            modalContainerEdicion.classList.remove('flex');
-            modalContainerEdicion.classList.add('hidden');
-            editTipoSelect.onchange = null; 
-        });
-        
-        function mostrarModalEdicion(id) {
-const transaccion = todasTransacciones.find(t => t.id === id);            if (!transaccion) return;
-
-            editIdInput.value = transaccion.id;
-            editMontoInput.value = transaccion.monto.toFixed(2);
-            editDescripcionInput.value = transaccion.descripcion;
-            editFechaInput.value = transaccion.fecha;
-            
-            actualizarOpcionesEdicion(transaccion.tipo, transaccion.categoria, transaccion.cuenta);
-            
-            modalContainerEdicion.classList.remove('hidden');
-            modalContainerEdicion.classList.add('flex');
-        }
-
-        // --- Funciones para la pestaña Administrar Datos (DRAG & DROP y Edición) ---
-
-        function agregarGeneral(tipo, nombre) {
-            nombre = nombre.trim();
-            if (!nombre) return false;
-            
-            let array;
-            let guardarFn;
-
-            if (tipo === 'cuenta') {
-                array = cuentas;
-                guardarFn = guardarCuentas;
-            } else {
-                array = categorias[tipo];
-                guardarFn = guardarConfiguracionLocal;
-            }
-            
-            if (tipo === 'cuenta' && (nombre === NOMBRE_CUENTA_AHORROS_CLAVE || nombre === nombreCuentaAhorrosActual)) {
-                 alert("No puedes agregar otra cuenta con ese nombre reservado para ahorros.");
-                 return false;
-            }
-
-            if (!array.includes(nombre)) {
-                
-                const indexAhorros = array.indexOf(nombreCuentaAhorrosActual);
-                if (indexAhorros !== -1) {
-                    array.splice(indexAhorros, 1);
-                }
-                
-                array.push(nombre); 
-                
-                if (indexAhorros !== -1) {
-                    array.push(nombreCuentaAhorrosActual);
-                }
-                
-                guardarFn();
-                if (tipo === 'cuenta') renderizarCuentas();
-                else renderizarCategorias();
-                categoriasInputs[tipo].value = ''; 
-                actualizarCategoriasYCuentas(); 
-                return true;
-            } else {
-                alert(`${tipo === 'cuenta' ? 'La cuenta' : 'La categoría'} "${nombre}" ya existe.`);
-            }
-            return false;
-        }
-
-        function eliminarGeneral(tipo, nombre) {
-            let array;
-            let guardarFn;
-            let transaccionKey = tipo === 'cuenta' ? 'cuenta' : 'categoria';
-
-            if (tipo === 'cuenta') {
-                if (nombre === nombreCuentaAhorrosActual) {
-                    alert("La cuenta de ahorro principal no puede ser eliminada.");
-                    return false;
-                }
-                
-                array = cuentas;
-                guardarFn = guardarCuentas;
-            } else {
-                array = categorias[tipo];
-                guardarFn = guardarConfiguracionLocal;
-            }
-
-            const index = array.indexOf(nombre);
-            if (index > -1) {
-                const transaccionesActivas = todasTransacciones.filter(t => t[transaccionKey] === nombre);
-                
-                if (transaccionesActivas.length > 0) {
-                    alert(`No se puede eliminar porque tiene ${transaccionesActivas.length} transacciones registradas. Elimina las transacciones primero.`);
-                    return false;
-                }
-                
-                array.splice(index, 1);
-                guardarFn();
-                if (tipo === 'cuenta') renderizarCuentas();
-                else renderizarCategorias();
-                actualizarCategoriasYCuentas(); 
-                return true;
-            }
-            return false;
-        }
-
-        function renderizarCuentas() { 
-            const listaEl = categoriasListas['cuenta'];
-            const countEl = categoriasCounts['cuenta'];
-            listaEl.innerHTML = '';
-            
-            cuentas.forEach((cuenta, index) => {
-                const esAhorros = cuenta === nombreCuentaAhorrosActual;
-                const listItem = document.createElement('li');
-                
-                listItem.dataset.nombre = cuenta;
-                listItem.dataset.index = index; 
-
-                listItem.className = `flex justify-between items-center p-3 rounded-lg border ${esAhorros ? 'bg-blue-100 border-blue-300 font-semibold' : 'bg-gray-50 draggable-item'}`;
-                
-                listItem.innerHTML = `
-                    <span class="text-gray-800" data-cuenta="${cuenta}">${cuenta}</span>
-                    <div>
-                        ${esAhorros ? 
-                            `<button data-nombre="${cuenta}" class="btn-editar-nombre-ahorros text-blue-600 hover:text-blue-800 transition" title="Editar Nombre de Cuenta">
-                                <i data-lucide="pencil" class="w-5 h-5 inline-block"></i>
-                            </button>`
-                            : 
-                            `<button data-tipo="cuenta" data-nombre="${cuenta}" class="btn-eliminar-general text-red-400 hover:text-red-600 transition" title="Eliminar Cuenta">
-                                <i data-lucide="x-circle" class="w-5 h-5 inline-block"></i>
-                            </button>`
-                        }
-                    </div>
-                `;
-                listaEl.appendChild(listItem);
-            });
-
-            countEl.textContent = `(${cuentas.length} cuentas)`;
-            try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
-            
-            addDragDropListeners(listaEl);
-        }
-        
-        function renderizarCategorias() {
-            Object.keys(categorias).forEach(tipo => {
-                const listaEl = categoriasListas[tipo];
-                const countEl = categoriasCounts[tipo];
-                listaEl.innerHTML = '';
-                categorias[tipo].forEach(categoria => {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-lg border';
-                    listItem.innerHTML = `
-                        <span class="text-gray-800">${categoria}</span>
-                        <button data-tipo="${tipo}" data-nombre="${categoria}" class="btn-eliminar-general text-red-400 hover:text-red-600 transition" title="Eliminar Categoría">
-                            <i data-lucide="x-circle" class="w-5 h-5 inline-block"></i>
-                        </button>
-                    `;
-                    listaEl.appendChild(listItem);
-                });
-                
-                countEl.textContent = `(${categorias[tipo].length} categorías)`;
-            });
-            try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
-        }
-
-
-        // --- DRAG & DROP LOGIC ---
-        let dragSrcEl = null;
-
-        function handleDragStart(e) {
-            if (e.target.closest('li').dataset.nombre === nombreCuentaAhorrosActual) {
-                e.preventDefault(); 
-                return;
-            } 
-            dragSrcEl = e.target.closest('li');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
-            dragSrcEl.classList.add('dragging');
-        }
-
-        function handleDragOver(e) {
-            if (e.preventDefault) {
-                e.preventDefault(); 
-            }
-            const targetItem = e.target.closest('li');
-            if (targetItem && targetItem.dataset.nombre !== nombreCuentaAhorrosActual) {
-                 e.dataTransfer.dropEffect = 'move';
-            }
-            return false;
-        }
-
-        function handleDragEnter(e) {
-            const targetItem = e.target.closest('li');
-            if (targetItem && targetItem.dataset.nombre !== nombreCuentaAhorrosActual) {
-                 targetItem.classList.add('drag-over');
-            }
-        }
-
-        function handleDragLeave(e) {
-            const targetItem = e.target.closest('li');
-            if (targetItem) {
-                targetItem.classList.remove('drag-over');
-            }
-        }
-
-        function handleDrop(e) {
-            if (e.stopPropagation) e.stopPropagation();
-            
-            const targetEl = e.target.closest('li');
-
-            if (dragSrcEl !== targetEl && targetEl && dragSrcEl) {
-                if (targetEl.dataset.nombre !== nombreCuentaAhorrosActual) {
-                    targetEl.parentNode.insertBefore(dragSrcEl, targetEl.nextSibling);
-                    updateAccountOrder();
-                } else if (targetEl.dataset.nombre === nombreCuentaAhorrosActual) {
-                    targetEl.parentNode.insertBefore(dragSrcEl, targetEl);
-                    updateAccountOrder();
-                }
-            }
-            
-            if (targetEl) {
-                targetEl.classList.remove('drag-over');
-            }
-            return false;
-        }
-
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-            document.querySelectorAll('#lista-cuenta li').forEach(item => item.classList.remove('drag-over'));
-        }
-        
-        function updateAccountOrder() {
-            const listaEl = document.getElementById('lista-cuenta');
-            const newOrder = [];
-            
-            listaEl.querySelectorAll('li').forEach(item => {
-                 const nombre = item.dataset.nombre;
-                 if (nombre) {
-                     newOrder.push(nombre);
-                 }
-            });
-            
-            cuentas = newOrder;
-            guardarCuentas();
-        }
-
-        function addDragDropListeners(list) {
-            list.querySelectorAll('li').forEach(item => {
-                if (item.dataset.nombre !== nombreCuentaAhorrosActual) {
-                    item.setAttribute('draggable', 'true');
-                    item.addEventListener('dragstart', handleDragStart, false);
-                    item.addEventListener('dragenter', handleDragEnter, false);
-                    item.addEventListener('dragover', handleDragOver, false);
-                    item.addEventListener('dragleave', handleDragLeave, false);
-                    item.addEventListener('drop', handleDrop, false);
-                    item.addEventListener('dragend', handleDragEnd, false);
-                }
-            });
-        }
-        
-        // --- Eventos de Administración de Datos (Asegurados) ---
-
-        // 1. Botones de AGREGAR (Cuentas/Categorías)
-        btnAgregarGeneral.forEach(button => {
-            button.addEventListener('click', () => {
-                const tipo = button.dataset.tipo;
-                const input = categoriasInputs[tipo];
-                agregarGeneral(tipo, input.value);
-            });
-        });
-
-        // 2. Botones de ELIMINAR (X) y EDICIÓN de cuentas/categorías
-        document.getElementById('seccion-categorias').addEventListener('click', (e) => {
-            const deleteButton = e.target.closest('.btn-eliminar-general');
-            const editBtn = e.target.closest('.btn-editar-nombre-ahorros');
-
-            if (deleteButton) {
-                const nombre = deleteButton.dataset.nombre;
-                const tipo = deleteButton.dataset.tipo;
-                eliminarGeneral(tipo, nombre);
-            }
-            
-            if (editBtn) {
-                const nombreAnterior = editBtn.dataset.nombre;
-                const nuevoNombre = prompt(`Introduce el nuevo nombre para la cuenta de ahorros:`, nombreAnterior);
-                
-                if (nuevoNombre && nuevoNombre.trim() !== '' && nuevoNombre.trim() !== nombreAnterior) {
-                    const nuevoNombreLimpio = nuevoNombre.trim();
-
-                    // 1. Reemplazar el nombre anterior por el nuevo en el array 'cuentas'
-                    const index = cuentas.indexOf(nombreAnterior);
-                    if (index !== -1) {
-                        cuentas[index] = nuevoNombreLimpio;
-                    }
-                    
-                    // 2. Actualizar todas las transacciones (histórico)
-                    todasTransacciones.forEach(t => {
-                        if (t.cuenta === nombreAnterior) {
-                            t.cuenta = nuevoNombreLimpio;
-                        }
-                    });
-                    
-                    // 3. Guardar el nuevo nombre visible y el array de cuentas
-                    guardarNombreCuentaAhorros(nuevoNombreLimpio); 
-                    guardarCuentas();
-                    guardarConfiguracionLocal(); // Guarda todo en localStorage
-                    
-                    // 4. Renderizar y recalcular
-                    renderizarCuentas(); 
-                    filtrarYRenderizar(); 
-                }
-            }
-        });
-
-
-        // --- 8. INICIO DE LA APLICACIÓN ---
-        
-        inicializarPestanas(); 
-        inicializarSelectorMes();
-        // Inicializa los selectores con las cuentas/categorías
-        actualizarCategoriasYCuentas(); 
-        // Carga los datos de Supabase y renderiza el resumen
-        cargarDatosDesdeSupabase(); 
-
-        try {
-            createIcons({ icons: window.lucideIcons });
-        } catch(e) {
-             console.warn("Error al cargar iconos principales. La aplicación funcionará, pero los iconos pueden faltar.", e.message);
-        }
-    </script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanzas Personales (Supabase Cloud)</title>
+    
+    <link rel="icon" type="image/png" href="mi-icono.png"> 
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); }
+        .category-bar-container { height: 1.5rem; border-radius: 0.5rem; overflow: hidden; display: flex; }
+        .category-bar-segment { height: 100%; }
+        
+        /* Estilos para arrastrar y soltar */
+        .draggable-item { cursor: grab; transition: background-color 0.2s; }
+        .dragging { opacity: 0.5; }
+        .drag-over { background-color: #e0e7ff; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="mb-8 text-center">
+        <h1 class="text-4xl font-extrabold text-gray-800 tracking-tight">Finanzas Personales (Supabase Cloud)</h1>
+        <p id="auth-status" class="text-sm text-green-600 mt-1">Conectado a la nube. Los datos se guardan remotamente. ☁️</p>
+    </header>
+
+    <div class="max-w-7xl mx-auto mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-1 flex justify-between items-center bg-white p-4 rounded-xl card-shadow">
+            <label for="selector-mes" class="text-lg font-semibold text-gray-700">Mes Actual:</label>
+            <select id="selector-mes" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 w-40">
+                </select>
+        </div>
+        <div class="md:col-span-2 hidden">
+            <button id="btn-analisis-gemini" class="w-full py-3 px-4 bg-purple-600 text-white font-semibold rounded-xl shadow-md transition duration-150 flex justify-center items-center" disabled>
+                <span class="mr-2">✨ Análisis Gemini (INACTIVO)</span>
+            </button>
+        </div>
+    </div>
+    
+    <main class="max-w-7xl mx-auto">
+        
+        <section id="tabs-container" class="mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button id="tab-resumen" class="tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition duration-150 border-indigo-500 text-indigo-600" data-target="seccion-resumen">
+                        Resumen y Transacciones
+                    </button>
+                    <button id="tab-categorias" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition duration-150" data-target="seccion-categorias">
+                        Administrar Datos
+                    </button>
+                </nav>
+            </div>
+        </section>
+
+        <div id="seccion-resumen" class="tab-content">
+            
+            <section id="resumen-dashboard" class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-gray-500">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-500">Saldo Inicial</h2>
+                        <i data-lucide="home" class="w-6 h-6 text-gray-500"></i>
+                    </div>
+                    <p id="saldo-inicial" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
+                    <p class="text-sm text-gray-400 mt-1">Saldo del mes anterior</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-green-500">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-500">Ingresos</h2>
+                        <i data-lucide="arrow-up-circle" class="w-6 h-6 text-green-500"></i>
+                    </div>
+                    <p id="ingresos-totales" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
+                    <p class="text-sm text-gray-400 mt-1">Total de entradas del mes</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-red-500">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-500">Gastos</h2>
+                        <i data-lucide="arrow-down-circle" class="w-6 h-6 text-red-500"></i>
+                    </div>
+                    <p id="gastos-totales" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
+                    <p class="text-sm text-gray-400 mt-1">Total de salidas del mes</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-blue-500">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-500">Saldo Final</h2>
+                        <i data-lucide="dollar-sign" class="w-6 h-6 text-blue-500"></i>
+                    </div>
+                    <p id="balance-neto" class="text-3xl font-bold mt-2 text-blue-600">$0.00</p>
+                    <p class="text-sm text-gray-400 mt-1">Saldo Inicial + Ingresos - Gastos</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-emerald-500">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-500">Ahorro Total</h2>
+                        <i data-lucide="gem" class="w-6 h-6 text-emerald-500"></i>
+                    </div>
+                    <p id="ahorro-acumulado-total" class="text-3xl font-bold text-emerald-600 mt-2">$0.00</p>
+                    <p class="text-sm text-gray-400 mt-1">Ahorro acumulado histórico</p>
+                </div>
+            </section>
+
+            <section class="bg-white p-6 rounded-xl card-shadow mb-8">
+                <h2 class="text-2xl font-bold mb-4 text-gray-700 flex items-center">
+                    <i data-lucide="wallet" class="w-6 h-6 mr-2 text-purple-500"></i>
+                    Resumen de Fondos por Cuenta
+                </h2>
+                <div id="resumen-cuentas" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <p class="text-gray-500">Calculando saldos...</p>
+                </div>
+            </section>
+
+            <section id="analisis-resultado" class="hidden"></section>
+
+            <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                
+                <div class="lg:col-span-1 space-y-6">
+                    
+                    <div class="bg-white p-6 rounded-xl card-shadow">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-700 flex items-center">
+                            <i data-lucide="plus-circle" class="w-6 h-6 mr-2 text-indigo-500"></i>
+                            Nueva Transacción
+                        </h2>
+                        <form id="form-transaccion" class="space-y-4">
+                            
+                            <div>
+                                <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
+                                <select id="tipo" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="ingreso">Ingreso</option>
+                                    <option value="gasto">Gasto</option>
+                                    <option value="ahorro">Ahorro</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="cuenta" class="block text-sm font-medium text-gray-700">Cuenta/Fondo</label>
+                                <select id="cuenta" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
+                                <select id="categoria" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    </select>
+                            </div>
+
+                            <div id="ahorro-sugerencia-container" class="space-y-2 hidden">
+                                <label for="ahorro-porcentaje" class="block text-sm font-medium text-gray-700">Porcentaje de Ahorro (%)</label>
+                                <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="10" placeholder="Ej: 15" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                <p id="ahorro-sugerencia-monto" class="text-sm text-indigo-600 font-semibold mt-1">Sugerencia: $0.00</p>
+                            </div>
+
+                            <div>
+                                <label for="monto" class="block text-sm font-medium text-gray-700">Monto ($)</label>
+                                <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+
+                            <div>
+                                <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                                <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            
+                            <div>
+                                <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+                                <input type="date" id="fecha" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+
+                            <button type="submit" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-150">
+                                Guardar Transacción
+                            </button>
+                            <div id="form-message" class="text-center mt-2 text-sm hidden"></div>
+                        </form>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl card-shadow border-t-4 border-gray-400">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-700 flex items-center">
+                            <i data-lucide="repeat" class="w-6 h-6 mr-2 text-gray-500"></i>
+                            Intercambio de Saldos
+                        </h2>
+                        <form id="form-intercambio" class="space-y-4">
+                            <div>
+                                <label for="monto-enviado" class="block text-sm font-medium text-gray-700">Monto Enviado (Sale de Origen) ($)</label>
+                                <input type="number" id="monto-enviado" required min="0.01" step="0.01" placeholder="Ej: 100.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                            </div>
+
+                            <div>
+                                <label for="monto-recibido" class="block text-sm font-medium text-gray-700">Monto Recibido (Entra a Destino) ($)</label>
+                                <input type="number" id="monto-recibido" required min="0.00" step="0.01" placeholder="Ej: 99.50 (Comisión de 0.50)" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                            </div>
+
+                            <div>
+                                <label for="cuenta-origen" class="block text-sm font-medium text-gray-700">Origen (Resta)</label>
+                                <select id="cuenta-origen" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="cuenta-destino" class="block text-sm font-medium text-gray-700">Destino (Suma)</label>
+                                <select id="cuenta-destino" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500">
+                                </select>
+                            </div>
+
+                            <button type="submit" class="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md transition duration-150">
+                                Realizar Intercambio
+                            </button>
+                            <div id="intercambio-message" class="text-center mt-2 text-sm hidden"></div>
+                        </form>
+                    </div>
+
+                </div>
+                <div class="lg:col-span-3 bg-white p-6 rounded-xl card-shadow">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-700">Distribución de Gastos</h2>
+                    
+                    <div id="chart-container" class="space-y-4">
+                        <div class="mb-6">
+                            <p class="text-lg font-medium text-gray-600">Total Gastado vs. Total Fondos (Mensual)</p>
+                            <div class="category-bar-container bg-gray-200 mt-2">
+                                <div id="gasto-bar-total" class="category-bar-segment transition-all duration-500" style="width: 0%;"></div>
+                            </div>
+                            <p id="gasto-porcentaje" class="text-right text-sm text-gray-500 mt-1">0% de los fondos disponibles gastados</p>
+                        </div>
+                        
+                        <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Gastos por Categoría</h3>
+                        <div id="gastos-por-categoria" class="space-y-3">
+                            <p class="text-gray-500 text-center">No hay gastos registrados aún.</p>
+                        </div>
+                        
+                        <div class="pt-6"> 
+                            <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Ingresos por Categoría</h3>
+                            <div id="ingresos-por-categoria" class="space-y-3">
+                                <p class="text-gray-500 text-center py-4">No hay ingresos registrados aún.</p>
+                            </div>
+                        </div>
+                        </div>
+                </div>
+            </section>
+
+            <section class="bg-white p-6 rounded-xl card-shadow">
+                <h2 class="text-2xl font-bold mb-4 text-gray-700">Historial de Transacciones del Mes</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuenta</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-transacciones" class="bg-white divide-y divide-gray-200">
+                            <tr><td colspan="7" class="p-4 text-center text-gray-500">Cargando transacciones...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <div id="seccion-categorias" class="tab-content hidden">
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700 flex items-center">
+                    <i data-lucide="list-checks" class="w-6 h-6 mr-2 text-indigo-500"></i>
+                    Administración de Categorías y Cuentas
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    
+                    <div id="admin-cuentas-container">
+                        <h3 class="text-xl font-semibold mb-3 text-purple-700 border-b pb-1">Cuentas/Fondos <span id="count-cuenta" class="text-sm font-normal text-gray-500"></span></h3>
+                        <ul id="lista-cuenta" class="space-y-2">
+                            </ul>
+                        <div class="mt-4">
+                            <input type="text" id="input-cuenta" placeholder="Nueva cuenta (Ej: Binance)" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2">
+                            <button data-tipo="cuenta" class="btn-agregar-general w-full py-2 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar Cuenta</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-green-700 border-b pb-1">Ingresos <span id="count-ingreso" class="text-sm font-normal text-gray-500"></span></h3>
+                        <ul id="lista-ingreso" class="space-y-2">
+                        </ul>
+                        <div class="mt-4">
+                            <input type="text" id="input-ingreso" placeholder="Nueva categoría de Ingreso" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2">
+                            <button data-tipo="ingreso" class="btn-agregar-general w-full py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-red-700 border-b pb-1">Gastos <span id="count-gasto" class="text-sm font-normal text-gray-500"></span></h3>
+                        <ul id="lista-gasto" class="space-y-2">
+                        </ul>
+                        <div class="mt-4">
+                            <input type="text" id="input-gasto" placeholder="Nueva categoría de Gasto" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2">
+                            <button data-tipo="gasto" class="btn-agregar-general w-full py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-blue-700 border-b pb-1">Ahorros <span id="count-ahorro" class="text-sm font-normal text-gray-500"></span></h3>
+                        <ul id="lista-ahorro" class="space-y-2">
+                        </ul>
+                        <div class="mt-4">
+                            <input type="text" id="input-ahorro" placeholder="Nueva categoría de Ahorro" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2">
+                            <button data-tipo="ahorro" class="btn-agregar-general w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar</button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div id="modal-container" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden items-center justify-center p-4">
+            <div class="bg-white rounded-lg p-6 max-w-sm w-full card-shadow">
+                <h3 id="modal-title" class="text-lg font-semibold mb-3 text-gray-800">Confirmar Eliminación</h3>
+                <p id="modal-body" class="text-gray-600 mb-4">¿Estás seguro de que quieres eliminar esta transacción?</p>
+                <div class="flex justify-end space-x-3">
+                    <button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+                    <button id="modal-confirm" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition">Eliminar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-container-edicion" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden items-center justify-center p-4">
+            <div class="bg-white rounded-lg p-6 max-w-lg w-full card-shadow">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Editar Transacción</h3>
+                <form id="form-edicion" class="space-y-4">
+                    <input type="hidden" id="edit-id">
+
+                    <div>
+                        <label for="edit-tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
+                        <select id="edit-tipo" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="ingreso">Ingreso</option>
+                            <option value="gasto">Gasto</option>
+                            <option value="ahorro">Ahorro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="edit-cuenta" class="block text-sm font-medium text-gray-700">Cuenta/Fondo</label>
+                        <select id="edit-cuenta" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            </select>
+                    </div>
+
+                    <div>
+                        <label for="edit-categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
+                        <select id="edit-categoria" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                            </select>
+                    </div>
+                    
+                    <div>
+                        <label for="edit-monto" class="block text-sm font-medium text-gray-700">Monto ($)</label>
+                        <input type="number" id="edit-monto" required min="0.01" step="0.01" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label for="edit-descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                        <input type="text" id="edit-descripcion" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label for="edit-fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+                        <input type="date" id="edit-fecha" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" id="modal-cancel-edicion" class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module">
+        // --- 1. CONFIGURACIÓN DE SUPABASE Y LIBRERÍAS ---
+        let createIcons; // Declarar aquí
+        try {
+            const lucide = await import('https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js');
+            // Asignar solo las funciones necesarias
+            createIcons = lucide.createIcons;
+            // Definir un objeto global de iconos para que createIcons() funcione
+            window.lucideIcons = {
+                Home: lucide.Home,
+                DollarSign: lucide.DollarSign,
+                ArrowUpCircle: lucide.ArrowUpCircle,
+                ArrowDownCircle: lucide.ArrowDownCircle,
+                PlusCircle: lucide.PlusCircle,
+                Trash2: lucide.Trash2,
+                Gem: lucide.Gem,
+                ListChecks: lucide.ListChecks,
+                XCircle: lucide.XCircle,
+                Wallet: lucide.Wallet,
+                Pencil: lucide.Pencil,
+                Edit: lucide.Edit,
+                Repeat: lucide.Repeat
+            };
+        } catch (e) {
+            console.error("Error crítico al cargar Lucide icons:", e);
+            // Fallback: si Lucide falla, define createIcons como una función vacía
+            // para que el resto del script no falle.
+            createIcons = () => {}; 
+        }
+
+        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+
+        // TUS CREDENCIALES DE SUPABASE (INTEGRADAS)
+        const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis'; 
+        const TABLA_TRANSACCIONES = 'transacciones';
+        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // --- 2. VARIABLES Y ESTADO ---
+        let todasTransacciones = []; 
+        let transaccionesMesActual = []; 
+        let mesSeleccionado = ''; 
+        let resumenMensual = {}; 
+        
+        let categorias = JSON.parse(localStorage.getItem('finanzasCategorias')) || {
+            ingreso: ['Salario', 'Freelance', 'Inversiones', 'Venta', 'Regalo', 'Otro Ingreso'],
+            gasto: ['Vivienda', 'Alimentación', 'Transporte', 'Ocio', 'Deudas', 'Servicios', 'Salud', 'Educación', 'Otro Gasto'],
+            ahorro: ['Fondo de Emergencia', 'Meta Viaje', 'Meta Casa', 'Inversión Crecimiento']
+        };
+        
+        // --- CONFIGURACIÓN DE CUENTAS ---
+        const NOMBRE_CUENTA_AHORROS_CLAVE = 'Cuenta de Ahorros'; 
+        let nombreCuentaAhorrosActual = localStorage.getItem('finanzasNombreAhorrosActual') || NOMBRE_CUENTA_AHORROS_CLAVE;
+
+        let cuentas = JSON.parse(localStorage.getItem('finanzasCuentas')) || [
+            'Efectivo', 'Mercantil', 'Binance', 'Zinli', nombreCuentaAhorrosActual
+        ];
+        
+        // Asegurar la consistencia de la cuenta de ahorro al inicio
+        (function initialAccountSetup() {
+            const index = cuentas.indexOf(nombreCuentaAhorrosActual);
+            if (index === -1) {
+                 cuentas.push(nombreCuentaAhorrosActual);
+            } else if (index !== cuentas.length - 1) {
+                cuentas.splice(index, 1);
+                cuentas.push(nombreCuentaAhorrosActual);
+            }
+        })();
+        // --- FIN CONFIGURACIÓN DE CUENTAS ---
+
+        // Referencias del DOM
+        const tipoSelect = document.getElementById('tipo');
+        const categoriaSelect = document.getElementById('categoria');
+        const cuentaSelect = document.getElementById('cuenta'); 
+        const formTransaccion = document.getElementById('form-transaccion');
+        const listaTransaccionesEl = document.getElementById('lista-transacciones');
+        const gastosPorCategoriaEl = document.getElementById('gastos-por-categoria');
+        const gastoBarTotalEl = document.getElementById('gasto-bar-total');
+        const gastoPorcentajeEl = document.getElementById('gasto-porcentaje');
+        const formMessageEl = document.getElementById('form-message');
+        const fechaInput = document.getElementById('fecha');
+        const selectorMesEl = document.getElementById('selector-mes');
+        const ahorroPorcentajeInput = document.getElementById('ahorro-porcentaje'); 
+        const ahorroSugerenciaContainer = document.getElementById('ahorro-sugerencia-container');
+        
+        // DOM Intercambio (NUEVO)
+        const formIntercambio = document.getElementById('form-intercambio');
+        const cuentaOrigenSelect = document.getElementById('cuenta-origen');
+        const cuentaDestinoSelect = document.getElementById('cuenta-destino');
+        const montoEnviadoInput = document.getElementById('monto-enviado'); 
+        const montoRecibidoInput = document.getElementById('monto-recibido'); 
+        const intercambioMessageEl = document.getElementById('intercambio-message');
+
+
+        // Referencias del DOM de UI Avanzada
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const categoriasListas = {
+            ingreso: document.getElementById('lista-ingreso'),
+            gasto: document.getElementById('lista-gasto'),
+            ahorro: document.getElementById('lista-ahorro'),
+            cuenta: document.getElementById('lista-cuenta') 
+        };
+        const categoriasInputs = {
+            ingreso: document.getElementById('input-ingreso'),
+            gasto: document.getElementById('input-gasto'),
+            ahorro: document.getElementById('input-ahorro'),
+            cuenta: document.getElementById('input-cuenta') 
+        };
+        const categoriasCounts = {
+            ingreso: document.getElementById('count-ingreso'),
+            gasto: document.getElementById('count-gasto'),
+            ahorro: document.getElementById('count-ahorro'),
+            cuenta: document.getElementById('count-cuenta') 
+        };
+        const btnAgregarGeneral = document.querySelectorAll('.btn-agregar-general');
+        
+        const modalContainerConfirm = document.getElementById('modal-container');
+        const modalConfirmDelete = document.getElementById('modal-confirm');
+        const modalCancelConfirm = document.getElementById('modal-cancel');
+        const modalContainerEdicion = document.getElementById('modal-container-edicion');
+        const formEdicion = document.getElementById('form-edicion');
+        const modalCancelEdicion = document.getElementById('modal-cancel-edicion');
+        const editTipoSelect = document.getElementById('edit-tipo');
+        const editCuentaSelect = document.getElementById('edit-cuenta');
+        const editCategoriaSelect = document.getElementById('edit-categoria');
+        const editMontoInput = document.getElementById('edit-monto');
+        const editDescripcionInput = document.getElementById('edit-descripcion');
+        const editFechaInput = document.getElementById('edit-fecha');
+        const editIdInput = document.getElementById('edit-id');
+
+        
+        // --- 3. LÓGICA DE UTILIDAD Y CÁLCULO ---
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('es-US', { style: 'currency', currency: 'USD' }).format(amount);
+        };
+        
+        function calcularSugerenciaAhorro() {
+            const tipo = tipoSelect.value;
+            const porcentaje = parseFloat(ahorroPorcentajeInput.value) || 0;
+            const porcentajeValido = isNaN(porcentaje) || porcentaje < 0 ? 0 : porcentaje;
+            
+            const ingresosTotales = resumenMensual.ingresosTotales || 0;
+            
+            const montoSugerido = ingresosTotales * (porcentajeValido / 100);
+
+            document.getElementById('ahorro-sugerencia-monto').textContent = `Sugerencia (${porcentajeValido}% de ${formatCurrency(ingresosTotales)}): ${formatCurrency(montoSugerido)}`;
+            
+            if (tipo === 'ahorro') {
+                ahorroSugerenciaContainer.classList.remove('hidden');
+                if (montoSugerido > 0) {
+                    document.getElementById('monto').value = montoSugerido.toFixed(2);
+                } else {
+                     document.getElementById('monto').value = ''; 
+                }
+            } else {
+                ahorroSugerenciaContainer.classList.add('hidden');
+            }
+        }
+        
+        function calcularSaldosCuentas() {
+            const saldos = {};
+            cuentas.forEach(c => saldos[c] = 0);
+            
+            const nombreCuentaAhorros = nombreCuentaAhorrosActual; 
+            
+            todasTransacciones.forEach(t => {
+                if (t.cuenta && saldos.hasOwnProperty(t.cuenta)) {
+                    
+                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') { 
+                        saldos[t.cuenta] += t.monto;
+                    } 
+                    
+                    else if (t.tipo === 'gasto' || t.tipo === 'intercambio_out') { 
+                        saldos[t.cuenta] -= t.monto;
+                    } 
+                    
+                    else if (t.tipo === 'ahorro') {
+                        
+                        if (t.cuenta === nombreCuentaAhorros) {
+                            saldos[t.cuenta] += t.monto;
+                        } else {
+                            saldos[t.cuenta] -= t.monto;
+                        }
+                    }
+                }
+            });
+            return saldos;
+        }
+
+        // --- CÓDIGO NUEVO (CORREGIDO) ---
+        function calcularResumenMensual() {
+            let totalEntradasMes = 0; // Flujo de entrada total (para balance)
+            let totalSalidasMes = 0;  // Flujo de salida total (para balance)
+            
+            let ingresosRealesMes = 0; // Para la tarjeta "Ingresos"
+            let gastosRealesMes = 0;   // Para la tarjeta "Gastos" (incluye Ahorro)
+
+            let gastosPorCategoria = {}; // Solo para 'gasto' real
+            let ingresosPorCategoria = {}; // <-- ¡NUEVA VARIABLE!
+            let ahorroAcumulado = 0;
+            let saldoInicial = 0;
+            
+            const mesActualSeleccionado = mesSeleccionado;
+
+            todasTransacciones.forEach(t => {
+                const monto = t.monto;
+
+                // El ahorro acumulado total es histórico
+                if (t.tipo === 'ahorro') {
+                    ahorroAcumulado += monto;
+                }
+
+                // 1. CÁLCULO DEL SALDO INICIAL (Transacciones de meses anteriores)
+                // Esta lógica está bien, ya que los intercambios afectan el saldo
+                if (t.mesAnio < mesActualSeleccionado) {
+                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
+                        saldoInicial += monto;
+                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
+                        saldoInicial -= monto;
+                    }
+                
+                // 2. CÁLCULO DEL MES ACTUAL
+                } else if (t.mesAnio === mesActualSeleccionado) {
+                    
+                    // --- Flujos de ENTRADA (para el balance) ---
+                    if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') { 
+                        totalEntradasMes += monto;
+                        
+                        // Solo contamos 'ingreso' para la tarjeta de resumen
+                        if (t.tipo === 'ingreso') {
+                            ingresosRealesMes += monto;
+                            // El gráfico de categorías SÍ debe incluir solo ingresos reales
+                            ingresosPorCategoria[t.categoria] = (ingresosPorCategoria[t.categoria] || 0) + monto; // <-- ¡NUEVO CÁLCULO!
+                        }
+                        
+                    // --- Flujos de SALIDA (para el balance) ---
+                    } else if (t.tipo === 'gasto' || t.tipo === 'ahorro' || t.tipo === 'intercambio_out') {
+                        totalSalidasMes += monto; 
+                        
+                        // Solo contamos 'gasto' y 'ahorro' para la tarjeta de resumen
+                        if (t.tipo === 'gasto') {
+                            gastosRealesMes += monto;
+                            // El gráfico de categorías SÍ debe incluir solo gastos
+                            gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + monto;
+                        } else if (t.tipo === 'ahorro') {
+                            // El ahorro también lo contamos como "gasto" en el resumen
+                            gastosRealesMes += monto; 
+                        }
+                    }
+                }
+            });
+            
+            // El Saldo Final (balanceNeto) se calcula con los flujos TOTALES
+            const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
+
+            // Devolvemos los valores REALES para las tarjetas de resumen
+            return { 
+                ingresosTotales: ingresosRealesMes, 
+                gastosTotales: gastosRealesMes, 
+                balanceNeto: balanceNeto, 
+                saldoInicial: saldoInicial, 
+                gastosPorCategoria: gastosPorCategoria, 
+                ingresosPorCategoria: ingresosPorCategoria, // <-- ¡NUEVO RETORNO!
+                ahorroAcumulado: ahorroAcumulado 
+            };
+        }
+
+        // --- 4. FUNCIONES CRUD CON SUPABASE ---
+        
+        function guardarConfiguracionLocal() {
+             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
+             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+             localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
+        }
+        
+        async function cargarDatosDesdeSupabase() {
+            // Selecciona 'cuenta' que es la columna requerida
+            const { data, error } = await supabase
+                .from(TABLA_TRANSACCIONES)
+                .select('id, tipo, categoria, descripcion, monto, fecha, cuenta'); 
+            
+            if (error) {
+                console.error("Error al cargar datos de Supabase:", error);
+                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. ¿Añadiste la columna 'cuenta' a la tabla 'transacciones'?</td></tr>`;
+                todasTransacciones = [];
+            } else {
+                todasTransacciones = data.map(t => ({
+                    ...t,
+                    monto: parseFloat(t.monto), 
+                    mesAnio: t.fecha.substring(0, 7) 
+                }));
+            }
+            
+            filtrarYRenderizar();
+        }
+
+        // FUNCIÓN CLAVE: Ahora maneja inserciones a Supabase con todos los campos
+        async function guardarTransaccion(transaccion, esIntercambio = false) {
+            
+            const categoriaFinal = esIntercambio ? 'Intercambio' : transaccion.categoria;
+
+            const { error } = await supabase
+                .from(TABLA_TRANSACCIONES)
+                .insert([{
+                    tipo: transaccion.tipo,
+                    categoria: categoriaFinal,
+                    descripcion: transaccion.descripcion,
+                    monto: parseFloat(transaccion.monto),
+                    fecha: transaccion.fecha,
+                    cuenta: transaccion.cuenta, 
+                }]);
+                
+            if (error) {
+                console.error("Error al guardar en Supabase:", error);
+                return { success: false, error: error };
+            } 
+            return { success: true };
+        }
+
+        // FUNCIÓN CLAVE: Manejo de Intercambios (Doble Inserción a Supabase)
+        async function manejarIntercambio(origen, destino, montoEnviado, montoRecibido, fecha) {
+            if (origen === destino) {
+                intercambioMessageEl.textContent = "Error: Las cuentas de origen y destino no pueden ser iguales.";
+                intercambioMessageEl.classList.remove('hidden', 'text-green-500');
+                intercambioMessageEl.classList.add('text-red-500');
+                return;
+            }
+            
+            const montoEnviadoFloat = parseFloat(montoEnviado);
+            const montoRecibidoFloat = parseFloat(montoRecibido);
+            const comision = montoEnviadoFloat - montoRecibidoFloat;
+            
+            if (comision < 0) {
+                 intercambioMessageEl.textContent = "Error: El monto recibido no puede ser mayor que el monto enviado.";
+                 intercambioMessageEl.classList.remove('hidden', 'text-green-500');
+                 intercambioMessageEl.classList.add('text-red-500');
+                 return;
+            }
+            
+            // 1. Transacción de Salida (Resta el MONTO ENVIADO de la cuenta de origen)
+            const resultOut = await guardarTransaccion({
+                tipo: 'intercambio_out',
+                cuenta: origen,
+                monto: montoEnviadoFloat, 
+                descripcion: `Transferencia a ${destino} (Comisión: ${formatCurrency(comision)})`,
+                fecha: fecha,
+            }, true);
+            
+            if (!resultOut.success) {
+                 intercambioMessageEl.textContent = `Error al guardar salida: ${resultOut.error.message}`;
+                 intercambioMessageEl.classList.add('text-red-500');
+                 return;
+            }
+
+            // 2. Transacción de Entrada (Suma el MONTO RECIBIDO a la cuenta de destino)
+            const resultIn = await guardarTransaccion({
+                tipo: 'intercambio_in',
+                cuenta: destino,
+                monto: montoRecibidoFloat, 
+                descripcion: `Transferencia de ${origen} (Comisión: ${formatCurrency(comision)})`,
+                fecha: fecha,
+            }, true);
+            
+            if (!resultIn.success) {
+                 intercambioMessageEl.textContent = `Error al guardar entrada: ${resultIn.error.message}`;
+                 intercambioMessageEl.classList.add('text-red-500');
+                 return;
+            }
+            
+
+            await cargarDatosDesdeSupabase();
+            
+            intercambioMessageEl.textContent = "¡Intercambio realizado con éxito!";
+            intercambioMessageEl.classList.remove('hidden', 'text-red-500');
+            intercambioMessageEl.classList.add('text-green-500');
+            formIntercambio.reset();
+            setTimeout(() => intercambioMessageEl.classList.add('hidden'), 3000);
+        }
+
+
+        async function eliminarTransaccion(id) {
+            
+            const { error } = await supabase
+                .from(TABLA_TRANSACCIONES)
+                .delete()
+                .eq('id', id); 
+
+            if (error) {
+                console.error("Error al eliminar en Supabase:", error);
+            } else {
+                await cargarDatosDesdeSupabase();
+            }
+        }
+        
+        // --- 5. LÓGICA DE FILTRADO Y CÁLCULO ---
+
+        function filtrarYRenderizar() {
+            transaccionesMesActual = todasTransacciones
+                .filter(t => t.mesAnio === mesSeleccionado)
+                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                
+            resumenMensual = calcularResumenMensual();
+
+            const { ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado } = resumenMensual;
+            renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado);
+            renderizarListaTransacciones();
+            calcularSugerenciaAhorro(); 
+            renderizarResumenCuentas(); 
+        }
+
+
+        // --- 6. LÓGICA DE RENDERIZACIÓN DE LA UI ---
+        
+        function inicializarSelectorMes() {
+            const hoy = new Date();
+            const year = hoy.getFullYear();
+            const month = hoy.getMonth();
+            
+            let opcionesHTML = '';
+            const mesesNombre = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+            for (let i = 0; i <= 5; i++) {
+                const fecha = new Date(year, month + i, 1);
+                const valor = `${fecha.getFullYear()}-${(fecha.getMonth() + 1).toString().padStart(2, '0')}`;
+                const nombre = `${mesesNombre[fecha.getMonth()]} ${fecha.getFullYear()}`;
+                opcionesHTML += `<option value="${valor}">${nombre}</option>`;
+            }
+
+            selectorMesEl.innerHTML = opcionesHTML;
+            mesSeleccionado = `${year}-${(month + 1).toString().padStart(2, '0')}`;
+            selectorMesEl.value = mesSeleccionado;
+            fechaInput.value = hoy.toISOString().substring(0, 10);
+
+            selectorMesEl.addEventListener('change', (e) => {
+                mesSeleccionado = e.target.value;
+                filtrarYRenderizar();
+            });
+        }
+        
+        function inicializarPestanas() {
+            document.getElementById('tab-resumen').classList.add('border-indigo-500', 'text-indigo-600');
+            document.getElementById('seccion-resumen').classList.remove('hidden');
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+
+                    tabContents.forEach(content => content.classList.add('hidden'));
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('border-indigo-500', 'text-indigo-600');
+                        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    });
+
+                    document.getElementById(targetId).classList.remove('hidden');
+                    button.classList.add('border-indigo-500', 'text-indigo-600');
+                    button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+
+                    if (targetId === 'seccion-categorias') {
+                        renderizarCategorias();
+                        renderizarCuentas(); 
+                    }
+                    
+                    if (targetId === 'seccion-resumen') {
+                         actualizarCategoriasYCuentas(); 
+                    }
+                });
+            });
+        }
+        
+        function renderizarResumenCuentas() {
+            const saldos = calcularSaldosCuentas();
+            const resumenCuentasEl = document.getElementById('resumen-cuentas');
+            resumenCuentasEl.innerHTML = '';
+            
+            const saldosOrdenados = cuentas.map(c => [c, saldos[c] !== undefined ? saldos[c] : 0]);
+
+            if (saldosOrdenados.length === 0) {
+                resumenCuentasEl.innerHTML = '<p class="text-gray-500">No hay cuentas configuradas o transacciones registradas.</p>';
+                return;
+            }
+
+            saldosOrdenados.forEach(([cuenta, saldo]) => {
+                const color = saldo >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                const html = `
+                    <div class="${color} p-3 rounded-lg border border-gray-200">
+                        <p class="text-sm font-semibold">${cuenta}</p>
+                        <p class="text-xl font-bold mt-1">${formatCurrency(saldo)}</p>
+                    </div>
+                `;
+                resumenCuentasEl.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado) {
+            document.getElementById('saldo-inicial').textContent = formatCurrency(saldoInicial);
+            document.getElementById('ingresos-totales').textContent = formatCurrency(ingresosTotales);
+            document.getElementById('gastos-totales').textContent = formatCurrency(gastosTotales);
+            document.getElementById('ahorro-acumulado-total').textContent = formatCurrency(ahorroAcumulado); 
+            
+            const saldoInicialEl = document.getElementById('saldo-inicial');
+            saldoInicialEl.classList.remove('text-green-600', 'text-red-600', 'text-gray-800');
+            if (saldoInicial > 0) saldoInicialEl.classList.add('text-green-600'); 
+            else if (saldoInicial < 0) saldoInicialEl.classList.add('text-red-600'); 
+            else saldoInicialEl.classList.add('text-gray-800');
+
+            const balanceEl = document.getElementById('balance-neto');
+            balanceEl.textContent = formatCurrency(balanceNeto);
+            balanceEl.classList.remove('text-green-600', 'text-red-600', 'text-blue-600');
+            if (balanceNeto > 0) balanceEl.classList.add('text-green-600'); 
+            else if (balanceNeto < 0) balanceEl.classList.add('text-red-600'); 
+            else balanceEl.classList.add('text-blue-600');
+            
+            let totalDisponibleParaGasto = saldoInicial + ingresosTotales;
+            let porcentajeGasto = 0;
+            if (totalDisponibleParaGasto > 0) porcentajeGasto = (gastosTotales / totalDisponibleParaGasto) * 100;
+            porcentajeGasto = Math.min(porcentajeGasto, 100); 
+
+            gastoBarTotalEl.style.width = `${porcentajeGasto}%`;
+            gastoPorcentajeEl.textContent = `${porcentajeGasto.toFixed(1)}% de los fondos disponibles gastados`;
+            gastoBarTotalEl.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-indigo-500');
+            if (porcentajeGasto >= 80) gastoBarTotalEl.classList.add('bg-red-500'); 
+            else if (porcentajeGasto > 50) gastoBarTotalEl.classList.add('bg-yellow-500'); 
+            else gastoBarTotalEl.classList.add('bg-indigo-500');
+
+            renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales);
+            // ¡NUEVA LLAMADA A FUNCIÓN!
+            renderizarIngresosPorCategoria(resumenMensual.ingresosPorCategoria, ingresosTotales);
+        }
+
+        function renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales) {
+            gastosPorCategoriaEl.innerHTML = '';
+            if (gastosTotales === 0) {
+                gastosPorCategoriaEl.innerHTML = '<p class="text-gray-500 text-center py-4">No hay gastos reales (sin incluir ahorro) registrados en este mes.</p>';
+                return;
+            }
+            const colores = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f43f5e'];
+            let colorIndex = 0;
+            const categoriasOrdenadas = Object.entries(gastosPorCategoria).sort(([, a], [, b]) => b - a);
+
+            categoriasOrdenadas.forEach(([categoria, monto]) => {
+                const porcentaje = (monto / gastosTotales) * 100;
+                const color = colores[colorIndex % colores.length];
+                colorIndex++;
+                const html = `
+                    <div>
+                        <div class="flex justify-between text-sm font-medium">
+                            <span class="text-gray-700">${categoria}</span>
+                            <span class="text-gray-600">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
+                        </div>
+                        <div class="category-bar-container bg-gray-200 mt-1">
+                            <div class="category-bar-segment transition-all duration-500" style="width: ${porcentaje}%; background-color: ${color};"></div>
+                        </div>
+                    </div>
+                `;
+                gastosPorCategoriaEl.insertAdjacentHTML('beforeend', html);
+            });
+        }
+        
+        // ============ NUEVA FUNCIÓN PARA RENDERIZAR INGRESOS ============
+        function renderizarIngresosPorCategoria(ingresosPorCategoria, ingresosTotales) {
+            const ingresosPorCategoriaEl = document.getElementById('ingresos-por-categoria'); // Referencia al nuevo DIV
+            ingresosPorCategoriaEl.innerHTML = '';
+            
+            if (ingresosTotales === 0) {
+                ingresosPorCategoriaEl.innerHTML = '<p class="text-gray-500 text-center py-4">No hay ingresos registrados en este mes.</p>';
+                return;
+            }
+            
+            // Nuevos colores para diferenciar los gráficos
+            const colores = ['#22c55e', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5']; 
+            let colorIndex = 0;
+            const categoriasOrdenadas = Object.entries(ingresosPorCategoria).sort(([, a], [, b]) => b - a);
+
+            categoriasOrdenadas.forEach(([categoria, monto]) => {
+                const porcentaje = (monto / ingresosTotales) * 100;
+                const color = colores[colorIndex % colores.length];
+                colorIndex++;
+                const html = `
+                    <div>
+                        <div class="flex justify-between text-sm font-medium">
+                            <span class="text-gray-700">${categoria}</span>
+                            <span class="text-gray-600">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
+                        </div>
+                        <div class="category-bar-container bg-gray-200 mt-1">
+                            <div class="category-bar-segment transition-all duration-500" style="width: ${porcentaje}%; background-color: ${color};"></div>
+                        </div>
+                    </div>
+                `;
+                ingresosPorCategoriaEl.insertAdjacentHTML('beforeend', html);
+            });
+        }
+        // =================================================================
+
+        function renderizarListaTransacciones() {
+            if (transaccionesMesActual.length === 0) {
+                listaTransaccionesEl.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500">No hay transacciones registradas para este mes.</td></tr>`;
+                return;
+            }
+
+            listaTransaccionesEl.innerHTML = transaccionesMesActual.map(t => {
+                const esIngreso = t.tipo === 'ingreso';
+                const esAhorro = t.tipo === 'ahorro';
+                const esIntercambio = t.tipo === 'intercambio_in' || t.tipo === 'intercambio_out';
+
+                let montoClase;
+                let tipoClase;
+                let tipoTexto;
+
+                if (esIntercambio) {
+                    tipoClase = 'bg-gray-100 text-gray-800';
+                    tipoTexto = t.tipo === 'intercambio_in' ? 'INTERCAMBIO (+)' : 'INTERCAMBIO (-)';
+                    montoClase = 'text-gray-600 font-semibold'; 
+                } else {
+                    montoClase = esIngreso ? 'text-green-600 font-semibold' : esAhorro ? 'text-blue-600 font-semibold' : 'text-red-600 font-semibold';
+                    tipoClase = esIngreso ? 'bg-green-100 text-green-800' : esAhorro ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800';
+                    tipoTexto = esIngreso ? 'INGRESO' : esAhorro ? 'AHORRO' : 'GASTO';
+                }
+                
+
+                return `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${t.fecha}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${tipoClase}">${tipoTexto}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${t.cuenta || 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${t.categoria}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">${t.descripcion}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm ${montoClase}">${formatCurrency(t.monto)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <button data-id="${t.id}" class="btn-editar text-indigo-500 hover:text-indigo-700 transition" title="Editar Transacción">
+                                <i data-lucide="pencil" class="w-5 h-5 inline-block"></i>
+                            </button>
+                            <button data-id="${t.id}" class="btn-eliminar text-red-500 hover:text-red-700 transition" title="Eliminar Transacción">
+                                <i data-lucide="trash-2" class="w-5 h-5 inline-block"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            try {
+                createIcons({ icons: window.lucideIcons }); 
+            } catch (e) {
+                 console.warn("Error al renderizar iconos de la tabla:", e.message);
+            }
+        }
+
+        // --- 7. MANEJO DE EVENTOS ---
+
+        function actualizarCategoriasYCuentas() {
+            // Actualiza los selectores de categoría y cuenta en el formulario principal
+            actualizarCategorias();
+            
+            // Actualiza los selectores de cuenta en el formulario de Intercambio
+            const opcionesCuentas = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
+            cuentaSelect.innerHTML = opcionesCuentas;
+            cuentaOrigenSelect.innerHTML = opcionesCuentas;
+            cuentaDestinoSelect.innerHTML = opcionesCuentas;
+        }
+
+        function actualizarCategorias() {
+            const tipo = tipoSelect.value;
+            const cats = categorias[tipo] || [];
+            categoriaSelect.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            calcularSugerenciaAhorro(); // Recalcula la sugerencia al cambiar el tipo
+        }
+        
+        // --- FUNCIÓN CRUD LOCALES (para configuración) ---
+        
+        // La función duplicada "guardarConfiguracionLocal" debe eliminarse de aquí.
+// Esta sección debe empezar con "guardarCuentas".
+
+
+// Esta función SÍ debe estar
+function guardarCuentas() {
+    localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+}
+
+// Esta función SÍ debe estar
+function guardarNombreCuentaAhorros(nuevoNombre) {
+    localStorage.setItem('finanzasNombreAhorrosActual', nuevoNombre);
+    nombreCuentaAhorrosActual = nuevoNombre;
+}
+
+        // --- EVENT HANDLERS ---
+        
+        tipoSelect.addEventListener('change', actualizarCategorias);
+        document.getElementById('monto').addEventListener('input', calcularSugerenciaAhorro);
+        ahorroPorcentajeInput.addEventListener('input', calcularSugerenciaAhorro);
+
+        formTransaccion.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fechaTransaccion = document.getElementById('fecha').value;
+            const mesAnioTransaccion = fechaTransaccion.substring(0, 7);
+
+            if (mesAnioTransaccion !== mesSeleccionado) {
+                 formMessageEl.textContent = `Advertencia: La transacción es del mes ${mesAnioTransaccion}, pero estás viendo ${mesSeleccionado}. Se guardará.`;
+                 formMessageEl.classList.remove('hidden', 'text-green-500');
+                 formMessageEl.classList.add('text-red-500');
+                 setTimeout(() => formMessageEl.classList.add('hidden'), 5000);
+            }
+
+            const transaccion = {
+                tipo: tipoSelect.value,
+                categoria: categoriaSelect.value,
+                monto: parseFloat(document.getElementById('monto').value),
+                descripcion: document.getElementById('descripcion').value.trim(),
+                fecha: fechaTransaccion,
+                cuenta: cuentaSelect.value, // CAMPO AÑADIDO PARA SUBIR A SUPABASE
+            };
+
+            if (transaccion.descripcion && transaccion.monto > 0 && transaccion.cuenta) {
+                const result = await guardarTransaccion(transaccion);
+
+                if (result.success) {
+                    await cargarDatosDesdeSupabase(); 
+                    formMessageEl.textContent = "¡Transacción guardada con éxito en la nube!";
+                    formMessageEl.classList.remove('hidden', 'text-red-500');
+                    formMessageEl.classList.add('text-green-500');
+                    formTransaccion.reset();
+                    fechaInput.value = new Date().toISOString().substring(0, 10);
+                    setTimeout(() => formMessageEl.classList.add('hidden'), 3000);
+                } else {
+                    formMessageEl.textContent = `Error al guardar: ${result.error.message}. ¿Añadiste la columna 'cuenta' a Supabase?`;
+                    formMessageEl.classList.remove('hidden', 'text-green-500');
+                    formMessageEl.classList.add('text-red-500');
+                }
+            } else {
+                formMessageEl.textContent = "Por favor, complete todos los campos (incluida la cuenta) correctamente.";
+                formMessageEl.classList.remove('hidden', 'text-green-500');
+                formMessageEl.classList.add('text-red-500');
+            }
+        });
+        
+        // Evento de Intercambio (MODIFICADO)
+        formIntercambio.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const origen = cuentaOrigenSelect.value;
+            const destino = cuentaDestinoSelect.value;
+            const montoEnviado = montoEnviadoInput.value;
+            const montoRecibido = montoRecibidoInput.value;
+            const fecha = new Date().toISOString().substring(0, 10);
+            
+            const montoEnviadoFloat = parseFloat(montoEnviado);
+            const montoRecibidoFloat = parseFloat(montoRecibido);
+            
+            if (montoEnviadoFloat > 0 && montoRecibidoFloat >= 0 && montoEnviadoFloat >= montoRecibidoFloat) {
+                 manejarIntercambio(origen, destino, montoEnviadoFloat, montoRecibidoFloat, fecha);
+            } else {
+                intercambioMessageEl.textContent = "Error: El monto enviado debe ser mayor o igual al recibido, y ambos válidos.";
+                intercambioMessageEl.classList.remove('hidden', 'text-green-500');
+                intercambioMessageEl.classList.add('text-red-500');
+            }
+        });
+
+        // --- LISTENERS DE ACCIONES DE LA TABLA Y MODALES ---
+
+        listaTransaccionesEl.addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.btn-eliminar');
+            const editButton = e.target.closest('.btn-editar'); // CORREGIDO: Listener de Edición
+
+            if (deleteButton) {
+                const id = deleteButton.dataset.id;
+                mostrarModalConfirmacion(id);
+            }
+            if (editButton) { 
+                const id = editButton.dataset.id;
+                mostrarModalEdicion(id);
+            }
+        });
+
+        let idAeliminar = null;
+        function mostrarModalConfirmacion(id) {
+            idAeliminar = id;
+            modalContainerConfirm.classList.remove('hidden');
+            modalContainerConfirm.classList.add('flex');
+        }
+
+        modalCancelConfirm.addEventListener('click', () => {
+            modalContainerConfirm.classList.remove('flex');
+            modalContainerConfirm.classList.add('hidden');
+            idAeliminar = null;
+        });
+
+        modalConfirmDelete.addEventListener('click', () => {
+            if (idAeliminar) {
+                eliminarTransaccion(idAeliminar);
+            }
+            modalContainerConfirm.classList.remove('flex');
+            modalContainerConfirm.classList.add('hidden');
+            idAeliminar = null;
+        });
+        
+        function actualizarOpcionesEdicion(currentTipo, currentCategoria, currentCuenta) {
+            
+            editCuentaSelect.innerHTML = cuentas.map(c => 
+                `<option value="${c}" ${c === currentCuenta ? 'selected' : ''}>${c}</option>`
+            ).join('');
+
+            const llenarCategorias = (tipo) => {
+                const cats = categorias[tipo] || [];
+                editCategoriaSelect.innerHTML = cats.map(cat => 
+                    `<option value="${cat}" ${cat === currentCategoria ? 'selected' : ''}>${cat}</option>`
+                ).join('');
+            };
+
+            editTipoSelect.value = currentTipo;
+            llenarCategorias(currentTipo);
+
+            editTipoSelect.onchange = null; 
+            editTipoSelect.onchange = () => {
+                const nuevoTipo = editTipoSelect.value;
+                llenarCategorias(nuevoTipo);
+            };
+        }
+        
+        formEdicion.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const transaccionEditada = {
+                id: editIdInput.value,
+                tipo: editTipoSelect.value,
+                cuenta: editCuentaSelect.value,
+                categoria: editCategoriaSelect.value,
+                monto: parseFloat(editMontoInput.value),
+                descripcion: editDescripcionInput.value.trim(),
+                fecha: editFechaInput.value,
+            };
+
+            if (transaccionEditada.descripcion && transaccionEditada.monto > 0 && transaccionEditada.cuenta) {
+                actualizarTransaccionSupabase(transaccionEditada);
+            } else {
+                alert("Por favor, complete todos los campos correctamente en el formulario de edición.");
+            }
+        });
+        
+        async function actualizarTransaccionSupabase(transaccion) {
+             const { error } = await supabase
+                .from(TABLA_TRANSACCIONES)
+                .update({ 
+                    tipo: transaccion.tipo,
+                    categoria: transaccion.categoria,
+                    monto: transaccion.monto,
+                    descripcion: transaccion.descripcion,
+                    fecha: transaccion.fecha,
+                    cuenta: transaccion.cuenta
+                 })
+                .eq('id', transaccion.id);
+
+            if (error) {
+                console.error("Error al actualizar en Supabase:", error);
+                alert("Error al actualizar: " + error.message);
+            } else {
+                modalContainerEdicion.classList.add('hidden');
+                await cargarDatosDesdeSupabase();
+            }
+        }
+
+
+        modalCancelEdicion.addEventListener('click', () => {
+            modalContainerEdicion.classList.remove('flex');
+            modalContainerEdicion.classList.add('hidden');
+            editTipoSelect.onchange = null; 
+        });
+        
+        function mostrarModalEdicion(id) {
+const transaccion = todasTransacciones.find(t => t.id === id);            if (!transaccion) return;
+
+            editIdInput.value = transaccion.id;
+            editMontoInput.value = transaccion.monto.toFixed(2);
+            editDescripcionInput.value = transaccion.descripcion;
+            editFechaInput.value = transaccion.fecha;
+            
+            actualizarOpcionesEdicion(transaccion.tipo, transaccion.categoria, transaccion.cuenta);
+            
+            modalContainerEdicion.classList.remove('hidden');
+            modalContainerEdicion.classList.add('flex');
+        }
+
+        // --- Funciones para la pestaña Administrar Datos (DRAG & DROP y Edición) ---
+
+        function agregarGeneral(tipo, nombre) {
+            nombre = nombre.trim();
+            if (!nombre) return false;
+            
+            let array;
+            let guardarFn;
+
+            if (tipo === 'cuenta') {
+                array = cuentas;
+                guardarFn = guardarCuentas;
+            } else {
+                array = categorias[tipo];
+                guardarFn = guardarConfiguracionLocal;
+            }
+            
+            if (tipo === 'cuenta' && (nombre === NOMBRE_CUENTA_AHORROS_CLAVE || nombre === nombreCuentaAhorrosActual)) {
+                 alert("No puedes agregar otra cuenta con ese nombre reservado para ahorros.");
+                 return false;
+            }
+
+            if (!array.includes(nombre)) {
+                
+                const indexAhorros = array.indexOf(nombreCuentaAhorrosActual);
+                if (indexAhorros !== -1) {
+                    array.splice(indexAhorros, 1);
+                }
+                
+                array.push(nombre); 
+                
+                if (indexAhorros !== -1) {
+                    array.push(nombreCuentaAhorrosActual);
+                }
+                
+                guardarFn();
+                if (tipo === 'cuenta') renderizarCuentas();
+                else renderizarCategorias();
+                categoriasInputs[tipo].value = ''; 
+                actualizarCategoriasYCuentas(); 
+                return true;
+            } else {
+                alert(`${tipo === 'cuenta' ? 'La cuenta' : 'La categoría'} "${nombre}" ya existe.`);
+            }
+            return false;
+        }
+
+        function eliminarGeneral(tipo, nombre) {
+            let array;
+            let guardarFn;
+            let transaccionKey = tipo === 'cuenta' ? 'cuenta' : 'categoria';
+
+            if (tipo === 'cuenta') {
+                if (nombre === nombreCuentaAhorrosActual) {
+                    alert("La cuenta de ahorro principal no puede ser eliminada.");
+                    return false;
+                }
+                
+                array = cuentas;
+                guardarFn = guardarCuentas;
+            } else {
+                array = categorias[tipo];
+                guardarFn = guardarConfiguracionLocal;
+            }
+
+            const index = array.indexOf(nombre);
+            if (index > -1) {
+                const transaccionesActivas = todasTransacciones.filter(t => t[transaccionKey] === nombre);
+                
+                if (transaccionesActivas.length > 0) {
+                    alert(`No se puede eliminar porque tiene ${transaccionesActivas.length} transacciones registradas. Elimina las transacciones primero.`);
+                    return false;
+                }
+                
+                array.splice(index, 1);
+                guardarFn();
+                if (tipo === 'cuenta') renderizarCuentas();
+                else renderizarCategorias();
+                actualizarCategoriasYCuentas(); 
+                return true;
+            }
+            return false;
+        }
+
+        function renderizarCuentas() { 
+            const listaEl = categoriasListas['cuenta'];
+            const countEl = categoriasCounts['cuenta'];
+            listaEl.innerHTML = '';
+            
+            cuentas.forEach((cuenta, index) => {
+                const esAhorros = cuenta === nombreCuentaAhorrosActual;
+                const listItem = document.createElement('li');
+                
+                listItem.dataset.nombre = cuenta;
+                listItem.dataset.index = index; 
+
+                listItem.className = `flex justify-between items-center p-3 rounded-lg border ${esAhorros ? 'bg-blue-100 border-blue-300 font-semibold' : 'bg-gray-50 draggable-item'}`;
+                
+                listItem.innerHTML = `
+                    <span class="text-gray-800" data-cuenta="${cuenta}">${cuenta}</span>
+                    <div>
+                        ${esAhorros ? 
+                            `<button data-nombre="${cuenta}" class="btn-editar-nombre-ahorros text-blue-600 hover:text-blue-800 transition" title="Editar Nombre de Cuenta">
+                                <i data-lucide="pencil" class="w-5 h-5 inline-block"></i>
+                            </button>`
+                            : 
+                            `<button data-tipo="cuenta" data-nombre="${cuenta}" class="btn-eliminar-general text-red-400 hover:text-red-600 transition" title="Eliminar Cuenta">
+                                <i data-lucide="x-circle" class="w-5 h-5 inline-block"></i>
+                            </button>`
+                        }
+                    </div>
+                `;
+                listaEl.appendChild(listItem);
+            });
+
+            countEl.textContent = `(${cuentas.length} cuentas)`;
+            try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
+            
+            addDragDropListeners(listaEl);
+        }
+        
+        function renderizarCategorias() {
+            Object.keys(categorias).forEach(tipo => {
+                const listaEl = categoriasListas[tipo];
+                const countEl = categoriasCounts[tipo];
+                listaEl.innerHTML = '';
+                categorias[tipo].forEach(categoria => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-lg border';
+                    listItem.innerHTML = `
+                        <span class="text-gray-800">${categoria}</span>
+                        <button data-tipo="${tipo}" data-nombre="${categoria}" class="btn-eliminar-general text-red-400 hover:text-red-600 transition" title="Eliminar Categoría">
+                            <i data-lucide="x-circle" class="w-5 h-5 inline-block"></i>
+                        </button>
+                    `;
+                    listaEl.appendChild(listItem);
+                });
+                
+                countEl.textContent = `(${categorias[tipo].length} categorías)`;
+            });
+            try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
+        }
+
+
+        // --- DRAG & DROP LOGIC ---
+        let dragSrcEl = null;
+
+        function handleDragStart(e) {
+            if (e.target.closest('li').dataset.nombre === nombreCuentaAhorrosActual) {
+                e.preventDefault(); 
+                return;
+            } 
+            dragSrcEl = e.target.closest('li');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
+            dragSrcEl.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault(); 
+            }
+            const targetItem = e.target.closest('li');
+            if (targetItem && targetItem.dataset.nombre !== nombreCuentaAhorrosActual) {
+                 e.dataTransfer.dropEffect = 'move';
+            }
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            const targetItem = e.target.closest('li');
+            if (targetItem && targetItem.dataset.nombre !== nombreCuentaAhorrosActual) {
+                 targetItem.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            const targetItem = e.target.closest('li');
+            if (targetItem) {
+                targetItem.classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) e.stopPropagation();
+            
+            const targetEl = e.target.closest('li');
+
+            if (dragSrcEl !== targetEl && targetEl && dragSrcEl) {
+                if (targetEl.dataset.nombre !== nombreCuentaAhorrosActual) {
+                    targetEl.parentNode.insertBefore(dragSrcEl, targetEl.nextSibling);
+                    updateAccountOrder();
+                } else if (targetEl.dataset.nombre === nombreCuentaAhorrosActual) {
+                    targetEl.parentNode.insertBefore(dragSrcEl, targetEl);
+                    updateAccountOrder();
+                }
+            }
+            
+            if (targetEl) {
+                targetEl.classList.remove('drag-over');
+            }
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('#lista-cuenta li').forEach(item => item.classList.remove('drag-over'));
+        }
+        
+        function updateAccountOrder() {
+            const listaEl = document.getElementById('lista-cuenta');
+            const newOrder = [];
+            
+            listaEl.querySelectorAll('li').forEach(item => {
+                 const nombre = item.dataset.nombre;
+                 if (nombre) {
+                     newOrder.push(nombre);
+                 }
+            });
+            
+            cuentas = newOrder;
+            guardarCuentas();
+        }
+
+        function addDragDropListeners(list) {
+            list.querySelectorAll('li').forEach(item => {
+                if (item.dataset.nombre !== nombreCuentaAhorrosActual) {
+                    item.setAttribute('draggable', 'true');
+                    item.addEventListener('dragstart', handleDragStart, false);
+                    item.addEventListener('dragenter', handleDragEnter, false);
+                    item.addEventListener('dragover', handleDragOver, false);
+                    item.addEventListener('dragleave', handleDragLeave, false);
+                    item.addEventListener('drop', handleDrop, false);
+                    item.addEventListener('dragend', handleDragEnd, false);
+                }
+            });
+        }
+        
+        // --- Eventos de Administración de Datos (Asegurados) ---
+
+        // 1. Botones de AGREGAR (Cuentas/Categorías)
+        btnAgregarGeneral.forEach(button => {
+            button.addEventListener('click', () => {
+                const tipo = button.dataset.tipo;
+                const input = categoriasInputs[tipo];
+                agregarGeneral(tipo, input.value);
+            });
+        });
+
+        // 2. Botones de ELIMINAR (X) y EDICIÓN de cuentas/categorías
+        document.getElementById('seccion-categorias').addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.btn-eliminar-general');
+            const editBtn = e.target.closest('.btn-editar-nombre-ahorros');
+
+            if (deleteButton) {
+                const nombre = deleteButton.dataset.nombre;
+                const tipo = deleteButton.dataset.tipo;
+                eliminarGeneral(tipo, nombre);
+            }
+            
+            if (editBtn) {
+                const nombreAnterior = editBtn.dataset.nombre;
+                const nuevoNombre = prompt(`Introduce el nuevo nombre para la cuenta de ahorros:`, nombreAnterior);
+                
+                if (nuevoNombre && nuevoNombre.trim() !== '' && nuevoNombre.trim() !== nombreAnterior) {
+                    const nuevoNombreLimpio = nuevoNombre.trim();
+
+                    // 1. Reemplazar el nombre anterior por el nuevo en el array 'cuentas'
+                    const index = cuentas.indexOf(nombreAnterior);
+                    if (index !== -1) {
+                        cuentas[index] = nuevoNombreLimpio;
+                    }
+                    
+                    // 2. Actualizar todas las transacciones (histórico)
+                    todasTransacciones.forEach(t => {
+                        if (t.cuenta === nombreAnterior) {
+                            t.cuenta = nuevoNombreLimpio;
+                        }
+                    });
+                    
+                    // 3. Guardar el nuevo nombre visible y el array de cuentas
+                    guardarNombreCuentaAhorros(nuevoNombreLimpio); 
+                    guardarCuentas();
+                    guardarConfiguracionLocal(); // Guarda todo en localStorage
+                    
+                    // 4. Renderizar y recalcular
+                    renderizarCuentas(); 
+                    filtrarYRenderizar(); 
+                }
+            }
+        });
+
+
+        // --- 8. INICIO DE LA APLICACIÓN ---
+        
+        inicializarPestanas(); 
+        inicializarSelectorMes();
+        // Inicializa los selectores con las cuentas/categorías
+        actualizarCategoriasYCuentas(); 
+        // Carga los datos de Supabase y renderiza el resumen
+        cargarDatosDesdeSupabase(); 
+
+        try {
+            createIcons({ icons: window.lucideIcons });
+        } catch(e) {
+             console.warn("Error al cargar iconos principales. La aplicación funcionará, pero los iconos pueden faltar.", e.message);
+        }
+    </script>
+</body>
+</html>

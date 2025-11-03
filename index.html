@@ -519,7 +519,8 @@
             return new Intl.NumberFormat('es-US', { style: 'currency', currency: 'USD' }).format(amount);
         };
         
-        function calcularSugerenciaAhorro() {
+            
+            function calcularSugerenciaAhorro() {
             const tipo = tipoSelect.value;
             const porcentaje = parseFloat(ahorroPorcentajeInput.value) || 0;
             const porcentajeValido = isNaN(porcentaje) || porcentaje < 0 ? 0 : porcentaje;
@@ -532,11 +533,10 @@
             
             if (tipo === 'ahorro') {
                 ahorroSugerenciaContainer.classList.remove('hidden');
-                if (montoSugerido > 0) {
-                    document.getElementById('monto').value = montoSugerido.toFixed(2);
-                } else {
-                     document.getElementById('monto').value = ''; 
-                }
+                
+                // <<< ¡AQUÍ ESTÁ EL CAMBIO! >>>
+                // Se eliminó el bloque que asignaba el valor a 'document.getElementById('monto').value'
+                
             } else {
                 ahorroSugerenciaContainer.classList.add('hidden');
             }
@@ -1578,3 +1578,4 @@ const transaccion = todasTransacciones.find(t => t.id === id);            if (!t
     </script>
 </body>
 </html>
+

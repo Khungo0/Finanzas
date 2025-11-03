@@ -1,34 +1,26 @@
 <script type="module">
-        // --- 1. CONFIGURACIÓN DE SUPABASE Y LIBRERÍAS ---
-        let createIcons; // Declarar aquí
-        try {
-            const lucide = await import('https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js');
-            // Asignar solo las funciones necesarias
-            createIcons = lucide.createIcons;
-            // Definir un objeto global de iconos para que createIcons() funcione
-            window.lucideIcons = {
-                Home: lucide.Home,
-                DollarSign: lucide.DollarSign,
-                ArrowUpCircle: lucide.ArrowUpCircle,
-                ArrowDownCircle: lucide.ArrowDownCircle,
-                PlusCircle: lucide.PlusCircle,
-                Trash2: lucide.Trash2,
-                Gem: lucide.Gem,
-                ListChecks: lucide.ListChecks,
-                XCircle: lucide.XCircle,
-                Wallet: lucide.Wallet,
-                Pencil: lucide.Pencil,
-                Edit: lucide.Edit,
-                Repeat: lucide.Repeat
-            };
-        } catch (e) {
-            console.error("Error crítico al cargar Lucide icons:", e);
-            // Fallback: si Lucide falla, define createIcons como una función vacía
-            // para que el resto del script no falle.
-            createIcons = () => {}; 
-        }
-
-        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+        // --- 1. CONFIGURACIÓN DE SUPABASE Y LIBRERÍAS (Estabilizado) ---
+        // Importación estática de Supabase y Lucide para evitar el error de "await import()"
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        import * as lucide from 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js';
+        
+        let createIcons = lucide.createIcons;
+        // Asignar el objeto de iconos globalmente para el uso de createIcons()
+        window.lucideIcons = {
+            Home: lucide.Home,
+            DollarSign: lucide.DollarSign,
+            ArrowUpCircle: lucide.ArrowUpCircle,
+            ArrowDownCircle: lucide.ArrowDownCircle,
+            PlusCircle: lucide.PlusCircle,
+            Trash2: lucide.Trash2,
+            Gem: lucide.Gem,
+            ListChecks: lucide.ListChecks,
+            XCircle: lucide.XCircle,
+            Wallet: lucide.Wallet,
+            Pencil: lucide.Pencil,
+            Edit: lucide.Edit,
+            Repeat: lucide.Repeat
+        };
 
         // TUS CREDENCIALES DE SUPABASE (INTEGRADAS)
         const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
@@ -83,7 +75,7 @@
         const selectorMesEl = document.getElementById('selector-mes');
         const ahorroPorcentajeInput = document.getElementById('ahorro-porcentaje'); 
         const ahorroSugerenciaContainer = document.getElementById('ahorro-sugerencia-container');
-        const montoInput = document.getElementById('monto'); // ¡NUEVA REFERENCIA AGREGADA!
+        const montoInput = document.getElementById('monto'); // Referencia del monto
         
         // DOM Intercambio (NUEVO)
         const formIntercambio = document.getElementById('form-intercambio');
@@ -205,7 +197,7 @@
                     
                     else if (t.tipo === 'ahorro') {
                         
-                        if (t.cuenta === nombreCuentaAhorros) {
+                        if (t.cuenta === nombreCuentaAhorrosActual) {
                             saldos[t.cuenta] += t.monto;
                         } else {
                             saldos[t.cuenta] -= t.monto;
@@ -216,16 +208,16 @@
             return saldos;
         }
 
-        // --- CÓDIGO NUEVO (CORREGIDO) ---
+        // --- LÓGICA DE RESUMEN MENSUAL ---
         function calcularResumenMensual() {
-            let totalEntradasMes = 0; // Flujo de entrada total (para balance)
-            let totalSalidasMes = 0;  // Flujo de salida total (para balance)
+            let totalEntradasMes = 0; 
+            let totalSalidasMes = 0;  
             
-            let ingresosRealesMes = 0; // Para la tarjeta "Ingresos"
-            let gastosRealesMes = 0;   // Para la tarjeta "Gastos" (incluye Ahorro)
+            let ingresosRealesMes = 0; 
+            let gastosRealesMes = 0;   
 
-            let gastosPorCategoria = {}; // Solo para 'gasto' real
-            let ingresosPorCategoria = {}; // <-- ¡NUEVA VARIABLE!
+            let gastosPorCategoria = {}; 
+            let ingresosPorCategoria = {}; 
             let ahorroAcumulado = 0;
             let saldoInicial = 0;
             
@@ -240,7 +232,6 @@
                 }
 
                 // 1. CÁLCULO DEL SALDO INICIAL (Transacciones de meses anteriores)
-                // Esta lógica está bien, ya que los intercambios afectan el saldo
                 if (t.mesAnio < mesActualSeleccionado) {
                     if (t.tipo === 'ingreso' || t.tipo === 'intercambio_in') {
                         saldoInicial += monto;
@@ -259,7 +250,7 @@
                         if (t.tipo === 'ingreso') {
                             ingresosRealesMes += monto;
                             // El gráfico de categorías SÍ debe incluir solo ingresos reales
-                            ingresosPorCategoria[t.categoria] = (ingresosPorCategoria[t.categoria] || 0) + monto; // <-- ¡NUEVO CÁLCULO!
+                            ingresosPorCategoria[t.categoria] = (ingresosPorCategoria[t.categoria] || 0) + monto; 
                         }
                         
                     // --- Flujos de SALIDA (para el balance) ---
@@ -289,7 +280,7 @@
                 balanceNeto: balanceNeto, 
                 saldoInicial: saldoInicial, 
                 gastosPorCategoria: gastosPorCategoria, 
-                ingresosPorCategoria: ingresosPorCategoria, // <-- ¡NUEVO RETORNO!
+                ingresosPorCategoria: ingresosPorCategoria,
                 ahorroAcumulado: ahorroAcumulado 
             };
         }
@@ -303,14 +294,14 @@
         }
         
         async function cargarDatosDesdeSupabase() {
-            // Selecciona 'cuenta' que es la columna requerida
+            // Es crítico que la columna 'cuenta' exista en la tabla 'transacciones' de Supabase
             const { data, error } = await supabase
                 .from(TABLA_TRANSACCIONES)
                 .select('id, tipo, categoria, descripcion, monto, fecha, cuenta'); 
             
             if (error) {
                 console.error("Error al cargar datos de Supabase:", error);
-                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. ¿Añadiste la columna 'cuenta' a la tabla 'transacciones'?</td></tr>`;
+                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}. **Asegúrate que la columna 'cuenta' exista en la tabla 'transacciones' de Supabase.**</td></tr>`;
                 todasTransacciones = [];
             } else {
                 todasTransacciones = data.map(t => ({
@@ -555,7 +546,6 @@
             else gastoBarTotalEl.classList.add('bg-indigo-500');
 
             renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales);
-            // ¡NUEVA LLAMADA A FUNCIÓN!
             renderizarIngresosPorCategoria(resumenMensual.ingresosPorCategoria, ingresosTotales);
         }
 
@@ -709,14 +699,14 @@
             nombreCuentaAhorrosActual = nuevoNombre;
         }
 
-        // --- EVENT HANDLERS MODIFICADOS ---
+        // --- EVENT HANDLERS MODIFICADOS PARA AHORRO BIDIRECCIONAL ---
         
         tipoSelect.addEventListener('change', actualizarCategorias);
         
-        // NUEVO: Si cambias el MONTO, recalcula el PORCENTAJE
+        // Si cambias el MONTO, recalcula el PORCENTAJE
         montoInput.addEventListener('input', () => calcularSugerenciaAhorro('monto')); 
         
-        // CORREGIDO: Si cambias el PORCENTAJE, recalcula el MONTO
+        // Si cambias el PORCENTAJE, recalcula el MONTO
         ahorroPorcentajeInput.addEventListener('input', () => calcularSugerenciaAhorro('porcentaje')); 
 
         formTransaccion.addEventListener('submit', async (e) => {
@@ -753,7 +743,7 @@
                     fechaInput.value = new Date().toISOString().substring(0, 10);
                     setTimeout(() => formMessageEl.classList.add('hidden'), 3000);
                 } else {
-                    formMessageEl.textContent = `Error al guardar: ${result.error.message}. ¿Añadiste la columna 'cuenta' a Supabase?`;
+                    formMessageEl.textContent = `Error al guardar: ${result.error.message}. **Asegúrate que la columna 'cuenta' exista en Supabase.**`;
                     formMessageEl.classList.remove('hidden', 'text-green-500');
                     formMessageEl.classList.add('text-red-500');
                 }
@@ -790,7 +780,7 @@
 
         listaTransaccionesEl.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-eliminar');
-            const editButton = e.target.closest('.btn-editar'); // CORREGIDO: Listener de Edición
+            const editButton = e.target.closest('.btn-editar'); 
 
             if (deleteButton) {
                 const id = deleteButton.dataset.id;

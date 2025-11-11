@@ -553,20 +553,6 @@
             }
         }
         
-        // Función de cálculo de saldos simplificada (solo para compatibilidad interna si se necesitara)
-        function calcularSaldosCuentas() {
-            let saldo = 0;
-            todasTransacciones.forEach(t => {
-                if (t.tipo === 'ingreso') { 
-                    saldo += t.monto;
-                } else if (t.tipo === 'gasto' || t.tipo === 'ahorro') { 
-                    saldo -= t.monto;
-                } 
-            });
-            // Retornamos un objeto para simular la estructura de cuentas, pero solo con el total global
-            return { [UNICA_CUENTA]: saldo };
-        }
-
         // --- CÓDIGO CLAVE: CALCULAR RESUMEN MENSUAL Y 50/30/20 ---
         function calcularResumenMensual() {
             let totalEntradasMes = 0;
@@ -968,6 +954,7 @@
             calcularSugerenciaAhorro(); 
         }
         
+        // CORRECCIÓN: La función solo debe estar definida UNA VEZ
         function guardarConfiguracionLocal() {
             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias)); // Solo Ingresos
             localStorage.setItem('categorias50', JSON.stringify(categorias50));
@@ -1294,7 +1281,7 @@
 
         // --- 8. INICIO DE LA APLICACIÓN ---
         
-        // Se llama a la inicialización al final del módulo para garantizar que todas las funciones estén definidas
+        // Se llama a la inicialización al final del módulo
         inicializarPestanas(); 
         inicializarSelectorMes();
         actualizarCategoriasYCuentas(); 

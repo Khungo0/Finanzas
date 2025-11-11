@@ -484,7 +484,6 @@
             }
         }
         
-        // Cálculo de saldos simple: Ingresos suman, Gastos/Ahorros restan.
         function calcularSaldosCuentas() {
             const saldos = {};
             cuentas.forEach(c => saldos[c] = 0);
@@ -561,7 +560,6 @@
                             }
 
                         } else if (t.tipo === 'ahorro') {
-                            // Gastos y Ahorro no van a GastosPorCategoria, ya que no son categorías de gasto tradicional
                             // Es ahorro (20%)
                             gastoAhorroDeudas += monto;
                         }
@@ -853,7 +851,7 @@
 
         function renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales) {
             gastosPorCategoriaEl.innerHTML = '';
-            // Excluir Ahorros del gráfico de categorías de "Gastos" para que solo muestre categorías de Gasto tipo 'gasto'
+            // Solo mostrar categorías de Gasto tipo 'gasto'
             const categoriasGastos = Object.entries(gastosPorCategoria).filter(([cat, monto]) => categorias.gasto.includes(cat)); 
             const totalGastosVisual = categoriasGastos.reduce((sum, [, monto]) => sum + monto, 0);
 

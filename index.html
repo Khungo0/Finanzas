@@ -991,7 +991,7 @@
         function actualizarCategorias() {
             const tipo = tipoSelect.value;
             let html = '';
-            let cats = []; // Definir cats aquí para que esté en el alcance
+            let cats = []; // CORRECCIÓN: Declarar 'cats' aquí
 
             if (tipo === 'ingreso') {
                 cats = categorias.ingreso || [];
@@ -1104,6 +1104,7 @@
             
             const llenarCategorias = (tipo) => {
                 let html = '';
+                let cats = []; // CORRECCIÓN: Declarar 'cats' aquí
 
                 if (tipo === 'ingreso') {
                     cats = categorias.ingreso || [];

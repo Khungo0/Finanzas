@@ -409,7 +409,9 @@
 
                         <div class="progress-section">
                             <div class="progress-labels">
-                                <span class="progress-title text-red-700">50% Necesidades</span>
+                                <span class="progress-title text-red-700">
+                                    50% Necesidades (<strong id="actual-pct-50" style="font-weight: 800;">0%</strong>)
+                                </span>
                                 <span id="gasto-50" class="progress-amount text-red-700">$0.00</span>
                             </div>
                             <div class="progress-track">
@@ -423,7 +425,9 @@
 
                         <div class="progress-section">
                             <div class="progress-labels">
-                                <span class="progress-title text-orange-700">30% Deseos</span>
+                                <span class="progress-title text-orange-700">
+                                    30% Deseos (<strong id="actual-pct-30" style="font-weight: 800;">0%</strong>)
+                                </span>
                                 <span id="gasto-30" class="progress-amount text-orange-700">$0.00</span>
                             </div>
                             <div class="progress-track">
@@ -437,7 +441,9 @@
 
                         <div class="progress-section">
                             <div class="progress-labels">
-                                <span class="progress-title text-emerald-700">20% Ahorro</span>
+                                <span class="progress-title text-emerald-700">
+                                    20% Ahorro (<strong id="actual-pct-20" style="font-weight: 800;">0%</strong>)
+                                </span>
                                 <span id="gasto-20" class="progress-amount text-emerald-700">$0.00</span>
                             </div>
                             <div class="progress-track">
@@ -479,7 +485,8 @@
                         </table>
                     </div>
 
-                    <div id="pagination-controls" style="display: none;"> <button id="prev-page" disabled>&lt; Anterior</button>
+                    <div id="pagination-controls" style="display: none;">
+                        <button id="prev-page" disabled>&lt; Anterior</button>
                         <span id="page-info">Página 1 de 1</span>
                         <button id="next-page" disabled>Siguiente &gt;</button>
                     </div>
@@ -941,7 +948,7 @@
             balanceNetoEl.style.color = (balanceNeto > 0) ? '#10b981' : (balanceNeto < 0) ? '#ef4444' : '#4f46e5';
         }
 
-        // --- FUNCIÓN PLANIFICADOR 50/30/20 (ACTUALIZADA con "Excedente") ---
+        // --- FUNCIÓN PLANIFICADOR 50/30/20 (ACTUALIZADA con % Real y Excedente) ---
         function renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas) {
             document.getElementById('ingreso-neto-503020').textContent = formatCurrency(ingresosTotales);
             
@@ -957,22 +964,30 @@
             document.getElementById('gasto-30').textContent = formatCurrency(gastoDeseos);
             document.getElementById('gasto-20').textContent = formatCurrency(gastoAhorroDeudas);
 
+            // --- NUEVO: Cálculo del % Real sobre el Ingreso Total ---
+            const actualPct50 = (ingresosTotales > 0) ? (gastoNecesidades / ingresosTotales) * 100 : 0;
+            const actualPct30 = (ingresosTotales > 0) ? (gastoDeseos / ingresosTotales) * 100 : 0;
+            const actualPct20 = (ingresosTotales > 0) ? (gastoAhorroDeudas / ingresosTotales) * 100 : 0;
+
+            document.getElementById('actual-pct-50').textContent = `${actualPct50.toFixed(1)}%`;
+            document.getElementById('actual-pct-30').textContent = `${actualPct30.toFixed(1)}%`;
+            document.getElementById('actual-pct-20').textContent = `${actualPct20.toFixed(1)}%`;
+            // --- FIN DEL NUEVO CÁLCULO ---
+
             const restante50 = objetivo50 - gastoNecesidades;
             const restante30 = objetivo30 - gastoDeseos;
             
-            // --- ¡NUEVA LÓGICA "EXCEDENTE"! ---
+            // --- Lógica "EXCEDENTE" ---
             const restante20LabelEl = document.getElementById('restante-20-label');
             const restante20MontoEl = document.getElementById('restante-20');
             let restante20;
 
             if (gastoAhorroDeudas >= objetivo20) {
-                // Se cumplió o superó la meta
-                restante20 = gastoAhorroDeudas - objetivo20; // Cálculo del excedente (positivo)
+                restante20 = gastoAhorroDeudas - objetivo20; 
                 restante20LabelEl.innerHTML = '¡Excedente!: <span id="restante-20"></span>'; // Re-inserta el span
                 document.getElementById('restante-20').textContent = formatCurrency(restante20);
             } else {
-                // Aún no se cumple la meta
-                restante20 = objetivo20 - gastoAhorroDeudas; // Cálculo de lo faltante (positivo)
+                restante20 = objetivo20 - gastoAhorroDeudas;
                 restante20LabelEl.innerHTML = 'Faltante: <span id="restante-20"></span>'; // Re-inserta el span
                 document.getElementById('restante-20').textContent = formatCurrency(restante20);
             }
@@ -981,6 +996,7 @@
             document.getElementById('restante-50').textContent = formatCurrency(restante50);
             document.getElementById('restante-30').textContent = formatCurrency(restante30);
             
+            // Cálculo para las BARRAS (Gasto vs Objetivo)
             const pct50 = (objetivo50 > 0) ? (gastoNecesidades / objetivo50) * 100 : 0;
             const pct30 = (objetivo30 > 0) ? (gastoDeseos / objetivo30) * 100 : 0;
             const pct20 = (objetivo20 > 0) ? (gastoAhorroDeudas / objetivo20) * 100 : 0;

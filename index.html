@@ -166,6 +166,7 @@
         .bg-red-100 { background-color: #fee2e2; }
         .text-red-800 { color: #991b1b; }
         .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .hidden { display: none; } /* Define 'hidden' para el JS colapsable */
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -266,7 +267,7 @@
                 Mostrar Formulario de Transacción y Gráficos Secundarios (↓)
             </button>
             
-            <div id="advanced-container" style="display: none; transition: all 0.3s ease;">
+            <div id="advanced-container" class="hidden">
                 <section class="grid-4-gap mb-10">
                     <div class="grid-col-1-lg-4 space-y-6" style="grid-column: span 1 / span 1;">
                         <div class="card-shadow">
@@ -374,7 +375,7 @@
             </section>
         </div>
 
-        <div id="seccion-categorias" class="tab-content" style="display: none;">
+        <div id="seccion-categorias" class="tab-content hidden">
             <div class="card-shadow">
                 <h2>
                     <i data-lucide="list-checks" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
@@ -513,23 +514,33 @@
         
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // --- 2. VARIABLES Y ESTADO ---
+        // --- 2. VARIABLES Y ESTADO (CATEGORÍAS ACTUALIZADAS) ---
         let todasTransacciones = []; 
         let transaccionesMesActual = []; 
         let mesSeleccionado = ''; 
         let resumenMensual = {}; 
         
+        // CATEGORÍAS OPTIMIZADAS PARA 50/30/20
         let categorias = JSON.parse(localStorage.getItem('finanzasCategorias')) || {
-            ingreso: ['Salario', 'Freelance', 'Inversiones', 'Venta', 'Regalo', 'Otro Ingreso'],
-            gasto: ['Vivienda', 'Alimentación', 'Transporte', 'Ocio', 'Deudas', 'Servicios', 'Salud', 'Educación', 'Otro Gasto'],
-            ahorro: ['Fondo de Emergencia', 'Meta Viaje', 'Meta Casa', 'Inversión Crecimiento']
+            ingreso: ['Salario', 'Freelance', 'Venta', 'Intereses', 'Otro Ingreso'],
+            gasto: [
+                // 50% NECESIDADES (Gasto Fijo)
+                'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica', 'Salud Esencial', 
+                'Educación Obligatoria', 'Pagos Mínimos Deuda', 
+                // 30% DESEOS (Gasto Variable/Flexible)
+                'Transporte', 'Entretenimiento/Ocio', 'Comer Fuera', 'Ropa y Accesorios', 'Otro Gasto'
+            ],
+            ahorro: [
+                // 20% AHORRO/INVERSIÓN (Objetivos)
+                'Fondo de Emergencia', 'Inversión Crecimiento', 'Meta Viaje', 'Pago Extra Deuda'
+            ]
         };
         
         let cuentas = JSON.parse(localStorage.getItem('finanzasCuentas')) || [
             'Efectivo', 'Mercantil', 'Binance', 'Zinli'
         ];
         
-        // Referencias del DOM (Declaración única)
+        // Referencias del DOM 
         const tipoSelect = document.getElementById('tipo');
         const categoriaSelect = document.getElementById('categoria');
         const cuentaSelect = document.getElementById('cuenta'); 
@@ -549,6 +560,10 @@
         const gastosTotalesEl = document.getElementById('gastos-totales');
         const balanceNetoEl = document.getElementById('balance-neto');
         
+        // Elementos Dashboard Colapsable
+        const toggleAdvancedBtn = document.getElementById('toggle-advanced');
+        const advancedContainer = document.getElementById('advanced-container');
+
         // DOM UI Avanzada
         const categoriasListas = {
             ingreso: document.getElementById('lista-ingreso'),
@@ -641,8 +656,11 @@
             let gastoNecesidades = 0; // 50%
             let gastoAhorroDeudas = 0; // 20%
             
-            // Categorías asumidas como necesidades (50%). Incluimos Deudas en 50% y 20%.
-            const categoriasNecesidades = ['Vivienda', 'Servicios', 'Salud', 'Educación', 'Deudas'];
+            // Categorías definidas como Necesidades (50% de los gastos)
+            const categoriasNecesidades = [
+                'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica', 
+                'Salud Esencial', 'Educación Obligatoria', 'Pagos Mínimos Deuda'
+            ];
             
             const mesActualSeleccionado = mesSeleccionado;
 
@@ -673,18 +691,18 @@
                         if (t.tipo === 'gasto') {
                             gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + monto;
 
-                            // Es una necesidad (50%)
+                            // Clasificación 50% Necesidades
                             if (categoriasNecesidades.includes(t.categoria)) {
                                 gastoNecesidades += monto;
                             }
                             
-                            // Si es Deudas, va al 20%
-                            if (t.categoria === 'Deudas') {
+                            // Clasificación 20% Ahorro/Deudas (solo para Pagos Mínimos Deuda)
+                            if (t.categoria === 'Pagos Mínimos Deuda') {
                                 gastoAhorroDeudas += monto;
                             }
 
                         } else if (t.tipo === 'ahorro') {
-                            // Es ahorro (20%)
+                            // Clasificación 20% Ahorro/Deudas (para cualquier categoría de Ahorro)
                             gastoAhorroDeudas += monto;
                         }
                     }
@@ -695,19 +713,13 @@
             
             // CÁLCULO DEL 30% (Gastos Deseos/Flexibles)
             
-            const ahorroPuroMes = transaccionesMesActual.filter(t => t.tipo === 'ahorro').reduce((sum, t) => sum + t.monto, 0);
-            const deudasPurasMes = transaccionesMesActual.filter(t => t.tipo === 'gasto' && t.categoria === 'Deudas').reduce((sum, t) => sum + t.monto, 0);
-
-            // Gastos Esenciales Puros (sin deudas): Necesidades - Deudas
-            const necesidadesPurasMes = gastoNecesidades - deudasPurasMes;
-
-            // Deseos = (Total Gastos tipo 'gasto') - Necesidades Puras
+            // Suma todos los gastos de tipo 'gasto' del mes
             const totalGastosTipoGasto = transaccionesMesActual.filter(t => t.tipo === 'gasto').reduce((sum, t) => sum + t.monto, 0);
+
+            // Restamos las Necesidades Fijas (50%) para obtener el balance que es 'Deseos'
+            const gastoDeseos = Math.max(0, totalGastosTipoGasto - gastoNecesidades);
             
-            const gastoDeseos = Math.max(0, totalGastosTipoGasto - necesidadesPurasMes);
-            
-            // El 20% es la suma de Ahorro y Deudas.
-            gastoAhorroDeudas = ahorroPuroMes + deudasPurasMes;
+            // Nota: gastoAhorroDeudas ya incluye los pagos mínimos de deuda (50%) y el ahorro (20%)
 
             return { 
                 ingresosTotales: ingresosRealesMes, 
@@ -719,7 +731,7 @@
                 // Valores 50/30/20
                 gastoNecesidades: gastoNecesidades, 
                 gastoDeseos: gastoDeseos,
-                gastoAhorroDeudas: gastoAhorroDeudas // Ahorro + Deudas
+                gastoAhorroDeudas: gastoAhorroDeudas // Ahorro + Pagos Mínimos Deuda
             };
         }
 
@@ -797,6 +809,8 @@
             renderizarListaTransacciones();
             calcularSugerenciaAhorro(); 
             renderizarResumenCuentas(); 
+            // Vuelve a aplicar los iconos después de renderizar listas
+            try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
 
 

@@ -459,11 +459,12 @@
         let mesSeleccionado = ''; 
         let resumenMensual = {}; 
         
-        // El objeto 'categorias' ahora solo tiene 'ingreso'. Las categorías de gasto/ahorro están separadas por porcentaje.
+        // CATEGORÍAS POR TIPO (Ingreso)
         let categorias = JSON.parse(localStorage.getItem('finanzasCategorias')) || {
             ingreso: ['Salario', 'Freelance', 'Venta', 'Intereses', 'Otro Ingreso']
         };
 
+        // CATEGORÍAS POR PORCENTAJE (Gasto/Ahorro)
         let categorias50 = JSON.parse(localStorage.getItem('categorias50')) || [
             'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica', 
             'Salud Esencial', 'Educación Obligatoria', 'Pagos Mínimos Deuda'
@@ -477,10 +478,7 @@
             'Fondo de Emergencia', 'Inversión Crecimiento', 'Meta Viaje', 'Pago Extra Deuda'
         ];
         
-        // La lista de todas las categorías de gasto/ahorro se combina al iniciar y al renderizar el formulario.
-        let todasCategoriasGastoAhorro = [];
-
-
+        
         // Referencias del DOM 
         const tipoSelect = document.getElementById('tipo');
         const categoriaSelect = document.getElementById('categoria');
@@ -565,6 +563,7 @@
                     saldo -= t.monto;
                 } 
             });
+            // Retornamos un objeto para simular la estructura de cuentas, pero solo con el total global
             return { [UNICA_CUENTA]: saldo };
         }
 
@@ -583,11 +582,9 @@
             let gastoDeseos = 0; // 30%
             let gastoAhorroDeudas = 0; // 20%
             
-            // Arreglos de categorías activas (Cargados desde localStorage en el inicio)
+            // Usamos los arrays de categorías activos desde localStorage
             const categorias50Activas = categorias50;
             const categorias30Activas = categorias30;
-            const categorias20Activas = categorias20;
-
             
             const mesActualSeleccionado = mesSeleccionado;
 
@@ -624,15 +621,15 @@
                             else if (categorias30Activas.includes(t.categoria)) {
                                 gastoDeseos += monto;
                             }
-
-                            // Clasificación 20% Ahorro/Deudas (solo si es un Pago Mínimo Deuda)
-                            if (t.categoria === 'Pagos Mínimos Deuda' && categorias50Activas.includes('Pagos Mínimos Deuda')) {
+                            
+                            // Clasificación 20% Ahorro/Deudas (solo para Pagos Mínimos Deuda si está en 50%)
+                            if (t.categoria === 'Pagos Mínimos Deuda' && categorias20.includes('Pagos Mínimos Deuda')) {
                                 gastoAhorroDeudas += monto;
                             }
-                            
+
                         } else if (t.tipo === 'ahorro') {
                             // Clasificación 20% Ahorro/Deudas (para cualquier categoría de Ahorro)
-                            if (categorias20Activas.includes(t.categoria)) {
+                            if (categorias20.includes(t.categoria)) {
                                 gastoAhorroDeudas += monto;
                             }
                         }
@@ -642,12 +639,17 @@
             
             const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
             
+            // Si el Pagos Mínimos Deuda no se incluye en 50% (para que el usuario tenga control total)
+            // entonces el cálculo es simple: lo que se gastó en cada grupo.
+            
+            // Lógica de Deseos ya está implícita con el uso de categorias30
+            // La lógica de Ahorro/Deudas ya usa categorias20
+
             return { 
                 ingresosTotales: ingresosRealesMes, 
                 gastosTotales: totalSalidasMes, 
                 balanceNeto: balanceNeto, 
                 saldoInicial: saldoInicial,
-                // Ingresos/Gastos por categoría ya no se calculan de manera sofisticada, se usa el total simple
                 ingresosPorCategoria: ingresosPorCategoria,
                 // Valores 50/30/20
                 gastoNecesidades: gastoNecesidades, 
@@ -659,7 +661,7 @@
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
         function guardarConfiguracionLocal() {
-            localStorage.setItem('finanzasCategorias', JSON.stringify(categorias)); // Guarda Ingresos
+            localStorage.setItem('finanzasCategorias', JSON.stringify(categorias)); // Solo Ingresos
             localStorage.setItem('categorias50', JSON.stringify(categorias50));
             localStorage.setItem('categorias30', JSON.stringify(categorias30));
             localStorage.setItem('categorias20', JSON.stringify(categorias20));

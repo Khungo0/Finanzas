@@ -80,7 +80,7 @@
             border-bottom: 2px solid transparent;
             color: #64748b;
         }
-        .tab-button[data-target="seccion-resumen"] {
+        .tab-button-active {
             border-bottom-color: #4f46e5;
             color: #4f46e5;
         }
@@ -170,7 +170,7 @@
         <section id="tabs-container" class="mb-8">
             <div style="border-bottom: 1px solid #e2e8f0;">
                 <nav class="flex" aria-label="Tabs">
-                    <button id="tab-resumen" class="tab-button" data-target="seccion-resumen">
+                    <button id="tab-resumen" class="tab-button tab-button-active" data-target="seccion-resumen">
                         Dashboard y Transacciones
                     </button>
                     <button id="tab-clasificacion" class="tab-button" data-target="seccion-clasificacion-503020">
@@ -789,11 +789,13 @@
                     tabButtons.forEach(btn => {
                         btn.style.borderColor = 'transparent';
                         btn.style.color = '#64748b';
+                        btn.classList.remove('tab-button-active');
                     });
 
                     document.getElementById(targetId).style.display = 'block';
                     button.style.borderColor = '#4f46e5';
                     button.style.color = '#4f46e5';
+                    button.classList.add('tab-button-active');
 
                     if (targetId === 'seccion-clasificacion-503020') {
                         renderizarCategorias();
@@ -989,6 +991,7 @@
         function actualizarCategorias() {
             const tipo = tipoSelect.value;
             let html = '';
+            let cats = []; // Definir cats aquí para que esté en el alcance
 
             if (tipo === 'ingreso') {
                 cats = categorias.ingreso || [];

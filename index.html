@@ -6,34 +6,34 @@
     <title>Finanzas 50/30/20 | Transacciones Globales</title>
     
     <link rel="icon" type="image/png" href="mi-icono.png">
-    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* Base Styles */
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f4f7f9; 
-            padding: 20px; 
+        body {    
+            font-family: 'Inter', sans-serif;    
+            background-color: #f4f7f9;    
+            padding: 20px;    
             color: #1e293b;
+            padding-bottom: 100px; /* Espacio para el FAB */
         }
-        main { 
-            max-width: 1280px; /* Ampliado para 3 columnas */
-            margin: 0 auto; 
+        main {    
+            max-width: 1280px; 
+            margin: 0 auto;    
         }
 
         /* Card and Shadow */
-        .card-shadow { 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
-            border: 1px solid #e2e8f0; 
-            background-color: white; 
-            padding: 24px; 
+        .card-shadow {    
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);    
+            border: 1px solid #e2e8f0;    
+            background-color: white;    
+            padding: 24px;    
             border-radius: 12px;
         }
 
         /* Grid Layouts */
         .grid-5-gap {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Responsive */
             gap: 24px;
         }
         .grid-cols-3-dashboard {
@@ -52,6 +52,18 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
+        /* --- NUEVO: Grid para formulario y resumen --- */
+        .grid-cols-2-gap {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr); /* 1 columna en móvil */
+            gap: 24px;
+        }
+        @media (min-width: 1024px) {
+             .grid-cols-2-gap {
+                grid-template-columns: 1fr 1fr; /* 2 columnas en desktop */
+            }
+        }
+
 
         /* Typography and Headings */
         h1 { font-size: 2.25rem; font-weight: 800; color: #1e293b; text-align: center; margin-bottom: 24px; }
@@ -62,12 +74,21 @@
         /* Dashboard Cards */
         .dashboard-card-title { font-size: 1.125rem; color: #64748b; }
         .dashboard-card-value { font-size: 2rem; font-weight: 700; margin-top: 4px; }
+        /* --- NUEVO: Icono de tarjeta --- */
+        .dashboard-card-icon {
+            width: 36px;
+            height: 36px;
+            stroke-width: 2;
+        }
+
 
         .border-green-500 { border-left: 4px solid #22c55e; }
         .border-red-500 { border-left: 4px solid #ef4444; }
         .border-gray-500 { border-left: 4px solid #64748b; }
         .border-indigo-500 { border-left: 4px solid #6366f1; }
-        .border-emerald-500 { border-left: 4px solid #10b981; } 
+        .border-emerald-500 { border-left: 4px solid #10b981; }    
+        .border-blue-500 { border-left: 4px solid #3b82f6; } /* Añadido para Ahorro Mes */
+
         .text-green-600 { color: #10b981; }
         .text-red-600 { color: #ef4444; }
         .text-indigo-700 { color: #4f46e5; }
@@ -93,7 +114,7 @@
             color: #4f46e5;
         }
         
-        /* 50/30/20 Boxes */
+        /* --- REVISADO: 50/30/20 Barras de Progreso --- */
         .budget-box { border-radius: 8px; padding: 12px; }
         .bg-red-50 { background-color: #fef2f2; border: 1px solid #fecaca; }
         .bg-orange-50 { background-color: #fff7ed; border: 1px solid #fed7aa; }
@@ -102,6 +123,53 @@
         .text-red-700 { color: #b91c1c; }
         .text-orange-700 { color: #c2410c; }
         .text-emerald-700 { color: #059669; }
+
+        /* --- NUEVO: Estilos de Barra de Progreso --- */
+        .progress-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .progress-title { font-weight: 700; font-size: 1.125rem; }
+        .progress-amount { font-weight: 600; font-size: 1rem; }
+        .progress-track {
+            width: 100%;
+            height: 12px;
+            background-color: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease-out, background-color 0.3s;
+        }
+        .progress-fill-50 { background-color: #ef4444; } /* Rojo */
+        .progress-fill-30 { background-color: #f97316; } /* Naranja */
+        .progress-fill-20 { background-color: #10b981; } /* Verde */
+        
+        .progress-fill-danger { background-color: #dc2626; } /* Rojo Fuerte (Alerta) */
+
+        .progress-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        .progress-remaining-danger {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        .progress-remaining-success {
+            color: #059669;
+            font-weight: 600;
+        }
+
 
         /* Form Controls */
         select, input[type="text"], input[type="number"], input[type="date"] {
@@ -136,32 +204,56 @@
         .text-red-400 { color: #f87171; }
         .text-indigo-500 { color: #6366f1; }
         
-        /* === 50/30/20 Ring Styles (Mantenido) === */
-        .budget-ring {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-        }
-        .budget-ring::after {
-            content: attr(data-total);
-            background: #f4f7f9;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #1e293b;
-        }
+        /* --- ELIMINADO: Ring Styles --- */
+        /* .budget-ring ... */
 
         /* Utility classes (simplified) */
         .hidden { display: none; }
+
+        /* --- NUEVO: Estilos del Botón Flotante (FAB) --- */
+        #fab-nueva-transaccion {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #4f46e5; /* Indigo-600 */
+            color: white;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            z-index: 40;
+        }
+        #fab-nueva-transaccion:hover {
+            background-color: #4338ca; /* Indigo-700 */
+            transform: scale(1.05);
+        }
+
+        /* --- NUEVO: Estilos del Modal del Formulario --- */
+        #modal-nueva-transaccion {
+            position: fixed; 
+            inset: 0; 
+            background-color: rgba(30, 41, 59, 0.75); 
+            z-index: 50; 
+            display: none; /* Oculto por defecto */
+            align-items: center; 
+            justify-content: center; 
+            padding: 16px;
+        }
+        #modal-nueva-transaccion-content {
+            background-color: white; 
+            border-radius: 8px; 
+            padding: 24px; 
+            max-width: 576px; /* Ancho del modal de edición */
+            width: 100%; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -196,87 +288,66 @@
             
             <section id="resumen-dashboard" class="grid-5-gap mb-10">
                 <div class="card-shadow border-gray-500">
-                    <h2 class="dashboard-card-title">Saldo Inicial</h2>
-                    <p id="saldo-inicial" class="dashboard-card-value text-gray-800">$0.00</p>
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+                        <div>
+                            <h2 class="dashboard-card-title">Saldo Inicial</h2>
+                            <p id="saldo-inicial" class="dashboard-card-value text-gray-800">$0.00</p>
+                        </div>
+                        <i data-lucide="landmark" class="dashboard-card-icon text-gray-400"></i>
+                    </div>
                 </div>
 
                 <div class="card-shadow border-green-500">
-                    <h2 class="dashboard-card-title">Ingresos Totales</h2>
-                    <p id="ingresos-totales" class="dashboard-card-value text-green-600">$0.00</p>
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+                        <div>
+                            <h2 class="dashboard-card-title">Ingresos Totales</h2>
+                            <p id="ingresos-totales" class="dashboard-card-value text-green-600">$0.00</p>
+                        </div>
+                        <i data-lucide="arrow-up-circle" class="dashboard-card-icon text-green-400"></i>
+                    </div>
                 </div>
                 
                 <div class="card-shadow border-red-500">
-                    <h2 class="dashboard-card-title">Gastos del Mes (50/30)</h2>
-                    <p id="gastos-mes" class="dashboard-card-value text-red-600">$0.00</p>
+                     <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+                        <div>
+                            <h2 class="dashboard-card-title">Gastos del Mes (50/30)</h2>
+                            <p id="gastos-mes" class="dashboard-card-value text-red-600">$0.00</p>
+                        </div>
+                        <i data-lucide="arrow-down-circle" class="dashboard-card-icon text-red-400"></i>
+                    </div>
                 </div>
 
                 <div class="card-shadow border-blue-500">
-                    <h2 class="dashboard-card-title">Ahorro del Mes (20%)</h2>
-                    <p id="ahorro-mes" class="dashboard-card-value text-blue-600">$0.00</p>
+                     <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+                        <div>
+                            <h2 class="dashboard-card-title">Ahorro del Mes (20%)</h2>
+                            <p id="ahorro-mes" class="dashboard-card-value text-blue-600">$0.00</p>
+                        </div>
+                        <i data-lucide="piggy-bank" class="dashboard-card-icon text-blue-400"></i>
+                    </div>
                 </div>
 
                 <div class="card-shadow border-indigo-500">
-                    <h2 class="dashboard-card-title">Saldo Final (Global)</h2>
-                    <p id="balance-neto" class="dashboard-card-value text-indigo-700">$0.00</p>
+                     <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+                        <div>
+                            <h2 class="dashboard-card-title">Saldo Final (Global)</h2>
+                            <p id="balance-neto" class="dashboard-card-value text-indigo-700">$0.00</p>
+                        </div>
+                         <i data-lucide="scale" class="dashboard-card-icon text-indigo-400"></i>
+                    </div>
                 </div>
                 
                 <div class="card-shadow border-emerald-500">
-                    <h2 class="dashboard-card-title">Ahorro Acumulado</h2>
-                    <p id="ahorro-acumulado-total" class="dashboard-card-value text-emerald-600">$0.00</p>
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+                        <div>
+                            <h2 class="dashboard-card-title">Ahorro Acumulado</h2>
+                            <p id="ahorro-acumulado-total" class="dashboard-card-value text-emerald-600">$0.00</p>
+                        </div>
+                        <i data-lucide="gem" class="dashboard-card-icon text-emerald-400"></i>
+                    </div>
                 </div>
             </section>
-
             <section class="grid-cols-2-gap mb-10">
-                
-                <div class="card-shadow space-y-6">
-                    <h2 style="font-size: 1.5rem; color: #475569; margin-bottom: 16px;">
-                        <i data-lucide="plus-circle" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
-                        Nueva Transacción
-                    </h2>
-                    <form id="form-transaccion" style="display: flex; flex-direction: column; gap: 16px;">
-                        
-                        <div>
-                            <label for="tipo" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Tipo</label>
-                            <select id="tipo" required>
-                                <option value="ingreso">Ingreso</option>
-                                <option value="gasto">Gasto</option>
-                                <option value="ahorro">Ahorro</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="categoria" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Categoría</label>
-                            <select id="categoria" required>
-                            </select>
-                        </div>
-
-                        <div id="ahorro-sugerencia-container" style="display: none; flex-direction: column; gap: 8px;">
-                            <label for="ahorro-porcentaje" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Porcentaje de Ahorro Sugerido (20%)</label>
-                            <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="20" placeholder="Ej: 20">
-                            <p id="ahorro-sugerencia-monto" style="font-size: 0.875rem; color: #4f46e5; font-weight: 600;">Sugerencia: $0.00</p>
-                        </div>
-
-                        <div>
-                            <label for="monto" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Monto ($)</label>
-                            <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00">
-                        </div>
-
-                        <div>
-                            <label for="descripcion" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Descripción</label>
-                            <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler">
-                        </div>
-                        
-                        <div>
-                            <label for="fecha" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Fecha</label>
-                            <input type="date" id="fecha" required>
-                        </div>
-
-                        <button type="submit" id="btn-guardar-transaccion">
-                            Guardar Transacción
-                        </button>
-                        <div id="form-message" style="text-align: center; margin-top: 8px; font-size: 0.875rem; display: none;"></div>
-                    </form>
-                </div>
                 
                 <div class="card-shadow space-y-6">
                     <h2 style="margin-bottom: 24px;">
@@ -284,40 +355,56 @@
                         Resumen 50/30/20
                     </h2>
                     
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div style="text-align: center;">
-                            <div id="budget-ring" class="budget-ring" data-total="0%"></div>
-                            <p style="font-size: 1.125rem; font-weight: 600; color: #475569; margin-top: 16px;">Uso de Ingreso Total</p>
-                            <p id="ingreso-neto-503020" style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">$0.00</p>
+                    <div style="display: flex; flex-direction: column; gap: 24px;"> <div style="text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+                            <p style="font-size: 1rem; font-weight: 600; color: #475569;">Ingreso Total del Mes (Base)</p>
+                            <p id="ingreso-neto-503020" style="font-size: 1.5rem; font-weight: 700; color: #1e293b;">$0.00</p>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
-                            <div class="budget-box bg-red-50" id="box-50">
-                                <p class="text-red-700" style="font-weight: 700; font-size: 0.875rem;">50% Nec.</p>
-                                <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-50">$0.00</span></p>
-                                <p style="color: #475569; font-size: 0.75rem;">Gasto: <span id="gasto-50" style="font-weight: 600;">$0.00</span></p>
-                                <p style="color: #b91c1c; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Restante: <span id="restante-50">$0.00</span></p>
+                        <div class="progress-section">
+                            <div class="progress-labels">
+                                <span class="progress-title text-red-700">50% Necesidades</span>
+                                <span id="gasto-50" class="progress-amount text-red-700">$0.00</span>
                             </div>
-                            <div class="budget-box bg-orange-50" id="box-30">
-                                <p class="text-orange-700" style="font-weight: 700; font-size: 0.875rem;">30% Deseos</p>
-                                <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-30">$0.00</span></p>
-                                <p style="color: #475569; font-size: 0.75rem;">Gasto: <span id="gasto-30" style="font-weight: 600;">$0.00</span></p>
-                                <p style="color: #c2410c; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Restante: <span id="restante-30">$0.00</span></p>
+                            <div class="progress-track">
+                                <div id="progress-fill-50" class="progress-fill progress-fill-50" style="width: 0%;"></div>
                             </div>
-                            <div class="budget-box bg-emerald-50" id="box-20">
-                                <p class="text-emerald-700" style="font-weight: 700; font-size: 0.875rem;">20% Ahorro</p>
-                                <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-20">$0.00</span></p>
-                                <p style="color: #475569; font-size: 0.75rem;">Aport: <span id="gasto-20" style="font-weight: 600;">$0.00</span></p>
-                                <p style="color: #059669; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Faltante: <span id="restante-20">$0.00</span></p>
+                            <div class="progress-footer">
+                                <span>Objetivo: <span id="objetivo-50">$0.00</span></span>
+                                <span id="restante-50-label">Restante: <span id="restante-50">$0.00</span></span>
                             </div>
                         </div>
 
-                        <p style="font-size: 0.75rem; color: #64748b; padding-top: 8px;">
-                            *Las categorías están codificadas según la regla 50/30/20.
-                        </p>
+                        <div class="progress-section">
+                            <div class="progress-labels">
+                                <span class="progress-title text-orange-700">30% Deseos</span>
+                                <span id="gasto-30" class="progress-amount text-orange-700">$0.00</span>
+                            </div>
+                            <div class="progress-track">
+                                <div id="progress-fill-30" class="progress-fill progress-fill-30" style="width: 0%;"></div>
+                            </div>
+                            <div class="progress-footer">
+                                <span>Objetivo: <span id="objetivo-30">$0.00</span></span>
+                                <span id="restante-30-label">Restante: <span id="restante-30">$0.00</span></span>
+                            </div>
+                        </div>
+
+                        <div class="progress-section">
+                            <div class="progress-labels">
+                                <span class="progress-title text-emerald-700">20% Ahorro</span>
+                                <span id="gasto-20" class="progress-amount text-emerald-700">$0.00</span>
+                            </div>
+                            <div class="progress-track">
+                                <div id="progress-fill-20" class="progress-fill progress-fill-20" style="width: 0%;"></div>
+                            </div>
+                            <div class="progress-footer">
+                                <span>Objetivo: <span id="objetivo-20">$0.00</span></span>
+                                <span id="restante-20-label">Faltante: <span id="restante-20">$0.00</span></span>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-            </section>
+                </section>
 
             <section class="card-shadow" style="margin-top: 40px;">
                 <h2>Historial de Transacciones del Mes</h2>
@@ -392,6 +479,7 @@
 
             </div>
         </div>
+
         <div id="modal-container" style="position: fixed; inset: 0; background-color: rgba(30, 41, 59, 0.75); z-index: 50; display: none; align-items: center; justify-content: center; padding: 16px;">
             <div style="background-color: white; border-radius: 8px; padding: 24px; max-width: 384px; width: 100%; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
                 <h3 id="modal-title" style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 12px; border-bottom: none;">Confirmar Eliminación</h3>
@@ -408,7 +496,6 @@
                 <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 16px; border-bottom: none;">Editar Transacción</h3>
                 <form id="form-edicion" style="display: flex; flex-direction: column; gap: 16px;">
                     <input type="hidden" id="edit-id">
-
                     <div>
                         <label for="edit-tipo" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Tipo</label>
                         <select id="edit-tipo" required>
@@ -417,28 +504,23 @@
                             <option value="ahorro">Ahorro</option>
                         </select>
                     </div>
-
                     <div>
                         <label for="edit-categoria" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Categoría</label>
                         <select id="edit-categoria" required>
                             </select>
                     </div>
-                    
                     <div>
                         <label for="edit-monto" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Monto ($)</label>
                         <input type="number" id="edit-monto" required min="0.01" step="0.01">
                     </div>
-
                     <div>
                         <label for="edit-descripcion" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Descripción</label>
                         <input type="text" id="edit-descripcion" required>
                     </div>
-
                     <div>
                         <label for="edit-fecha" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Fecha</label>
                         <input type="date" id="edit-fecha" required>
                     </div>
-
                     <div style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px;">
                         <button type="button" id="modal-cancel-edicion" style="padding: 8px 16px; font-size: 0.875rem; font-weight: 500; color: #475569; background-color: #e2e8f0; border-radius: 6px; transition: background-color 0.15s; cursor: pointer;">Cancelar</button>
                         <button type="submit" style="padding: 8px 16px; font-size: 0.875rem; font-weight: 500; color: white; background-color: #4f46e5; border-radius: 6px; transition: background-color 0.15s; cursor: pointer;">Guardar Cambios</button>
@@ -446,8 +528,65 @@
                 </form>
             </div>
         </div>
-
+        
     </main>
+
+    <div id="modal-nueva-transaccion">
+        <div id="modal-nueva-transaccion-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="font-size: 1.5rem; color: #475569; margin: 0; display: flex; align-items: center;">
+                    <i data-lucide="plus-circle" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
+                    Nueva Transacción
+                </h2>
+                <button id="modal-cancel-nueva" style="background: none; border: none; cursor: pointer; color: #64748b;">
+                     <i data-lucide="x" style="width: 28px; height: 28px;"></i>
+                </button>
+            </div>
+            
+            <form id="form-transaccion" style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label for="tipo" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Tipo</label>
+                    <select id="tipo" required>
+                        <option value="ingreso">Ingreso</option>
+                        <option value="gasto">Gasto</option>
+                        <option value="ahorro">Ahorro</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="categoria" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Categoría</label>
+                    <select id="categoria" required>
+                    </select>
+                </div>
+                <div id="ahorro-sugerencia-container" style="display: none; flex-direction: column; gap: 8px;">
+                    <label for="ahorro-porcentaje" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Porcentaje de Ahorro Sugerido (20%)</label>
+                    <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="20" placeholder="Ej: 20">
+                    <p id="ahorro-sugerencia-monto" style="font-size: 0.875rem; color: #4f46e5; font-weight: 600;">Sugerencia: $0.00</p>
+                </div>
+                <div>
+                    <label for="monto" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Monto ($)</label>
+                    <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00">
+                </div>
+                <div>
+                    <label for="descripcion" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Descripción</label>
+                    <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler">
+                </div>
+                <div>
+                    <label for="fecha" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Fecha</label>
+                    <input type="date" id="fecha" required>
+                </div>
+                <button type="submit" id="btn-guardar-transaccion">
+                    Guardar Transacción
+                </button>
+                <div id="form-message" style="text-align: center; margin-top: 8px; font-size: 0.875rem; display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+
+    <button id="fab-nueva-transaccion" title="Añadir Transacción">
+        <i data-lucide="plus" style="width: 32px; height: 32px; stroke-width: 3;"></i>
+    </button>
+
 
     <script type="module">
         // --- 1. CONFIGURACIÓN DE SUPABASE Y LIBRERÍAS ---
@@ -458,18 +597,27 @@
             window.lucideIcons = {
                 // Se mantuvieron los íconos necesarios
                 PlusCircle: lucide.PlusCircle, Trash2: lucide.Trash2, Pencil: lucide.Pencil,
-                ListChecks: lucide.ListChecks, XCircle: lucide.XCircle, Target: lucide.Target
+                ListChecks: lucide.ListChecks, XCircle: lucide.XCircle, Target: lucide.Target,
+                // --- NUEVOS ICONOS ---
+                Plus: lucide.Plus, // Para FAB
+                X: lucide.X, // Para cerrar modal
+                Landmark: lucide.Landmark, // Tarjeta Saldo Inicial
+                ArrowUpCircle: lucide.ArrowUpCircle, // Tarjeta Ingresos
+                ArrowDownCircle: lucide.ArrowDownCircle, // Tarjeta Gastos
+                PiggyBank: lucide.PiggyBank, // Tarjeta Ahorro Mes
+                Scale: lucide.Scale, // Tarjeta Saldo Final
+                Gem: lucide.Gem // Tarjeta Ahorro Acumulado
             };
         } catch (e) {
             console.error("Error crítico al cargar Lucide icons:", e);
-            createIcons = () => {}; 
+            createIcons = () => {};    
         }
 
         const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
 
         // CREDENCIALES DE SUPABASE
-        const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis'; 
+        const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co';    
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis';    
         const TABLA_TRANSACCIONES = 'transacciones';
         
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -477,12 +625,12 @@
         // --- 2. VARIABLES Y ESTADO (CATEGORÍAS REESTRUCTURADAS) ---
         
         // ** ÚNICA CUENTA HARDCODEADA **
-        const UNICA_CUENTA = 'Global'; 
+        const UNICA_CUENTA = 'Global';    
 
-        let todasTransacciones = []; 
-        let transaccionesMesActual = []; 
-        let mesSeleccionado = ''; 
-        let resumenMensual = {}; 
+        let todasTransacciones = [];    
+        let transaccionesMesActual = [];    
+        let mesSeleccionado = '';    
+        let resumenMensual = {};    
         
         // CATEGORÍAS POR TIPO (Ingreso)
         let categorias = JSON.parse(localStorage.getItem('finanzasCategorias')) || {
@@ -491,7 +639,7 @@
 
         // CATEGORÍAS POR PORCENTAJE (Gasto/Ahorro)
         let categorias50 = JSON.parse(localStorage.getItem('categorias50')) || [
-            'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica', 
+            'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica',    
             'Salud Esencial', 'Educación Obligatoria', 'Pagos Mínimos Deuda'
         ];
 
@@ -504,7 +652,7 @@
         ];
         
         
-        // Referencias del DOM 
+        // Referencias del DOM    
         const tipoSelect = document.getElementById('tipo');
         const categoriaSelect = document.getElementById('categoria');
         const formTransaccion = document.getElementById('form-transaccion');
@@ -512,16 +660,22 @@
         const formMessageEl = document.getElementById('form-message');
         const fechaInput = document.getElementById('fecha');
         const selectorMesEl = document.getElementById('selector-mes');
-        const ahorroPorcentajeInput = document.getElementById('ahorro-porcentaje'); 
+        const ahorroPorcentajeInput = document.getElementById('ahorro-porcentaje');    
         const ahorroSugerenciaContainer = document.getElementById('ahorro-sugerencia-container');
-        const budgetRingEl = document.getElementById('budget-ring');
+        // const budgetRingEl = document.getElementById('budget-ring'); // --- ELIMINADO ---
         
         const saldoInicialEl = document.getElementById('saldo-inicial');
         const ingresosTotalesEl = document.getElementById('ingresos-totales');
-        const gastosTotalesEl = document.getElementById('gastos-totales');
+        // const gastosTotalesEl = document.getElementById('gastos-totales'); // Esta variable no se usaba
         const balanceNetoEl = document.getElementById('balance-neto');
         const btnGuardarTransaccion = document.getElementById('btn-guardar-transaccion');
         
+        // --- NUEVOS Elementos del DOM (FAB y Modal Formulario) ---
+        const fabNuevaTransaccion = document.getElementById('fab-nueva-transaccion');
+        const modalNuevaTransaccion = document.getElementById('modal-nueva-transaccion');
+        const modalCancelNueva = document.getElementById('modal-cancel-nueva');
+
+
         // DOM UI Avanzada (Administración)
         const categoriasListas = {
             ingreso: document.getElementById('lista-ingreso'),
@@ -622,14 +776,14 @@
                 } else if (t.mesAnio === mesActualSeleccionado) {
                     
                     // --- Flujos de ENTRADA ---
-                    if (t.tipo === 'ingreso') { 
+                    if (t.tipo === 'ingreso') {    
                         totalEntradasMes += monto;
                         ingresosRealesMes += monto;
                         ingresosPorCategoria[t.categoria] = (ingresosPorCategoria[t.categoria] || 0) + monto;
                     
                     // --- Flujos de SALIDA ---
                     } else if (t.tipo === 'gasto' || t.tipo === 'ahorro') {
-                        totalSalidasMes += monto; 
+                        totalSalidasMes += monto;    
                         
                         if (t.tipo === 'gasto') {
                             
@@ -644,7 +798,7 @@
                             
                             // Clasificación 20% Ahorro/Deudas (solo si está en la lista de 20% y es de tipo Gasto)
                             if (categorias20Activas.includes(t.categoria)) {
-                                gastoAhorroDeudas += monto; 
+                                gastoAhorroDeudas += monto;    
                             }
 
                         } else if (t.tipo === 'ahorro') {
@@ -659,15 +813,15 @@
             
             const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
             
-            return { 
-                ingresosTotales: ingresosRealesMes, 
-                gastosTotales: totalSalidasMes, 
-                balanceNeto: balanceNeto, 
+            return {    
+                ingresosTotales: ingresosRealesMes,    
+                gastosTotales: totalSalidasMes,    
+                balanceNeto: balanceNeto,    
                 saldoInicial: saldoInicial,
                 ahorroAcumuladoTotal: ahorroAcumuladoTotal, // MEJORA 2
                 ingresosPorCategoria: ingresosPorCategoria,
                 // Valores 50/30/20
-                gastoNecesidades: gastoNecesidades, 
+                gastoNecesidades: gastoNecesidades,    
                 gastoDeseos: gastoDeseos,
                 gastoAhorroDeudas: gastoAhorroDeudas
             };
@@ -686,7 +840,7 @@
         async function cargarDatosDesdeSupabase() {
             const { data, error } = await supabase
                 .from(TABLA_TRANSACCIONES)
-                .select('id, tipo, categoria, descripcion, monto, fecha, cuenta'); 
+                .select('id, tipo, categoria, descripcion, monto, fecha, cuenta');    
             
             if (error) {
                 console.error("Error al cargar datos de Supabase:", error);
@@ -695,8 +849,8 @@
             } else {
                 todasTransacciones = data.map(t => ({
                     ...t,
-                    monto: parseFloat(t.monto), 
-                    mesAnio: t.fecha.substring(0, 7) 
+                    monto: parseFloat(t.monto),    
+                    mesAnio: t.fecha.substring(0, 7)    
                 }));
             }
             
@@ -718,7 +872,7 @@
             if (error) {
                 console.error("Error al guardar en Supabase:", error);
                 return { success: false, error: error };
-            } 
+            }    
             return { success: true };
         }
 
@@ -726,7 +880,7 @@
             const { error } = await supabase
                 .from(TABLA_TRANSACCIONES)
                 .delete()
-                .eq('id', id); 
+                .eq('id', id);    
 
             if (error) {
                 console.error("Error al eliminar en Supabase:", error);
@@ -738,7 +892,7 @@
         async function actualizarTransaccionSupabase(transaccion) {
              const { error } = await supabase
                 .from(TABLA_TRANSACCIONES)
-                .update({ 
+                .update({    
                     tipo: transaccion.tipo,
                     categoria: transaccion.categoria,
                     monto: transaccion.monto,
@@ -770,7 +924,7 @@
             renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal, gastoNecesidades, gastoDeseos, gastoAhorroDeudas); // Actualizado
             renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas);
             renderizarListaTransacciones();
-            actualizarCategoriasYCuentas(); 
+            actualizarCategoriasYCuentas();    
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
 
@@ -828,7 +982,7 @@
                     }
                     
                     if (targetId === 'seccion-resumen') {
-                        actualizarCategoriasYCuentas(); 
+                        actualizarCategoriasYCuentas();    
                     }
                     try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
                 });
@@ -854,7 +1008,7 @@
             balanceNetoEl.style.color = (balanceNeto > 0) ? '#10b981' : (balanceNeto < 0) ? '#ef4444' : '#4f46e5';
         }
 
-        // --- FUNCIÓN PLANIFICADOR 50/30/20 ---
+        // --- FUNCIÓN PLANIFICADOR 50/30/20 (REESCRITA) ---
         function renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas) {
             document.getElementById('ingreso-neto-503020').textContent = formatCurrency(ingresosTotales);
             
@@ -870,7 +1024,6 @@
             document.getElementById('gasto-30').textContent = formatCurrency(gastoDeseos);
             document.getElementById('gasto-20').textContent = formatCurrency(gastoAhorroDeudas);
 
-            // MEJORA 4: Calcular y mostrar "Restante"
             const restante50 = objetivo50 - gastoNecesidades;
             const restante30 = objetivo30 - gastoDeseos;
             const restante20 = objetivo20 - gastoAhorroDeudas; // "Faltante"
@@ -879,77 +1032,56 @@
             document.getElementById('restante-30').textContent = formatCurrency(restante30);
             document.getElementById('restante-20').textContent = formatCurrency(restante20);
 
+            // Calcular porcentajes de la barra (Gasto / Objetivo)
+            const pct50 = (objetivo50 > 0) ? (gastoNecesidades / objetivo50) * 100 : 0;
+            const pct30 = (objetivo30 > 0) ? (gastoDeseos / objetivo30) * 100 : 0;
+            const pct20 = (objetivo20 > 0) ? (gastoAhorroDeudas / objetivo20) * 100 : 0;
 
-            const pctNecesidades = ingresosTotales > 0 ? (gastoNecesidades / ingresosTotales) * 100 : 0;
-            const pctDeseos = ingresosTotales > 0 ? (gastoDeseos / ingresosTotales) * 100 : 0;
-            const pctAhorro = ingresosTotales > 0 ? (gastoAhorroDeudas / ingresosTotales) * 100 : 0;
+            // --- Actualizar Barras de Progreso ---
+            const fill50 = document.getElementById('progress-fill-50');
+            const restante50Label = document.getElementById('restante-50-label');
             
-            const totalPct = pctNecesidades + pctDeseos + pctAhorro;
+            const fill30 = document.getElementById('progress-fill-30');
+            const restante30Label = document.getElementById('restante-30-label');
             
-            const budgetRingEl = document.getElementById('budget-ring');
-            
-            const visualPct50 = Math.min(pctNecesidades, 50);
-            const visualPct30 = Math.min(pctDeseos, 30);
-            
-            const totalConsumedPct = Math.min(totalPct, 100);
+            const fill20 = document.getElementById('progress-fill-20');
+            const restante20Label = document.getElementById('restante-20-label');
 
-            const deg50 = (visualPct50 / 100) * 360;
-            const deg30 = (visualPct30 / 100) * 360;
-            
-            budgetRingEl.style.setProperty('--pct-50', `${deg50}deg`);
-            budgetRingEl.style.setProperty('--pct-30', `${deg30}deg`);
-            budgetRingEl.setAttribute('data-total', `${totalConsumedPct.toFixed(1)}%`);
+            // --- Lógica 50% ---
+            fill50.style.width = `${Math.min(pct50, 100)}%`;
+            if (gastoNecesidades > objetivo50) {
+                fill50.style.backgroundColor = '#dc2626'; // Danger
+                restante50Label.classList.add('progress-remaining-danger');
+            } else {
+                fill50.style.backgroundColor = '#ef4444'; // Normal Red
+                restante50Label.classList.remove('progress-remaining-danger');
+            }
 
-            const updateColor = (monto, objetivo, id, targetEl) => {
-                targetEl.style.backgroundColor = '';
-                targetEl.style.borderColor = '';
-                
-                // Limpiar color de "Restante"
-                const restanteEl = document.getElementById(`restante-${id.split('-')[1]}`);
-                restanteEl.style.color = '';
-                restanteEl.parentElement.style.color = '';
+            // --- Lógica 30% ---
+            fill30.style.width = `${Math.min(pct30, 100)}%`;
+            if (gastoDeseos > objetivo30) {
+                fill30.style.backgroundColor = '#dc2626'; // Danger
+                restante30Label.classList.add('progress-remaining-danger');
+            } else {
+                fill30.style.backgroundColor = '#f97316'; // Normal Orange
+                restante30Label.classList.remove('progress-remaining-danger');
+            }
 
-                if (id === 'box-50' || id === 'box-30') {
-                    if (monto > objetivo) {
-                        targetEl.style.backgroundColor = '#fee2e2'; 
-                        targetEl.style.borderColor = '#f87171';
-                        // MEJORA 4: Indicar sobregasto
-                        restanteEl.style.color = '#ef4444'; 
-                    } else {
-                        if (id === 'box-50') { 
-                            targetEl.style.backgroundColor = '#fef2f2'; 
-                            targetEl.style.borderColor = '#fecaca'; 
-                            restanteEl.style.color = '#b91c1c';
-                            restanteEl.parentElement.style.color = '#b91c1c';
-                        }
-                        if (id === 'box-30') { 
-                            targetEl.style.backgroundColor = '#fff7ed'; 
-                            targetEl.style.borderColor = '#fed7aa'; 
-                            restanteEl.style.color = '#c2410c';
-                            restanteEl.parentElement.style.color = '#c2410c';
-                        }
-                    }
-                } 
-                else if (id === 'box-20') {
-                    if (monto < objetivo) {
-                        targetEl.style.backgroundColor = '#fef2f2'; 
-                        targetEl.style.borderColor = '#fecaca';
-                        // MEJORA 4: Indicar que falta
-                        restanteEl.style.color = '#b91c1c'; 
-                        restanteEl.parentElement.style.color = '#b91c1c';
-                    } else {
-                        targetEl.style.backgroundColor = '#ecfdf5';
-                        targetEl.style.borderColor = '#a7f3d0';
-                        restanteEl.style.color = '#059669';
-                        restanteEl.parentElement.style.color = '#059669';
-                    }
+            // --- Lógica 20% (Inversa) ---
+            fill20.style.width = `${Math.min(pct20, 100)}%`;
+            if (gastoAhorroDeudas < objetivo20 && ingresosTotales > 0) {
+                fill20.style.backgroundColor = '#f97316'; // Warning Orange (no has llegado)
+                restante20Label.classList.add('progress-remaining-danger');
+                restante20Label.classList.remove('progress-remaining-success');
+            } else {
+                fill20.style.backgroundColor = '#10b981'; // Normal Green
+                restante20Label.classList.remove('progress-remaining-danger');
+                if (gastoAhorroDeudas >= objetivo20 && ingresosTotales > 0) {
+                     restante20Label.classList.add('progress-remaining-success');
+                } else {
+                     restante20Label.classList.remove('progress-remaining-success');
                 }
-            };
-
-
-            updateColor(gastoNecesidades, objetivo50, 'box-50', document.getElementById('box-50'));
-            updateColor(gastoDeseos, objetivo30, 'box-30', document.getElementById('box-30'));
-            updateColor(gastoAhorroDeudas, objetivo20, 'box-20', document.getElementById('box-20'));
+            }
         }
         // --- FIN FUNCIÓN PLANIFICADOR 50/30/20 ---
 
@@ -1007,7 +1139,7 @@
             }).join('');
             
             try {
-                createIcons({ icons: window.lucideIcons }); 
+                createIcons({ icons: window.lucideIcons });    
             } catch (e) {
                 console.warn("Error al renderizar iconos de la tabla:", e.message);
             }
@@ -1042,7 +1174,7 @@
             }
 
             categoriaSelect.innerHTML = html;
-            calcularSugerenciaAhorro(); 
+            calcularSugerenciaAhorro();    
         }
         
         // --- EVENT HANDLERS ---
@@ -1077,16 +1209,20 @@
                 cuenta: UNICA_CUENTA, // HARDCODEADO
             };
 
-            if (transaccion.descripcion && transaccion.monto > 0) { 
+            if (transaccion.descripcion && transaccion.monto > 0) {    
                 const result = await guardarTransaccion(transaccion);
 
                 if (result.success) {
-                    await cargarDatosDesdeSupabase(); 
+                    await cargarDatosDesdeSupabase();    
                     formMessageEl.textContent = "¡Transacción guardada con éxito en la nube!";
                     formMessageEl.style.display = 'block';
                     formMessageEl.style.color = '#10b981';
                     formTransaccion.reset();
                     fechaInput.value = new Date().toISOString().substring(0, 10);
+                    
+                    // --- NUEVO: Ocultar modal al guardar ---
+                    modalNuevaTransaccion.style.display = 'none';
+
                     setTimeout(() => formMessageEl.style.display = 'none', 3000);
                 } else {
                     formMessageEl.textContent = `Error al guardar: ${result.error.message}.`;
@@ -1113,7 +1249,7 @@
                 const id = deleteButton.dataset.id;
                 mostrarModalConfirmacion(id);
             }
-            if (editButton) { 
+            if (editButton) {    
                 const id = editButton.dataset.id;
                 mostrarModalEdicion(id);
             }
@@ -1139,7 +1275,7 @@
         });
         
         // LÓGICA DE EDICIÓN SIMPLIFICADA (SIN CUENTA)
-        function actualizarOpcionesEdicion(currentTipo, currentCategoria) { 
+        function actualizarOpcionesEdicion(currentTipo, currentCategoria) {    
             
             const llenarCategorias = (tipo) => {
                 let html = '';
@@ -1168,7 +1304,7 @@
             editTipoSelect.value = currentTipo;
             llenarCategorias(currentTipo);
 
-            editTipoSelect.onchange = null; 
+            editTipoSelect.onchange = null;    
             editTipoSelect.onchange = () => {
                 const nuevoTipo = editTipoSelect.value;
                 llenarCategorias(nuevoTipo);
@@ -1188,7 +1324,7 @@
                 fecha: editFechaInput.value,
             };
 
-            if (transaccionEditada.descripcion && transaccionEditada.monto > 0) { 
+            if (transaccionEditada.descripcion && transaccionEditada.monto > 0) {    
                 actualizarTransaccionSupabase(transaccionEditada);
             } else {
                 alert("Por favor, complete todos los campos correctamente en el formulario de edición.");
@@ -1197,11 +1333,11 @@
         
         modalCancelEdicion.addEventListener('click', () => {
             modalContainerEdicion.style.display = 'none';
-            editTipoSelect.onchange = null; 
+            editTipoSelect.onchange = null;    
         });
         
         function mostrarModalEdicion(id) {
-            const transaccion = todasTransacciones.find(t => t.id === id); 
+            const transaccion = todasTransacciones.find(t => t.id === id);    
             if (!transaccion) return;
 
             editIdInput.value = transaccion.id;
@@ -1209,7 +1345,7 @@
             editDescripcionInput.value = transaccion.descripcion;
             editFechaInput.value = transaccion.fecha;
             
-            actualizarOpcionesEdicion(transaccion.tipo, transaccion.categoria); 
+            actualizarOpcionesEdicion(transaccion.tipo, transaccion.categoria);    
             
             modalContainerEdicion.style.display = 'flex';
         }
@@ -1235,11 +1371,11 @@
             }
 
             if (!array.includes(nombre)) {
-                array.push(nombre); 
+                array.push(nombre);    
                 guardarConfiguracionLocal();
                 renderizarCategorias();
-                categoriasInputs[tipo].value = ''; 
-                actualizarCategoriasYCuentas(); 
+                categoriasInputs[tipo].value = '';    
+                actualizarCategoriasYCuentas();    
                 return true;
             } else {
                 alert(`La categoría "${nombre}" ya existe.`);
@@ -1274,7 +1410,7 @@
                 array.splice(index, 1);
                 guardarConfiguracionLocal();
                 renderizarCategorias();
-                actualizarCategoriasYCuentas(); 
+                actualizarCategoriasYCuentas();    
                 return true;
             }
             return false;
@@ -1377,14 +1513,24 @@
             }
         });
 
+        // --- NUEVO: Listeners del FAB y Modal del Formulario ---
+        fabNuevaTransaccion.addEventListener('click', () => {
+            modalNuevaTransaccion.style.display = 'flex';
+            // Renderizar iconos dentro del modal si es la primera vez
+            try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
+        });
+
+        modalCancelNueva.addEventListener('click', () => {
+             modalNuevaTransaccion.style.display = 'none';
+        });
 
         // --- 8. INICIO DE LA APLICACIÓN ---
         
         // Se llama a la inicialización al final del módulo
-        inicializarPestanas(); 
+        inicializarPestanas();    
         inicializarSelectorMes();
-        actualizarCategoriasYCuentas(); 
-        cargarDatosDesdeSupabase(); 
+        actualizarCategoriasYCuentas();    
+        cargarDatosDesdeSupabase();    
 
         // Se activa la primera pestaña manualmente al final de la carga del script
         document.getElementById('tab-resumen').click();

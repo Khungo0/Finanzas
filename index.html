@@ -36,7 +36,6 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
-        /* Ajuste para 2 columnas en el dashboard principal */
         .grid-cols-2-gap {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -174,8 +173,8 @@
                     <button id="tab-resumen" class="tab-button" data-target="seccion-resumen">
                         Dashboard y Transacciones
                     </button>
-                    <button id="tab-categorias" class="tab-button" data-target="seccion-categorias">
-                        Administrar Categorías
+                    <button id="tab-clasificacion" class="tab-button" data-target="seccion-clasificacion-503020">
+                        Clasificación 50/30/20
                     </button>
                 </nav>
             </div>
@@ -318,12 +317,14 @@
             </section>
         </div>
 
-        <div id="seccion-categorias" class="tab-content hidden">
+        <div id="seccion-clasificacion-503020" class="tab-content hidden">
             <div class="card-shadow">
                 <h2>
                     <i data-lucide="list-checks" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
                     Administración de Categorías
                 </h2>
+                <p style="color: #64748b; margin-bottom: 24px;">Modifica las categorías de Ingreso (fuentes) y las categorías de Gasto/Ahorro (destinos) para ajustar el análisis 50/30/20 a tu estilo de vida. La cuenta es única y global.</p>
+
                 <div class="grid-cols-3-gap-admin">
                     
                     <div style="display: flex; flex-direction: column;">
@@ -336,7 +337,7 @@
                     </div>
 
                     <div style="display: flex; flex-direction: column;">
-                        <h3 style="color: #ef4444;">Gastos <span id="count-gasto" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
+                        <h3 style="color: #ef4444;">Gastos (50% Necesidades / 30% Deseos) <span id="count-gasto" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
                         <ul id="lista-gasto" style="display: flex; flex-direction: column; gap: 12px;"></ul>
                         <div style="margin-top: 16px;">
                             <input type="text" id="input-gasto" placeholder="Nueva categoría de Gasto" style="margin-bottom: 8px;">
@@ -345,7 +346,7 @@
                     </div>
 
                     <div style="display: flex; flex-direction: column;">
-                        <h3 style="color: #3b82f6;">Ahorros <span id="count-ahorro" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
+                        <h3 style="color: #3b82f6;">Ahorros (20% Objetivos) <span id="count-ahorro" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
                         <ul id="lista-ahorro" style="display: flex; flex-direction: column; gap: 12px;"></ul>
                         <div style="margin-top: 16px;">
                             <input type="text" id="input-ahorro" placeholder="Nueva categoría de Ahorro" style="margin-bottom: 8px;">
@@ -434,7 +435,7 @@
 
         // CREDENCIALES DE SUPABASE
         const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qOND7sMzf5qONQDiLw9nT5MJis'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis'; 
         const TABLA_TRANSACCIONES = 'transacciones';
         
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -465,13 +466,12 @@
             ]
         };
         
-        // Se define Cuentas como un array con la única cuenta para mantener la compatibilidad mínima
+        // Cuentas se define como un array con la única cuenta para mantener la compatibilidad mínima
         let cuentas = [UNICA_CUENTA]; 
         
         // Referencias del DOM 
         const tipoSelect = document.getElementById('tipo');
         const categoriaSelect = document.getElementById('categoria');
-        // const cuentaSelect = document.getElementById('cuenta'); // ELIMINADO del DOM y JS
         const formTransaccion = document.getElementById('form-transaccion');
         const listaTransaccionesEl = document.getElementById('lista-transacciones');
         const formMessageEl = document.getElementById('form-message');
@@ -487,7 +487,6 @@
         const balanceNetoEl = document.getElementById('balance-neto');
         
         // DOM UI Avanzada (Administración)
-        // Se eliminó 'cuenta' de todas estas referencias
         const categoriasListas = {
             ingreso: document.getElementById('lista-ingreso'),
             gasto: document.getElementById('lista-gasto'),
@@ -512,7 +511,6 @@
         const formEdicion = document.getElementById('form-edicion');
         const modalCancelEdicion = document.getElementById('modal-cancel-edicion');
         const editTipoSelect = document.getElementById('edit-tipo');
-        // const editCuentaSelect = document.getElementById('edit-cuenta'); // ELIMINADO
         const editCategoriaSelect = document.getElementById('edit-categoria');
         const editMontoInput = document.getElementById('edit-monto');
         const editDescripcionInput = document.getElementById('edit-descripcion');
@@ -542,11 +540,22 @@
             }
         }
         
-        // FUNCIÓN ELIMINADA: calcularSaldosCuentas (Ya no es necesaria)
+        // Función de cálculo de saldos simplificada (solo para compatibilidad interna si se necesitara)
+        function calcularSaldosCuentas() {
+            let saldo = 0;
+            todasTransacciones.forEach(t => {
+                if (t.tipo === 'ingreso') { 
+                    saldo += t.monto;
+                } else if (t.tipo === 'gasto' || t.tipo === 'ahorro') { 
+                    saldo -= t.monto;
+                } 
+            });
+            // Retornamos un objeto para simular la estructura de cuentas, pero solo con el total global
+            return { [UNICA_CUENTA]: saldo };
+        }
 
         // --- CÓDIGO CLAVE: CALCULAR RESUMEN MENSUAL Y 50/30/20 ---
         function calcularResumenMensual() {
-            // Lógica intacta, ya que solo procesa sumas de todas las transacciones
             let totalEntradasMes = 0;
             let totalSalidasMes = 0;
             
@@ -600,11 +609,13 @@
                                 gastoNecesidades += monto;
                             }
                             
+                            // Clasificación 20% Ahorro/Deudas (solo para Pagos Mínimos Deuda)
                             if (t.categoria === 'Pagos Mínimos Deuda') {
                                 gastoAhorroDeudas += monto;
                             }
 
                         } else if (t.tipo === 'ahorro') {
+                            // Clasificación 20% Ahorro/Deudas (para cualquier categoría de Ahorro)
                             gastoAhorroDeudas += monto;
                         }
                     }
@@ -612,6 +623,8 @@
             });
             
             const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
+            
+            // CÁLCULO DEL 30% (Gastos Deseos/Flexibles)
             
             const ahorroPuroMes = transaccionesMesActual.filter(t => t.tipo === 'ahorro').reduce((sum, t) => sum + t.monto, 0);
             const deudasPurasMes = transaccionesMesActual.filter(t => t.tipo === 'gasto' && t.categoria === 'Pagos Mínimos Deuda').reduce((sum, t) => sum + t.monto, 0);
@@ -640,11 +653,9 @@
         
         function guardarConfiguracionLocal() {
             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
-            // ELIMINADA: localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
         }
         
         async function cargarDatosDesdeSupabase() {
-            // Se sigue cargando 'cuenta', pero se ignora su valor si el usuario ya no la usa.
             const { data, error } = await supabase
                 .from(TABLA_TRANSACCIONES)
                 .select('id, tipo, categoria, descripcion, monto, fecha, cuenta'); 
@@ -673,7 +684,7 @@
                     descripcion: transaccion.descripcion,
                     monto: parseFloat(transaccion.monto),
                     fecha: transaccion.fecha,
-                    cuenta: UNICA_CUENTA, // <-- SE ENVÍA LA CUENTA ÚNICA
+                    cuenta: UNICA_CUENTA, // HARDCODEADO
                 }]);
                 
             if (error) {
@@ -705,7 +716,7 @@
                     monto: transaccion.monto,
                     descripcion: transaccion.descripcion,
                     fecha: transaccion.fecha,
-                    cuenta: UNICA_CUENTA // <-- SE MANTIENE LA CUENTA ÚNICA EN LA EDICIÓN
+                    cuenta: UNICA_CUENTA // HARDCODEADO
                  })
                 .eq('id', transaccion.id);
 
@@ -782,9 +793,9 @@
                     button.style.borderColor = '#4f46e5';
                     button.style.color = '#4f46e5';
 
-                    if (targetId === 'seccion-categorias') {
+                    if (targetId === 'seccion-clasificacion-503020') {
                         renderizarCategorias();
-                        // ELIMINADA: renderizarCuentas(); 
+                        // No hay renderizarCuentas
                     }
                     
                     if (targetId === 'seccion-resumen') {
@@ -804,7 +815,7 @@
             balanceNetoEl.style.color = (balanceNeto > 0) ? '#10b981' : (balanceNeto < 0) ? '#ef4444' : '#4f46e5';
         }
 
-        // --- FUNCIÓN PLANIFICADOR 50/30/20 (Lógica intacta) ---
+        // --- FUNCIÓN PLANIFICADOR 50/30/20 ---
         function renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas) {
             document.getElementById('ingreso-neto-503020').textContent = formatCurrency(ingresosTotales);
             
@@ -879,9 +890,10 @@
         }
         // --- FIN FUNCIÓN PLANIFICADOR 50/30/20 ---
 
+        // Función eliminada: renderizarResumenCuentas (No necesaria)
+
         function renderizarListaTransacciones() {
             if (transaccionesMesActual.length === 0) {
-                // Se cambió a colspan 6 ya que se quitó la columna de Cuenta
                 listaTransaccionesEl.innerHTML = `<tr><td colspan="6" style="padding: 16px; text-align: center; color: #64748b;">No hay transacciones registradas para este mes.</td></tr>`;
                 return;
             }
@@ -968,10 +980,9 @@
                 monto: parseFloat(document.getElementById('monto').value),
                 descripcion: document.getElementById('descripcion').value.trim(),
                 fecha: fechaTransaccion,
-                cuenta: UNICA_CUENTA, // <-- HARDCODE
+                cuenta: UNICA_CUENTA, // HARDCODEADO
             };
 
-            // Se elimina la validación de cuenta
             if (transaccion.descripcion && transaccion.monto > 0) { 
                 const result = await guardarTransaccion(transaccion);
 
@@ -1056,14 +1067,13 @@
             const transaccionEditada = {
                 id: editIdInput.value,
                 tipo: editTipoSelect.value,
-                cuenta: UNICA_CUENTA, // <-- HARDCODE
+                cuenta: UNICA_CUENTA, // HARDCODEADO
                 categoria: editCategoriaSelect.value,
                 monto: parseFloat(editMontoInput.value),
                 descripcion: editDescripcionInput.value.trim(),
                 fecha: editFechaInput.value,
             };
 
-            // Se elimina la validación de cuenta
             if (transaccionEditada.descripcion && transaccionEditada.monto > 0) { 
                 actualizarTransaccionSupabase(transaccionEditada);
             } else {
@@ -1085,14 +1095,12 @@
             editDescripcionInput.value = transaccion.descripcion;
             editFechaInput.value = transaccion.fecha;
             
-            actualizarOpcionesEdicion(transaccion.tipo, transaccion.categoria); // Se eliminó el parámetro cuenta
+            actualizarOpcionesEdicion(transaccion.tipo, transaccion.categoria); 
             
             modalContainerEdicion.style.display = 'flex';
         }
 
-        // --- Funciones para la pestaña Administrar Datos (CRUD de Categorías) ---
-
-        // ELIMINADA: renderizarCuentas
+        // --- Funciones para la pestaña CLASIFICACIÓN 50/30/20 (CRUD) ---
         
         function agregarGeneral(tipo, nombre) {
             nombre = nombre.trim();
@@ -1101,7 +1109,6 @@
             let array;
             let guardarFn = guardarConfiguracionLocal;
 
-            // Lógica simplificada: solo maneja categorías
             array = categorias[tipo];
             
             if (!array.includes(nombre)) {
@@ -1141,10 +1148,22 @@
         }
         
         function renderizarCategorias() {
-            Object.keys(categorias).forEach(tipo => {
+            // Se eliminó la lógica de Cuentas/Fondos
+            const categoriasKeys = ['ingreso', 'gasto', 'ahorro'];
+
+            categoriasKeys.forEach(tipo => {
                 const listaEl = categoriasListas[tipo];
                 const countEl = categoriasCounts[tipo];
                 listaEl.innerHTML = '';
+                
+                // Nota: Las categorías de Gasto/Ahorro se definen por su rol en el 50/30/20.
+                const tituloTipo = tipo === 'gasto' ? 'Gastos (50% Nec. / 30% Deseos)' :
+                                   tipo === 'ahorro' ? 'Ahorros (20% Objetivos)' : 'Ingresos';
+                
+                // Actualiza el título del h3 en la pestaña de clasificación
+                document.querySelector(`#seccion-clasificacion-503020 h3[style*="${tipo === 'gasto' ? '#ef4444' : tipo === 'ahorro' ? '#3b82f6' : '#22c55e'}"]`).innerHTML = 
+                    `${tituloTipo} <span id="count-${tipo}" style="font-size: 0.875rem; font-weight: 400; color: #64748b;">(${categorias[tipo].length} categorías)</span>`;
+                
                 categorias[tipo].forEach(categoria => {
                     const listItem = document.createElement('li');
                     listItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 6px; background-color: #f8fafc; border: 1px solid #e2e8f0;';
@@ -1159,7 +1178,7 @@
                     listaEl.appendChild(listItem);
                 });
                 
-                countEl.textContent = `(${categorias[tipo].length} categorías)`;
+                // El conteo se actualiza en el innerHTML del h3, solo queda asegurar los iconos
             });
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
@@ -1174,7 +1193,7 @@
         });
         
         // Listener para eliminar categorías
-        document.getElementById('seccion-categorias').addEventListener('click', (e) => {
+        document.getElementById('seccion-clasificacion-503020').addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-eliminar-general');
             if (deleteButton) {
                 const tipo = deleteButton.dataset.tipo;

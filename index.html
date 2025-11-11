@@ -9,8 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwindcss.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .card-shadow { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; } /* Fondo más claro */
+        .card-shadow { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0; }
         .category-bar-container { height: 1rem; border-radius: 0.25rem; overflow: hidden; display: flex; }
         .category-bar-segment { height: 100%; transition: width 0.5s ease-in-out; }
 
@@ -32,7 +32,7 @@
         }
         .budget-ring::after {
             content: attr(data-total);
-            background: #f8fafc;
+            background: #f4f7f9; /* Debe coincidir con el body background */
             width: 120px;
             height: 120px;
             border-radius: 50%;
@@ -53,7 +53,7 @@
     </header>
 
     <div class="max-w-6xl mx-auto mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="md:col-span-1 flex justify-between items-center bg-white p-4 rounded-xl card-shadow border border-gray-100">
+        <div class="md:col-span-1 flex justify-between items-center bg-white p-4 rounded-xl card-shadow">
             <label for="selector-mes" class="text-lg font-semibold text-gray-700">Mes de Análisis:</label>
             <select id="selector-mes" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 w-40">
                 </select>
@@ -99,7 +99,7 @@
                 </div>
             </section>
 
-            <section id="planificador-50-30-20" class="bg-white p-8 rounded-xl card-shadow mb-10 border border-gray-100">
+            <section id="planificador-50-30-20" class="bg-white p-8 rounded-xl card-shadow mb-10">
                 <h2 class="text-2xl font-bold mb-6 text-gray-700 flex items-center">
                     <i data-lucide="target" class="w-6 h-6 mr-2 text-pink-500"></i>
                     Planificación 50/30/20 (Basado en Ingresos)
@@ -140,91 +140,96 @@
                     </div>
                 </div>
             </section>
+
+            <button id="toggle-advanced" class="w-full py-2 mb-6 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition duration-150">
+                Mostrar Formulario de Transacción y Gráficos Secundarios (↓)
+            </button>
             
-            <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10">
-                <div class="lg:col-span-1 space-y-6">
-                    <div class="bg-white p-6 rounded-xl card-shadow border border-gray-100">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-700 flex items-center">
-                            <i data-lucide="plus-circle" class="w-6 h-6 mr-2 text-indigo-500"></i>
-                            Nueva Transacción
-                        </h2>
-                        <form id="form-transaccion" class="space-y-4">
-                            
-                            <div>
-                                <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
-                                <select id="tipo" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="ingreso">Ingreso</option>
-                                    <option value="gasto">Gasto</option>
-                                    <option value="ahorro">Ahorro</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label for="cuenta" class="block text-sm font-medium text-gray-700">Cuenta/Fondo</label>
-                                <select id="cuenta" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                                </select>
-                            </div>
+            <div id="advanced-container" class="hidden">
+                <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10">
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="bg-white p-6 rounded-xl card-shadow">
+                            <h2 class="text-2xl font-bold mb-4 text-gray-700 flex items-center">
+                                <i data-lucide="plus-circle" class="w-6 h-6 mr-2 text-indigo-500"></i>
+                                Nueva Transacción
+                            </h2>
+                            <form id="form-transaccion" class="space-y-4">
+                                
+                                <div>
+                                    <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
+                                    <select id="tipo" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                        <option value="ingreso">Ingreso</option>
+                                        <option value="gasto">Gasto</option>
+                                        <option value="ahorro">Ahorro</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label for="cuenta" class="block text-sm font-medium text-gray-700">Cuenta/Fondo</label>
+                                    <select id="cuenta" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
-                                <select id="categoria" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                                </select>
-                            </div>
+                                <div>
+                                    <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
+                                    <select id="categoria" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    </select>
+                                </div>
 
-                            <div id="ahorro-sugerencia-container" class="space-y-2 hidden">
-                                <label for="ahorro-porcentaje" class="block text-sm font-medium text-gray-700">Porcentaje de Ahorro Sugerido (20%)</label>
-                                <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="20" placeholder="Ej: 20" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                                <p id="ahorro-sugerencia-monto" class="text-sm text-indigo-600 font-semibold mt-1">Sugerencia: $0.00</p>
-                            </div>
+                                <div id="ahorro-sugerencia-container" class="space-y-2 hidden">
+                                    <label for="ahorro-porcentaje" class="block text-sm font-medium text-gray-700">Porcentaje de Ahorro Sugerido (20%)</label>
+                                    <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="20" placeholder="Ej: 20" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <p id="ahorro-sugerencia-monto" class="text-sm text-indigo-600 font-semibold mt-1">Sugerencia: $0.00</p>
+                                </div>
 
-                            <div>
-                                <label for="monto" class="block text-sm font-medium text-gray-700">Monto ($)</label>
-                                <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
+                                <div>
+                                    <label for="monto" class="block text-sm font-medium text-gray-700">Monto ($)</label>
+                                    <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
 
-                            <div>
-                                <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-                                <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            
-                            <div>
-                                <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
-                                <input type="date" id="fecha" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
+                                <div>
+                                    <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                                    <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                
+                                <div>
+                                    <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+                                    <input type="date" id="fecha" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
 
-                            <button type="submit" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-150">
-                                Guardar Transacción
-                            </button>
-                            <div id="form-message" class="text-center mt-2 text-sm hidden"></div>
-                        </form>
-                    </div>
-                </div>
-                
-                <div class="lg:col-span-3 space-y-6">
-                    <div class="bg-white p-6 rounded-xl card-shadow border border-gray-100">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-700">Resumen de Fondos por Cuenta</h2>
-                        <div id="resumen-cuentas" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            <p class="text-gray-500">Calculando saldos...</p>
+                                <button type="submit" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-150">
+                                    Guardar Transacción
+                                </button>
+                                <div id="form-message" class="text-center mt-2 text-sm hidden"></div>
+                            </form>
                         </div>
                     </div>
-
-                    <div class="bg-white p-6 rounded-xl card-shadow border border-gray-100">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-700">Distribución de Ingresos y Gastos</h2>
-                        
-                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Gastos por Categoría</h3>
-                        <div id="gastos-por-categoria" class="space-y-3">
-                            <p class="text-gray-500 text-center">No hay gastos registrados aún.</p>
+                    
+                    <div class="lg:col-span-3 space-y-6">
+                        <div class="bg-white p-6 rounded-xl card-shadow">
+                            <h2 class="text-2xl font-bold mb-4 text-gray-700">Resumen de Fondos por Cuenta</h2>
+                            <div id="resumen-cuentas" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                <p class="text-gray-500">Calculando saldos...</p>
+                            </div>
                         </div>
-                        
-                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 pt-6 mb-4">Ingresos por Categoría</h3>
-                        <div id="ingresos-por-categoria" class="space-y-3">
-                            <p class="text-gray-500 text-center py-4">No hay ingresos registrados aún.</p>
+
+                        <div class="bg-white p-6 rounded-xl card-shadow">
+                            <h2 class="text-2xl font-bold mb-4 text-gray-700">Distribución de Ingresos y Gastos</h2>
+                            
+                            <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Gastos por Categoría</h3>
+                            <div id="gastos-por-categoria" class="space-y-3">
+                                <p class="text-gray-500 text-center">No hay gastos registrados aún.</p>
+                            </div>
+                            
+                            <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 pt-6 mb-4">Ingresos por Categoría</h3>
+                            <div id="ingresos-por-categoria" class="space-y-3">
+                                <p class="text-gray-500 text-center py-4">No hay ingresos registrados aún.</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            <section class="bg-white p-6 rounded-xl card-shadow border border-gray-100">
+                </section>
+            </div>
+            <section class="bg-white p-6 rounded-xl card-shadow">
                 <h2 class="text-2xl font-bold mb-4 text-gray-700">Historial de Transacciones del Mes</h2>
                 
                 <div class="overflow-x-auto">
@@ -249,7 +254,7 @@
         </div>
 
         <div id="seccion-categorias" class="tab-content hidden">
-            <div class="bg-white p-6 rounded-xl card-shadow border border-gray-100">
+            <div class="bg-white p-6 rounded-xl card-shadow">
                 <h2 class="text-2xl font-bold mb-6 text-gray-700 flex items-center">
                     <i data-lucide="list-checks" class="w-6 h-6 mr-2 text-indigo-500"></i>
                     Administración de Cuentas y Categorías
@@ -407,7 +412,7 @@
             'Efectivo', 'Mercantil', 'Binance', 'Zinli'
         ];
         
-        // Referencias del DOM (Seguras)
+        // Referencias del DOM (Declaración única)
         const tipoSelect = document.getElementById('tipo');
         const categoriaSelect = document.getElementById('categoria');
         const cuentaSelect = document.getElementById('cuenta'); 
@@ -425,10 +430,14 @@
         const saldoInicialEl = document.getElementById('saldo-inicial');
         const ingresosTotalesEl = document.getElementById('ingresos-totales');
         const gastosTotalesEl = document.getElementById('gastos-totales');
-        const ahorroGastado503020El = document.getElementById('ahorro-gastado-503020');
         const balanceNetoEl = document.getElementById('balance-neto');
         
-        // DOM UI Avanzada
+        // Elementos para el Dashboard Colapsable
+        const toggleAdvancedBtn = document.getElementById('toggle-advanced');
+        const advancedContainer = document.getElementById('advanced-container');
+
+
+        // DOM UI Avanzada (Inputs y Listas de Administración)
         const categoriasListas = {
             ingreso: document.getElementById('lista-ingreso'),
             gasto: document.getElementById('lista-gasto'),
@@ -519,7 +528,8 @@
             // --- VARIABLES 50/30/20 ---
             let gastoNecesidades = 0; // 50%
             let gastoAhorroDeudas = 0; // 20%
-            // Categorías asumidas como necesidades (50%)
+            
+            // Categorías asumidas como necesidades (50%). Incluimos Deudas en 50% y 20%.
             const categoriasNecesidades = ['Vivienda', 'Servicios', 'Salud', 'Educación', 'Deudas'];
             
             const mesActualSeleccionado = mesSeleccionado;
@@ -729,6 +739,7 @@
                         renderizarCuentas(); 
                     }
                     
+                    // Asegura que al volver al resumen, el dashboard colapsable se actualice
                     if (targetId === 'seccion-resumen') {
                         actualizarCategoriasYCuentas(); 
                     }
@@ -752,7 +763,7 @@
                 const color = saldo >= 0 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200';
                 const html = `
                     <div class="${color} p-3 rounded-lg border">
-                        <p class="text-sm font-semibold">${cuenta}</p>
+                        <p class="text-sm font-semibold truncate">${cuenta}</p>
                         <p class="text-xl font-bold mt-1">${formatCurrency(saldo)}</p>
                     </div>
                 `;
@@ -835,15 +846,12 @@
             saldoInicialEl.textContent = formatCurrency(saldoInicial);
             ingresosTotalesEl.textContent = formatCurrency(ingresosTotales);
             gastosTotalesEl.textContent = formatCurrency(gastosTotales);
-            // CORRECCIÓN: Usar el elemento correcto
-            document.getElementById('ahorro-gastado-503020').textContent = formatCurrency(ahorroGastado); 
             
-            const balanceEl = balanceNetoEl;
-            balanceEl.textContent = formatCurrency(balanceNeto);
-            balanceEl.classList.remove('text-green-700', 'text-red-700', 'text-indigo-700');
-            if (balanceNeto > 0) balanceEl.classList.add('text-green-700'); 
-            else if (balanceNeto < 0) balanceEl.classList.add('text-red-700'); 
-            else balanceEl.classList.add('text-indigo-700');
+            balanceNetoEl.textContent = formatCurrency(balanceNeto);
+            balanceNetoEl.classList.remove('text-green-700', 'text-red-700', 'text-indigo-700');
+            if (balanceNeto > 0) balanceNetoEl.classList.add('text-green-700'); 
+            else if (balanceNeto < 0) balanceNetoEl.classList.add('text-red-700'); 
+            else balanceNetoEl.classList.add('text-indigo-700');
 
             renderizarGastosPorCategoria(resumenMensual.gastosPorCategoria, resumenMensual.gastosTotales);
             renderizarIngresosPorCategoria(resumenMensual.ingresosPorCategoria, ingresosTotales);
@@ -1034,6 +1042,18 @@
             }
         });
         
+        // Listener para el botón colapsable
+        toggleAdvancedBtn.addEventListener('click', () => {
+            const isHidden = advancedContainer.classList.contains('hidden');
+            if (isHidden) {
+                advancedContainer.classList.remove('hidden');
+                toggleAdvancedBtn.innerHTML = 'Ocultar Formulario de Transacción y Gráficos Secundarios (↑)';
+            } else {
+                advancedContainer.classList.add('hidden');
+                toggleAdvancedBtn.innerHTML = 'Mostrar Formulario de Transacción y Gráficos Secundarios (↓)';
+            }
+        });
+
         // --- LISTENERS DE ACCIONES DE LA TABLA Y MODALES ---
 
         listaTransaccionesEl.addEventListener('click', (e) => {

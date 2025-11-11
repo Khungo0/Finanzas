@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanzas 50/30/20 | Transacciones</title>
+    <title>Finanzas 50/30/20 | Transacciones Globales</title>
     
     <link rel="icon" type="image/png" href="mi-icono.png">
-    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwindcss.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* Base Styles */
@@ -36,9 +36,16 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
+        /* Ajuste para 2 columnas en el dashboard principal */
         .grid-cols-2-gap {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        /* Ajuste para 3 columnas en la administración */
+        .grid-cols-3-gap-admin {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 24px;
         }
 
@@ -97,7 +104,7 @@
             border-radius: 6px;
             margin-top: 4px;
         }
-        button[type="submit"] {
+        button[type="submit"], .btn-agregar-general {
             padding: 10px;
             background-color: #4f46e5;
             color: white;
@@ -143,32 +150,13 @@
         }
 
         /* Utility classes (simplified) */
-        .mb-10 { margin-bottom: 40px; }
-        .mt-4 { margin-top: 16px; }
-        .space-y-6 > * + * { margin-top: 24px; }
-        .flex { display: flex; }
-        .justify-between { justify-content: space-between; }
-        .items-center { align-items: center; }
-        .text-center { text-align: center; }
-        .inline-flex { display: inline-flex; }
-        .text-xs { font-size: 0.75rem; }
-        .leading-5 { line-height: 1.25rem; }
-        .rounded-full { border-radius: 9999px; }
-        .px-2 { padding-left: 8px; padding-right: 8px; }
-        .bg-green-100 { background-color: #d1fae5; }
-        .text-green-800 { color: #065f46; }
-        .bg-blue-100 { background-color: #dbeafe; }
-        .text-blue-800 { color: #1e40af; }
-        .bg-red-100 { background-color: #fee2e2; }
-        .text-red-800 { color: #991b1b; }
-        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .hidden { display: none; }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
     <header class="mb-10 text-center">
-        <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">🎯 Finanzas 50/30/20</h1>
+        <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">🎯 Finanzas 50/30/20 (Global)</h1>
         <p id="auth-status" class="text-sm text-green-600 mt-1">Conectado a la nube. Datos en Supabase. ☁️</p>
     </header>
 
@@ -187,7 +175,7 @@
                         Dashboard y Transacciones
                     </button>
                     <button id="tab-categorias" class="tab-button" data-target="seccion-categorias">
-                        Administrar Cuentas y Categorías
+                        Administrar Categorías
                     </button>
                 </nav>
             </div>
@@ -212,7 +200,7 @@
                 </div>
 
                 <div class="card-shadow border-indigo-500">
-                    <h2 class="dashboard-card-title">Saldo Final</h2>
+                    <h2 class="dashboard-card-title">Saldo Final (Global)</h2>
                     <p id="balance-neto" class="dashboard-card-value text-indigo-700">$0.00</p>
                 </div>
             </section>
@@ -232,12 +220,6 @@
                                 <option value="ingreso">Ingreso</option>
                                 <option value="gasto">Gasto</option>
                                 <option value="ahorro">Ahorro</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label for="cuenta" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Cuenta/Fondo</label>
-                            <select id="cuenta" required>
                             </select>
                         </div>
 
@@ -322,15 +304,14 @@
                             <tr>
                                 <th style="width: 10%;">Fecha</th>
                                 <th style="width: 12%;">Tipo</th>
-                                <th style="width: 12%;">Cuenta</th>
                                 <th style="width: 15%;">Categoría</th>
-                                <th style="width: 35%;">Descripción</th>
+                                <th style="width: 47%;">Descripción</th>
                                 <th style="width: 10%; text-align: right;">Monto</th>
                                 <th style="width: 6%; text-align: right;">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="lista-transacciones">
-                            <tr><td colspan="7" style="padding: 16px; text-align: center; color: #64748b;">Cargando transacciones...</td></tr>
+                            <tr><td colspan="6" style="padding: 16px; text-align: center; color: #64748b;">Cargando transacciones...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -341,20 +322,10 @@
             <div class="card-shadow">
                 <h2>
                     <i data-lucide="list-checks" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
-                    Administración de Cuentas y Categorías
+                    Administración de Categorías
                 </h2>
-
-                <div class="grid-4-gap">
+                <div class="grid-cols-3-gap-admin">
                     
-                    <div style="display: flex; flex-direction: column;">
-                        <h3 style="color: #8b5cf6;">Cuentas/Fondos <span id="count-cuenta" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
-                        <ul id="lista-cuenta" style="display: flex; flex-direction: column; gap: 12px;"></ul>
-                        <div style="margin-top: 16px;">
-                            <input type="text" id="input-cuenta" placeholder="Nueva cuenta (Ej: Banco)" style="margin-bottom: 8px;">
-                            <button data-tipo="cuenta" class="btn-agregar-general" style="background-color: #8b5cf6;">Agregar Cuenta</button>
-                        </div>
-                    </div>
-
                     <div style="display: flex; flex-direction: column;">
                         <h3 style="color: #22c55e;">Ingresos <span id="count-ingreso" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
                         <ul id="lista-ingreso" style="display: flex; flex-direction: column; gap: 12px;"></ul>
@@ -413,12 +384,6 @@
                     </div>
 
                     <div>
-                        <label for="edit-cuenta" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Cuenta/Fondo</label>
-                        <select id="edit-cuenta" required>
-                            </select>
-                    </div>
-
-                    <div>
                         <label for="edit-categoria" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Categoría</label>
                         <select id="edit-categoria" required>
                             </select>
@@ -456,11 +421,9 @@
             const lucide = await import('https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js');
             createIcons = lucide.createIcons;
             window.lucideIcons = {
-                Home: lucide.Home, DollarSign: lucide.DollarSign, ArrowUpCircle: lucide.ArrowUpCircle,
-                ArrowDownCircle: lucide.ArrowDownCircle, PlusCircle: lucide.PlusCircle, Trash2: lucide.Trash2,
-                Gem: lucide.Gem, ListChecks: lucide.ListChecks, XCircle: lucide.XCircle,
-                Wallet: lucide.Wallet, Pencil: lucide.Pencil, Edit: lucide.Edit,
-                Repeat: lucide.Repeat, Target: lucide.Target, BarChart3: lucide.BarChart3
+                // Se mantuvieron los íconos necesarios
+                PlusCircle: lucide.PlusCircle, Trash2: lucide.Trash2, Pencil: lucide.Pencil,
+                ListChecks: lucide.ListChecks, XCircle: lucide.XCircle, Target: lucide.Target
             };
         } catch (e) {
             console.error("Error crítico al cargar Lucide icons:", e);
@@ -471,18 +434,22 @@
 
         // CREDENCIALES DE SUPABASE
         const SUPABASE_URL = 'https://agbkeubwhbzjyrmzzkjd.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qONQdiLw9nT5MJis'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnYmtldWJ3aGJ6anlybXp6a2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MTA3ODksImV4cCI6MjA3Njk4Njc4OX0.pj3-hUlKcSb3BDuOvhOQD7sMzf5qOND7sMzf5qONQDiLw9nT5MJis'; 
         const TABLA_TRANSACCIONES = 'transacciones';
         
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // --- 2. VARIABLES Y ESTADO (CATEGORÍAS ACTUALIZADAS) ---
+        
+        // ** ÚNICA CUENTA HARDCODEADA **
+        const UNICA_CUENTA = 'Global'; 
+
         let todasTransacciones = []; 
         let transaccionesMesActual = []; 
         let mesSeleccionado = ''; 
         let resumenMensual = {}; 
         
-        // CATEGORÍAS OPTIMIZADAS PARA 50/30/20
+        // CATEGORÍAS OPTIMIZADAS (Se mantiene la última versión)
         let categorias = JSON.parse(localStorage.getItem('finanzasCategorias')) || {
             ingreso: ['Salario', 'Freelance', 'Venta', 'Intereses', 'Otro Ingreso'],
             gasto: [
@@ -490,7 +457,7 @@
                 'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica', 
                 'Salud Esencial', 'Educación Obligatoria', 'Pagos Mínimos Deuda', 
                 // 30% DESEOS (Gasto Variable/Flexible)
-                'Transporte', 'Entretenimiento/Ocio', 'Comer Fuera', 'Ropa y Accesorios', 'Otro Gasto'
+                'Transporte', 'Entretenimiento/Ocio', 'Comer Fuera', 'Ropa y Accesorios'
             ],
             ahorro: [
                 // 20% AHORRO/INVERSIÓN (Objetivos)
@@ -498,14 +465,13 @@
             ]
         };
         
-        let cuentas = JSON.parse(localStorage.getItem('finanzasCuentas')) || [
-            'Efectivo', 'Mercantil', 'Binance', 'Zinli'
-        ];
+        // Se define Cuentas como un array con la única cuenta para mantener la compatibilidad mínima
+        let cuentas = [UNICA_CUENTA]; 
         
         // Referencias del DOM 
         const tipoSelect = document.getElementById('tipo');
         const categoriaSelect = document.getElementById('categoria');
-        const cuentaSelect = document.getElementById('cuenta'); 
+        // const cuentaSelect = document.getElementById('cuenta'); // ELIMINADO del DOM y JS
         const formTransaccion = document.getElementById('form-transaccion');
         const listaTransaccionesEl = document.getElementById('lista-transacciones');
         const formMessageEl = document.getElementById('form-message');
@@ -521,23 +487,21 @@
         const balanceNetoEl = document.getElementById('balance-neto');
         
         // DOM UI Avanzada (Administración)
+        // Se eliminó 'cuenta' de todas estas referencias
         const categoriasListas = {
             ingreso: document.getElementById('lista-ingreso'),
             gasto: document.getElementById('lista-gasto'),
             ahorro: document.getElementById('lista-ahorro'),
-            cuenta: document.getElementById('lista-cuenta') 
         };
         const categoriasInputs = {
             ingreso: document.getElementById('input-ingreso'),
             gasto: document.getElementById('input-gasto'),
             ahorro: document.getElementById('input-ahorro'),
-            cuenta: document.getElementById('input-cuenta') 
         };
         const categoriasCounts = {
             ingreso: document.getElementById('count-ingreso'),
             gasto: document.getElementById('count-gasto'),
             ahorro: document.getElementById('count-ahorro'),
-            cuenta: document.getElementById('count-cuenta') 
         };
         const btnAgregarGeneral = document.querySelectorAll('.btn-agregar-general');
         
@@ -548,7 +512,7 @@
         const formEdicion = document.getElementById('form-edicion');
         const modalCancelEdicion = document.getElementById('modal-cancel-edicion');
         const editTipoSelect = document.getElementById('edit-tipo');
-        const editCuentaSelect = document.getElementById('edit-cuenta');
+        // const editCuentaSelect = document.getElementById('edit-cuenta'); // ELIMINADO
         const editCategoriaSelect = document.getElementById('edit-categoria');
         const editMontoInput = document.getElementById('edit-monto');
         const editDescripcionInput = document.getElementById('edit-descripcion');
@@ -578,27 +542,11 @@
             }
         }
         
-        function calcularSaldosCuentas() {
-            const saldos = {};
-            cuentas.forEach(c => saldos[c] = 0);
-            
-            todasTransacciones.forEach(t => {
-                if (t.cuenta && saldos.hasOwnProperty(t.cuenta)) {
-                    
-                    if (t.tipo === 'ingreso') { 
-                        saldos[t.cuenta] += t.monto;
-                    } 
-                    
-                    else if (t.tipo === 'gasto' || t.tipo === 'ahorro') { 
-                        saldos[t.cuenta] -= t.monto;
-                    } 
-                }
-            });
-            return saldos;
-        }
+        // FUNCIÓN ELIMINADA: calcularSaldosCuentas (Ya no es necesaria)
 
         // --- CÓDIGO CLAVE: CALCULAR RESUMEN MENSUAL Y 50/30/20 ---
         function calcularResumenMensual() {
+            // Lógica intacta, ya que solo procesa sumas de todas las transacciones
             let totalEntradasMes = 0;
             let totalSalidasMes = 0;
             
@@ -652,13 +600,11 @@
                                 gastoNecesidades += monto;
                             }
                             
-                            // Clasificación 20% Ahorro/Deudas (solo para Pagos Mínimos Deuda)
                             if (t.categoria === 'Pagos Mínimos Deuda') {
                                 gastoAhorroDeudas += monto;
                             }
 
                         } else if (t.tipo === 'ahorro') {
-                            // Clasificación 20% Ahorro/Deudas (para cualquier categoría de Ahorro)
                             gastoAhorroDeudas += monto;
                         }
                     }
@@ -667,20 +613,13 @@
             
             const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
             
-            // CÁLCULO DEL 30% (Gastos Deseos/Flexibles)
-            
             const ahorroPuroMes = transaccionesMesActual.filter(t => t.tipo === 'ahorro').reduce((sum, t) => sum + t.monto, 0);
             const deudasPurasMes = transaccionesMesActual.filter(t => t.tipo === 'gasto' && t.categoria === 'Pagos Mínimos Deuda').reduce((sum, t) => sum + t.monto, 0);
 
-            // Gastos Esenciales Puros (sin deudas): Necesidades - Deudas
             const necesidadesPurasMes = gastoNecesidades - deudasPurasMes;
-
-            // Deseos = (Total Gastos tipo 'gasto') - Necesidades Puras
             const totalGastosTipoGasto = transaccionesMesActual.filter(t => t.tipo === 'gasto').reduce((sum, t) => sum + t.monto, 0);
             
             const gastoDeseos = Math.max(0, totalGastosTipoGasto - necesidadesPurasMes);
-            
-            // El 20% es la suma de Ahorro y Deudas.
             gastoAhorroDeudas = ahorroPuroMes + deudasPurasMes;
 
             return { 
@@ -693,7 +632,7 @@
                 // Valores 50/30/20
                 gastoNecesidades: gastoNecesidades, 
                 gastoDeseos: gastoDeseos,
-                gastoAhorroDeudas: gastoAhorroDeudas // Ahorro + Pagos Mínimos Deuda
+                gastoAhorroDeudas: gastoAhorroDeudas
             };
         }
 
@@ -701,17 +640,18 @@
         
         function guardarConfiguracionLocal() {
             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
-            localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
+            // ELIMINADA: localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
         }
         
         async function cargarDatosDesdeSupabase() {
+            // Se sigue cargando 'cuenta', pero se ignora su valor si el usuario ya no la usa.
             const { data, error } = await supabase
                 .from(TABLA_TRANSACCIONES)
                 .select('id, tipo, categoria, descripcion, monto, fecha, cuenta'); 
             
             if (error) {
                 console.error("Error al cargar datos de Supabase:", error);
-                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="7" style="padding: 16px; text-align: center; color: #ef4444;">Error al cargar datos: ${error.message}.</td></tr>`;
+                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="6" style="padding: 16px; text-align: center; color: #ef4444;">Error al cargar datos: ${error.message}.</td></tr>`;
                 todasTransacciones = [];
             } else {
                 todasTransacciones = data.map(t => ({
@@ -733,7 +673,7 @@
                     descripcion: transaccion.descripcion,
                     monto: parseFloat(transaccion.monto),
                     fecha: transaccion.fecha,
-                    cuenta: transaccion.cuenta, 
+                    cuenta: UNICA_CUENTA, // <-- SE ENVÍA LA CUENTA ÚNICA
                 }]);
                 
             if (error) {
@@ -756,6 +696,28 @@
             }
         }
         
+        async function actualizarTransaccionSupabase(transaccion) {
+             const { error } = await supabase
+                .from(TABLA_TRANSACCIONES)
+                .update({ 
+                    tipo: transaccion.tipo,
+                    categoria: transaccion.categoria,
+                    monto: transaccion.monto,
+                    descripcion: transaccion.descripcion,
+                    fecha: transaccion.fecha,
+                    cuenta: UNICA_CUENTA // <-- SE MANTIENE LA CUENTA ÚNICA EN LA EDICIÓN
+                 })
+                .eq('id', transaccion.id);
+
+            if (error) {
+                console.error("Error al actualizar en Supabase:", error);
+                alert("Error al actualizar: " + error.message);
+            } else {
+                modalContainerEdicion.style.display = 'none';
+                await cargarDatosDesdeSupabase();
+            }
+        }
+        
         // --- 5. LÓGICA DE FILTRADO Y CÁLCULO ---
 
         function filtrarYRenderizar() {
@@ -770,7 +732,6 @@
             renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas);
             renderizarListaTransacciones();
             calcularSugerenciaAhorro(); 
-            // Vuelve a aplicar los iconos después de renderizar listas
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
 
@@ -823,7 +784,7 @@
 
                     if (targetId === 'seccion-categorias') {
                         renderizarCategorias();
-                        renderizarCuentas(); 
+                        // ELIMINADA: renderizarCuentas(); 
                     }
                     
                     if (targetId === 'seccion-resumen') {
@@ -840,17 +801,13 @@
             
             balanceNetoEl.textContent = formatCurrency(balanceNeto);
             
-            // Colorear Saldo Final
             balanceNetoEl.style.color = (balanceNeto > 0) ? '#10b981' : (balanceNeto < 0) ? '#ef4444' : '#4f46e5';
-
-            // Ya no renderizamos los gráficos secundarios aquí, solo el principal.
         }
 
-        // --- FUNCIÓN PLANIFICADOR 50/30/20 ---
+        // --- FUNCIÓN PLANIFICADOR 50/30/20 (Lógica intacta) ---
         function renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas) {
             document.getElementById('ingreso-neto-503020').textContent = formatCurrency(ingresosTotales);
             
-            // 1. Calcular Objetivos (Basado en Ingresos Totales del Mes)
             const objetivo50 = ingresosTotales * 0.5;
             const objetivo30 = ingresosTotales * 0.3;
             const objetivo20 = ingresosTotales * 0.2;
@@ -863,65 +820,53 @@
             document.getElementById('gasto-30').textContent = formatCurrency(gastoDeseos);
             document.getElementById('gasto-20').textContent = formatCurrency(gastoAhorroDeudas);
 
-            // 2. Calcular Porcentajes de Gasto (respecto al Ingreso Total)
             const pctNecesidades = ingresosTotales > 0 ? (gastoNecesidades / ingresosTotales) * 100 : 0;
             const pctDeseos = ingresosTotales > 0 ? (gastoDeseos / ingresosTotales) * 100 : 0;
             const pctAhorro = ingresosTotales > 0 ? (gastoAhorroDeudas / ingresosTotales) * 100 : 0;
             
             const totalPct = pctNecesidades + pctDeseos + pctAhorro;
             
-            // 3. Renderizar Gráfico Circular (Anillo)
             const budgetRingEl = document.getElementById('budget-ring');
             
             const visualPct50 = Math.min(pctNecesidades, 50);
             const visualPct30 = Math.min(pctDeseos, 30);
-            const visualPct20 = Math.min(pctAhorro, 20);
+            
+            const totalConsumedPct = Math.min(totalPct, 100);
 
             const deg50 = (visualPct50 / 100) * 360;
             const deg30 = (visualPct30 / 100) * 360;
             
-            const totalConsumedPct = Math.min(totalPct, 100);
-
-            // Usando style.setProperty para las variables CSS
             budgetRingEl.style.setProperty('--pct-50', `${deg50}deg`);
             budgetRingEl.style.setProperty('--pct-30', `${deg30}deg`);
             budgetRingEl.setAttribute('data-total', `${totalConsumedPct.toFixed(1)}%`);
 
-            // 4. Colores de los objetivos (Alerta visual)
             const updateColor = (monto, objetivo, id, targetEl) => {
-                // Limpieza de estilos de alerta
                 targetEl.style.backgroundColor = '';
                 targetEl.style.borderColor = '';
                 targetEl.querySelector('p').style.color = '';
                 targetEl.querySelector('p').style.fontWeight = '700';
 
-                // Alerta para Necesidades y Deseos (gastar de más)
                 if (id === 'box-50' || id === 'box-30') {
                     if (monto > objetivo) {
-                        targetEl.style.backgroundColor = '#fee2e2'; // Red-100
-                        targetEl.style.borderColor = '#f87171';    // Red-400
+                        targetEl.style.backgroundColor = '#fee2e2'; 
+                        targetEl.style.borderColor = '#f87171';    
                         targetEl.querySelector('p').style.color = '#b91c1c';
                     } else {
-                        // Estilos base
                         if (id === 'box-50') { targetEl.style.backgroundColor = '#fef2f2'; targetEl.style.borderColor = '#fecaca'; }
                         if (id === 'box-30') { targetEl.style.backgroundColor = '#fff7ed'; targetEl.style.borderColor = '#fed7aa'; }
                     }
                 } 
-                
-                // Alerta para Ahorro/Deudas (gastar de menos)
                 else if (id === 'box-20') {
                     if (monto < objetivo) {
-                        targetEl.style.backgroundColor = '#fef2f2'; // Red-50
-                        targetEl.style.borderColor = '#fecaca';    // Red-200
+                        targetEl.style.backgroundColor = '#fef2f2'; 
+                        targetEl.style.borderColor = '#fecaca';    
                         targetEl.querySelector('p').style.color = '#b91c1c';
                     } else {
-                        // Estilo base
                         targetEl.style.backgroundColor = '#ecfdf5';
                         targetEl.style.borderColor = '#a7f3d0';
                     }
                 }
 
-                // Restaurar colores de texto específicos si no hay alerta
                 if (id === 'box-50' && monto <= objetivo) targetEl.querySelector('p').style.color = '#b91c1c';
                 if (id === 'box-30' && monto <= objetivo) targetEl.querySelector('p').style.color = '#c2410c';
                 if (id === 'box-20' && monto >= objetivo) targetEl.querySelector('p').style.color = '#059669';
@@ -934,12 +879,10 @@
         }
         // --- FIN FUNCIÓN PLANIFICADOR 50/30/20 ---
 
-        // Función eliminada: renderizarGastosPorCategoria (No usada)
-        // Función eliminada: renderizarIngresosPorCategoria (No usada)
-
         function renderizarListaTransacciones() {
             if (transaccionesMesActual.length === 0) {
-                listaTransaccionesEl.innerHTML = `<tr><td colspan="7" style="padding: 16px; text-align: center; color: #64748b;">No hay transacciones registradas para este mes.</td></tr>`;
+                // Se cambió a colspan 6 ya que se quitó la columna de Cuenta
+                listaTransaccionesEl.innerHTML = `<tr><td colspan="6" style="padding: 16px; text-align: center; color: #64748b;">No hay transacciones registradas para este mes.</td></tr>`;
                 return;
             }
 
@@ -962,7 +905,6 @@
                         <td style="padding: 12px;">
                             <span class="inline-flex text-xs leading-5 rounded-full px-2" style="${tipoClase} font-weight: 600;">${tipoTexto}</span>
                         </td>
-                        <td style="padding: 12px; font-size: 0.875rem; color: #475569;">${t.cuenta || 'N/A'}</td>
                         <td style="padding: 12px; font-size: 0.875rem; color: #1e293b;">${categoriaTexto}</td>
                         <td style="padding: 12px; font-size: 0.875rem; color: #64748b;" class="truncate">${t.descripcion}</td>
                         <td style="padding: 12px; text-align: right; font-size: 0.875rem; ${montoClase}">${formatCurrency(t.monto)}</td>
@@ -989,9 +931,7 @@
 
         function actualizarCategoriasYCuentas() {
             actualizarCategorias();
-            
-            const opcionesCuentas = cuentas.map(c => `<option value="${c}">${c}</option>`).join('');
-            cuentaSelect.innerHTML = opcionesCuentas;
+            // Lógica de cuentas eliminada
         }
 
         function actualizarCategorias() {
@@ -1001,11 +941,7 @@
             calcularSugerenciaAhorro(); 
         }
         
-        // --- FUNCIÓN CRUD LOCALES ---
-        
-        function guardarCuentas() {
-            localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-        }
+        // FUNCIÓN ELIMINADA: guardarCuentas
         
         // --- EVENT HANDLERS ---
         
@@ -1032,10 +968,11 @@
                 monto: parseFloat(document.getElementById('monto').value),
                 descripcion: document.getElementById('descripcion').value.trim(),
                 fecha: fechaTransaccion,
-                cuenta: cuentaSelect.value,
+                cuenta: UNICA_CUENTA, // <-- HARDCODE
             };
 
-            if (transaccion.descripcion && transaccion.monto > 0 && transaccion.cuenta) {
+            // Se elimina la validación de cuenta
+            if (transaccion.descripcion && transaccion.monto > 0) { 
                 const result = await guardarTransaccion(transaccion);
 
                 if (result.success) {
@@ -1052,7 +989,7 @@
                     formMessageEl.style.color = '#ef4444';
                 }
             } else {
-                formMessageEl.textContent = "Por favor, complete todos los campos (incluida la cuenta) correctamente.";
+                formMessageEl.textContent = "Por favor, complete todos los campos correctamente.";
                 formMessageEl.style.display = 'block';
                 formMessageEl.style.color = '#ef4444';
             }
@@ -1093,12 +1030,9 @@
             idAeliminar = null;
         });
         
-        function actualizarOpcionesEdicion(currentTipo, currentCategoria, currentCuenta) {
+        // LÓGICA DE EDICIÓN SIMPLIFICADA (SIN CUENTA)
+        function actualizarOpcionesEdicion(currentTipo, currentCategoria) { 
             
-            editCuentaSelect.innerHTML = cuentas.map(c => 
-                `<option value="${c}" ${c === currentCuenta ? 'selected' : ''}>${c}</option>`
-            ).join('');
-
             const llenarCategorias = (tipo) => {
                 const cats = categorias[tipo] || [];
                 editCategoriaSelect.innerHTML = cats.map(cat => 
@@ -1122,43 +1056,21 @@
             const transaccionEditada = {
                 id: editIdInput.value,
                 tipo: editTipoSelect.value,
-                cuenta: editCuentaSelect.value,
+                cuenta: UNICA_CUENTA, // <-- HARDCODE
                 categoria: editCategoriaSelect.value,
                 monto: parseFloat(editMontoInput.value),
                 descripcion: editDescripcionInput.value.trim(),
                 fecha: editFechaInput.value,
             };
 
-            if (transaccionEditada.descripcion && transaccionEditada.monto > 0 && transaccionEditada.cuenta) {
+            // Se elimina la validación de cuenta
+            if (transaccionEditada.descripcion && transaccionEditada.monto > 0) { 
                 actualizarTransaccionSupabase(transaccionEditada);
             } else {
                 alert("Por favor, complete todos los campos correctamente en el formulario de edición.");
             }
         });
         
-        async function actualizarTransaccionSupabase(transaccion) {
-             const { error } = await supabase
-                .from(TABLA_TRANSACCIONES)
-                .update({ 
-                    tipo: transaccion.tipo,
-                    categoria: transaccion.categoria,
-                    monto: transaccion.monto,
-                    descripcion: transaccion.descripcion,
-                    fecha: transaccion.fecha,
-                    cuenta: transaccion.cuenta
-                 })
-                .eq('id', transaccion.id);
-
-            if (error) {
-                console.error("Error al actualizar en Supabase:", error);
-                alert("Error al actualizar: " + error.message);
-            } else {
-                modalContainerEdicion.style.display = 'none';
-                await cargarDatosDesdeSupabase();
-            }
-        }
-
-
         modalCancelEdicion.addEventListener('click', () => {
             modalContainerEdicion.style.display = 'none';
             editTipoSelect.onchange = null; 
@@ -1173,59 +1085,46 @@
             editDescripcionInput.value = transaccion.descripcion;
             editFechaInput.value = transaccion.fecha;
             
-            actualizarOpcionesEdicion(transaccion.tipo, transaccion.categoria, transaccion.cuenta);
+            actualizarOpcionesEdicion(transaccion.tipo, transaccion.categoria); // Se eliminó el parámetro cuenta
             
             modalContainerEdicion.style.display = 'flex';
         }
 
-        // --- Funciones para la pestaña Administrar Datos (CRUD de Cuentas/Categorías) ---
+        // --- Funciones para la pestaña Administrar Datos (CRUD de Categorías) ---
 
+        // ELIMINADA: renderizarCuentas
+        
         function agregarGeneral(tipo, nombre) {
             nombre = nombre.trim();
             if (!nombre) return false;
             
             let array;
-            let guardarFn;
+            let guardarFn = guardarConfiguracionLocal;
 
-            if (tipo === 'cuenta') {
-                array = cuentas;
-                guardarFn = guardarCuentas;
-            } else {
-                array = categorias[tipo];
-                guardarFn = guardarConfiguracionLocal;
-            }
+            // Lógica simplificada: solo maneja categorías
+            array = categorias[tipo];
             
             if (!array.includes(nombre)) {
                 array.push(nombre); 
                 
                 guardarFn();
-                if (tipo === 'cuenta') renderizarCuentas();
-                else renderizarCategorias();
+                renderizarCategorias();
                 categoriasInputs[tipo].value = ''; 
                 actualizarCategoriasYCuentas(); 
                 return true;
             } else {
-                alert(`${tipo === 'cuenta' ? 'La cuenta' : 'La categoría'} "${nombre}" ya existe.`);
+                alert(`La categoría "${nombre}" ya existe.`);
             }
             return false;
         }
 
         function eliminarGeneral(tipo, nombre) {
-            let array;
-            let guardarFn;
-            let transaccionKey = tipo === 'cuenta' ? 'cuenta' : 'categoria';
-
-            if (tipo === 'cuenta') {
-                array = cuentas;
-                guardarFn = guardarCuentas;
-            } else {
-                array = categorias[tipo];
-                guardarFn = guardarConfiguracionLocal;
-            }
-
+            let array = categorias[tipo];
+            let guardarFn = guardarConfiguracionLocal;
+            
             const index = array.indexOf(nombre);
             if (index > -1) {
-                const transaccionesActivas = todasTransacciones.filter(t => t[transaccionKey] === nombre);
+                const transaccionesActivas = todasTransacciones.filter(t => t.categoria === nombre);
                 
                 if (transaccionesActivas.length > 0) {
                     alert(`No se puede eliminar porque tiene ${transaccionesActivas.length} transacciones registradas. Elimina las transacciones primero.`);
@@ -1234,38 +1133,11 @@
                 
                 array.splice(index, 1);
                 guardarFn();
-                if (tipo === 'cuenta') renderizarCuentas();
-                else renderizarCategorias();
+                renderizarCategorias();
                 actualizarCategoriasYCuentas(); 
                 return true;
             }
             return false;
-        }
-
-        function renderizarCuentas() { 
-            const listaEl = categoriasListas['cuenta'];
-            const countEl = categoriasCounts['cuenta'];
-            listaEl.innerHTML = '';
-            
-            cuentas.forEach((cuenta) => {
-                const listItem = document.createElement('li');
-                
-                listItem.dataset.nombre = cuenta;
-                listItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 6px; background-color: #f8fafc; border: 1px solid #e2e8f0;';
-                
-                listItem.innerHTML = `
-                    <span style="color: #1e293b; font-weight: 500;" data-cuenta="${cuenta}">${cuenta}</span>
-                    <div>
-                        <button data-tipo="cuenta" data-nombre="${cuenta}" class="btn-eliminar-general" style="color: #ef4444; background: none; border: none; cursor: pointer;">
-                            <i data-lucide="x-circle" style="width: 18px; height: 18px; display: inline-block;"></i>
-                        </button>
-                    </div>
-                `;
-                listaEl.appendChild(listItem);
-            });
-
-            countEl.textContent = `(${cuentas.length} cuentas)`;
-            try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
         
         function renderizarCategorias() {
@@ -1291,10 +1163,31 @@
             });
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
+        
+        // Listener simplificado para agregar categorías
+        btnAgregarGeneral.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const tipo = e.currentTarget.dataset.tipo;
+                const input = categoriasInputs[tipo];
+                agregarGeneral(tipo, input.value);
+            });
+        });
+        
+        // Listener para eliminar categorías
+        document.getElementById('seccion-categorias').addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.btn-eliminar-general');
+            if (deleteButton) {
+                const tipo = deleteButton.dataset.tipo;
+                const nombre = deleteButton.dataset.nombre;
+                if(confirm(`¿Estás seguro de que quieres eliminar la categoría "${nombre}"? Esta acción es irreversible si no se tienen transacciones asociadas.`)) {
+                    eliminarGeneral(tipo, nombre);
+                }
+            }
+        });
+
 
         // --- 8. INICIO DE LA APLICACIÓN ---
         
-        // Inicializar pestañas para que la sección resumen sea visible al inicio.
         document.getElementById('tab-resumen').click();
 
         inicializarPestanas(); 

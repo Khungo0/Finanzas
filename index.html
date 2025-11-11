@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; } /* Fondo más claro */
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .card-shadow { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
         .category-bar-container { height: 1rem; border-radius: 0.25rem; overflow: hidden; display: flex; }
         .category-bar-segment { height: 100%; transition: width 0.5s ease-in-out; }
@@ -253,7 +253,7 @@
             <div class="bg-white p-6 rounded-xl card-shadow border border-gray-100">
                 <h2 class="text-2xl font-bold mb-6 text-gray-700 flex items-center">
                     <i data-lucide="list-checks" class="w-6 h-6 mr-2 text-indigo-500"></i>
-                    Administración de Categorías y Cuentas
+                    Administración de Cuentas y Categorías
                 </h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -263,7 +263,7 @@
                         <ul id="lista-cuenta" class="space-y-3">
                             </ul>
                         <div class="mt-4">
-                            <input type="text" id="input-cuenta" placeholder="Nueva cuenta (Ej: Binance)" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2 focus:ring-purple-500">
+                            <input type="text" id="input-cuenta" placeholder="Nueva cuenta (Ej: Banco)" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2 focus:ring-purple-500">
                             <button data-tipo="cuenta" class="btn-agregar-general w-full py-2 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar Cuenta</button>
                         </div>
                     </div>
@@ -423,6 +423,7 @@
         const ahorroSugerenciaContainer = document.getElementById('ahorro-sugerencia-container');
         const budgetRingEl = document.getElementById('budget-ring');
         const saldoInicialEl = document.getElementById('saldo-inicial');
+        const ingresosTotalesEl = document.getElementById('ingresos-totales');
         
         // DOM UI Avanzada
         const categoriasListas = {
@@ -509,7 +510,6 @@
             let totalSalidasMes = 0;
             
             let ingresosRealesMes = 0;
-            let gastosRealesMes = 0; 
             
             let gastosPorCategoria = {};
             let ingresosPorCategoria = {};
@@ -548,7 +548,6 @@
                         totalSalidasMes += monto; 
                         
                         if (t.tipo === 'gasto') {
-                            gastosRealesMes += monto; // Cuenta todos los gastos de tipo 'gasto'
                             gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + monto;
 
                             // Es una necesidad (50%)
@@ -562,8 +561,7 @@
                             }
 
                         } else if (t.tipo === 'ahorro') {
-                            // El ahorro también es un "gasto"
-                            gastosRealesMes += monto; 
+                            // Gastos y Ahorro no van a GastosPorCategoria, ya que no son categorías de gasto tradicional
                             // Es ahorro (20%)
                             gastoAhorroDeudas += monto;
                         }
@@ -575,15 +573,22 @@
             
             // CÁLCULO DEL 30% (Gastos Deseos/Flexibles)
             
-            // NecesidadesPuras: Solo las categorías de gasto definidas como Necesidades, incluyendo Deudas.
             // AhorroPuro: Solo las transacciones de tipo 'ahorro' del mes actual.
             const ahorroPuroMes = transaccionesMesActual.filter(t => t.tipo === 'ahorro').reduce((sum, t) => sum + t.monto, 0);
 
-            // Los gastos reales que NO son Necesidades (50%) ni Ahorro (20%) son Deseos (30%).
-            // NOTA: Para este cálculo, solo sumamos los gastos de tipo 'gasto' y luego restamos las necesidades/ahorros.
-            const gastoTotalRealMes = totalSalidasMes;
-            const gastoDeseos = Math.max(0, gastoTotalRealMes - gastoNecesidades - ahorroPuroMes);
-            // Esto es una forma más simple de decir: Deseos = TotalSalidas - Necesidades - Ahorro
+            // DeudasPuras: Solo las transacciones de categoría 'Deudas' del mes actual.
+            const deudasPurasMes = transaccionesMesActual.filter(t => t.tipo === 'gasto' && t.categoria === 'Deudas').reduce((sum, t) => sum + t.monto, 0);
+
+            // Gastos Esenciales Puros (sin deudas): Necesidades - Deudas
+            const necesidadesPurasMes = gastoNecesidades - deudasPurasMes;
+
+            // Deseos = (Total Gastos tipo 'gasto') - Necesidades Puras
+            const totalGastosTipoGasto = transaccionesMesActual.filter(t => t.tipo === 'gasto').reduce((sum, t) => sum + t.monto, 0);
+            
+            const gastoDeseos = Math.max(0, totalGastosTipoGasto - necesidadesPurasMes);
+            
+            // El 20% es la suma de Ahorro y Deudas.
+            gastoAhorroDeudas = ahorroPuroMes + deudasPurasMes;
 
             return { 
                 ingresosTotales: ingresosRealesMes, 
@@ -599,7 +604,7 @@
             };
         }
 
-        // --- 4. FUNCIONES CRUD CON SUPABASE (Mantenidas) ---
+        // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
         function guardarConfiguracionLocal() {
             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
@@ -848,7 +853,7 @@
 
         function renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales) {
             gastosPorCategoriaEl.innerHTML = '';
-            // Excluir Ahorros del gráfico de categorías de "Gastos" para evitar duplicación
+            // Excluir Ahorros del gráfico de categorías de "Gastos" para que solo muestre categorías de Gasto tipo 'gasto'
             const categoriasGastos = Object.entries(gastosPorCategoria).filter(([cat, monto]) => categorias.gasto.includes(cat)); 
             const totalGastosVisual = categoriasGastos.reduce((sum, [, monto]) => sum + monto, 0);
 
@@ -979,7 +984,7 @@
         function guardarCuentas() {
             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
         }
-
+        
         // --- EVENT HANDLERS ---
         
         tipoSelect.addEventListener('change', actualizarCategorias);
@@ -1156,7 +1161,7 @@
             modalContainerEdicion.classList.add('flex');
         }
 
-        // --- Funciones para la pestaña Administrar Datos ---
+        // --- Funciones para la pestaña Administrar Datos (CRUD de Cuentas/Categorías) ---
 
         function agregarGeneral(tipo, nombre) {
             nombre = nombre.trim();
@@ -1229,8 +1234,6 @@
                 const listItem = document.createElement('li');
                 
                 listItem.dataset.nombre = cuenta;
-
-                // Se eliminan los listeners de Drag & Drop para simplificar.
                 listItem.className = `flex justify-between items-center p-3 rounded-lg border bg-gray-50`;
                 
                 listItem.innerHTML = `

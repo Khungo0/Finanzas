@@ -17,7 +17,7 @@
             color: #1e293b;
         }
         main { 
-            max-width: 1024px; 
+            max-width: 1280px; /* Ampliado para 3 columnas */
             margin: 0 auto; 
         }
 
@@ -31,20 +31,25 @@
         }
 
         /* Grid Layouts */
-        .grid-4-gap {
+        .grid-5-gap {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 24px;
+        }
+        .grid-cols-3-dashboard {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr); /* Default 1 columna en móvil */
+            gap: 24px;
+        }
+        @media (min-width: 1024px) { /* En pantallas grandes (lg) */
+            .grid-cols-3-dashboard {
+                grid-template-columns: 1.5fr 1.5fr 1fr;
+            }
+        }
+        
+        .grid-cols-4-gap-admin {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-        }
-        .grid-cols-2-gap {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-        }
-        /* Ajuste para 3 columnas en la administración */
-        .grid-cols-3-gap-admin {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
             gap: 24px;
         }
 
@@ -62,10 +67,13 @@
         .border-red-500 { border-left: 4px solid #ef4444; }
         .border-gray-500 { border-left: 4px solid #64748b; }
         .border-indigo-500 { border-left: 4px solid #6366f1; }
+        .border-emerald-500 { border-left: 4px solid #10b981; } 
         .text-green-600 { color: #10b981; }
         .text-red-600 { color: #ef4444; }
         .text-indigo-700 { color: #4f46e5; }
         .text-gray-800 { color: #1e293b; }
+        .text-emerald-600 { color: #059669; }
+        .text-blue-600 { color: #2563eb; }
         
         /* Tabs */
         .tab-button {
@@ -111,6 +119,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.15s;
+        }
+        button:disabled {
+            background-color: #a5b4fc; /* Indigo-300 */
+            cursor: not-allowed;
         }
         
         /* Table Styles */
@@ -182,7 +194,7 @@
 
         <div id="seccion-resumen" class="tab-content">
             
-            <section id="resumen-dashboard" class="grid-4-gap mb-10">
+            <section id="resumen-dashboard" class="grid-5-gap mb-10">
                 <div class="card-shadow border-gray-500">
                     <h2 class="dashboard-card-title">Saldo Inicial</h2>
                     <p id="saldo-inicial" class="dashboard-card-value text-gray-800">$0.00</p>
@@ -192,15 +204,25 @@
                     <h2 class="dashboard-card-title">Ingresos Totales</h2>
                     <p id="ingresos-totales" class="dashboard-card-value text-green-600">$0.00</p>
                 </div>
-
+                
                 <div class="card-shadow border-red-500">
-                    <h2 class="dashboard-card-title">Salidas (Gastos + Ahorro)</h2>
-                    <p id="gastos-totales" class="dashboard-card-value text-red-600">$0.00</p>
+                    <h2 class="dashboard-card-title">Gastos del Mes (50/30)</h2>
+                    <p id="gastos-mes" class="dashboard-card-value text-red-600">$0.00</p>
+                </div>
+
+                <div class="card-shadow border-blue-500">
+                    <h2 class="dashboard-card-title">Ahorro del Mes (20%)</h2>
+                    <p id="ahorro-mes" class="dashboard-card-value text-blue-600">$0.00</p>
                 </div>
 
                 <div class="card-shadow border-indigo-500">
                     <h2 class="dashboard-card-title">Saldo Final (Global)</h2>
                     <p id="balance-neto" class="dashboard-card-value text-indigo-700">$0.00</p>
+                </div>
+                
+                <div class="card-shadow border-emerald-500">
+                    <h2 class="dashboard-card-title">Ahorro Acumulado</h2>
+                    <p id="ahorro-acumulado-total" class="dashboard-card-value text-emerald-600">$0.00</p>
                 </div>
             </section>
 
@@ -249,7 +271,7 @@
                             <input type="date" id="fecha" required>
                         </div>
 
-                        <button type="submit">
+                        <button type="submit" id="btn-guardar-transaccion">
                             Guardar Transacción
                         </button>
                         <div id="form-message" style="text-align: center; margin-top: 8px; font-size: 0.875rem; display: none;"></div>
@@ -274,16 +296,19 @@
                                 <p class="text-red-700" style="font-weight: 700; font-size: 0.875rem;">50% Nec.</p>
                                 <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-50">$0.00</span></p>
                                 <p style="color: #475569; font-size: 0.75rem;">Gasto: <span id="gasto-50" style="font-weight: 600;">$0.00</span></p>
+                                <p style="color: #b91c1c; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Restante: <span id="restante-50">$0.00</span></p>
                             </div>
                             <div class="budget-box bg-orange-50" id="box-30">
                                 <p class="text-orange-700" style="font-weight: 700; font-size: 0.875rem;">30% Deseos</p>
                                 <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-30">$0.00</span></p>
                                 <p style="color: #475569; font-size: 0.75rem;">Gasto: <span id="gasto-30" style="font-weight: 600;">$0.00</span></p>
+                                <p style="color: #c2410c; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Restante: <span id="restante-30">$0.00</span></p>
                             </div>
                             <div class="budget-box bg-emerald-50" id="box-20">
                                 <p class="text-emerald-700" style="font-weight: 700; font-size: 0.875rem;">20% Ahorro</p>
                                 <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-20">$0.00</span></p>
                                 <p style="color: #475569; font-size: 0.75rem;">Aport: <span id="gasto-20" style="font-weight: 600;">$0.00</span></p>
+                                <p style="color: #059669; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Faltante: <span id="restante-20">$0.00</span></p>
                             </div>
                         </div>
 
@@ -495,6 +520,7 @@
         const ingresosTotalesEl = document.getElementById('ingresos-totales');
         const gastosTotalesEl = document.getElementById('gastos-totales');
         const balanceNetoEl = document.getElementById('balance-neto');
+        const btnGuardarTransaccion = document.getElementById('btn-guardar-transaccion');
         
         // DOM UI Avanzada (Administración)
         const categoriasListas = {
@@ -562,7 +588,7 @@
             
             let ingresosPorCategoria = {};
             let saldoInicial = 0;
-            let ahorroAcumuladoTotal = 0; 
+            let ahorroAcumuladoTotal = 0; // MEJORA 2
             
             // --- VARIABLES 50/30/20 ---
             let gastoNecesidades = 0; // 50%
@@ -579,7 +605,7 @@
             todasTransacciones.forEach(t => {
                 const monto = t.monto;
                 
-                // Ahorro Acumulado Total (Histórico)
+                // MEJORA 2: Ahorro Acumulado Total (Histórico)
                 if (t.tipo === 'ahorro') {
                     ahorroAcumuladoTotal += monto;
                 }
@@ -638,7 +664,7 @@
                 gastosTotales: totalSalidasMes, 
                 balanceNeto: balanceNeto, 
                 saldoInicial: saldoInicial,
-                ahorroAcumuladoTotal: ahorroAcumuladoTotal, 
+                ahorroAcumuladoTotal: ahorroAcumuladoTotal, // MEJORA 2
                 ingresosPorCategoria: ingresosPorCategoria,
                 // Valores 50/30/20
                 gastoNecesidades: gastoNecesidades, 
@@ -815,16 +841,15 @@
             
             // Tarjeta de Gastos (50+30)
             const gastosMes = gastoNecesidades + gastoDeseos;
-            document.getElementById('gastos-totales').textContent = formatCurrency(gastosMes); // Esta tarjeta ahora solo muestra GASTOS
+            document.getElementById('gastos-mes').textContent = formatCurrency(gastosMes);
             
             // Tarjeta de Ahorro (20)
-            // (Esta tarjeta fue eliminada en el HTML anterior, pero la lógica de cálculo sigue aquí por si acaso)
-            // document.getElementById('ahorro-mes').textContent = formatCurrency(gastoAhorroDeudas);
+            document.getElementById('ahorro-mes').textContent = formatCurrency(gastoAhorroDeudas);
 
             balanceNetoEl.textContent = formatCurrency(balanceNeto);
             
             // MEJORA 2: Mostrar Ahorro Acumulado
-            // document.getElementById('ahorro-acumulado-total').textContent = formatCurrency(ahorroAcumuladoTotal); // El HTML de 5 tarjetas fue eliminado
+            document.getElementById('ahorro-acumulado-total').textContent = formatCurrency(ahorroAcumuladoTotal);
             
             balanceNetoEl.style.color = (balanceNeto > 0) ? '#10b981' : (balanceNeto < 0) ? '#ef4444' : '#4f46e5';
         }

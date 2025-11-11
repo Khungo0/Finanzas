@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanzas 50/30/20 Puras</title>
+    <title>Finanzas 50/30/20 | Transacciones</title>
     
     <link rel="icon" type="image/png" href="mi-icono.png">
     <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwindcss.min.js"></script>
@@ -36,15 +36,11 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
-        .grid-cols-3-gap {
+        .grid-cols-2-gap {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
         }
-        .grid-col-1-lg-4 { grid-column: span 1 / span 1; }
-        .grid-col-lg-3 { grid-column: span 3 / span 3; }
-        .grid-col-lg-4 { grid-column: span 4 / span 4; }
-
 
         /* Typography and Headings */
         h1 { font-size: 2.25rem; font-weight: 800; color: #1e293b; text-align: center; margin-bottom: 24px; }
@@ -166,7 +162,7 @@
         .bg-red-100 { background-color: #fee2e2; }
         .text-red-800 { color: #991b1b; }
         .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .hidden { display: none; } /* Define 'hidden' para el JS colapsable */
+        .hidden { display: none; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -221,137 +217,103 @@
                 </div>
             </section>
 
-            <section id="planificador-50-30-20" class="card-shadow mb-10">
-                <h2 style="margin-bottom: 24px;">
-                    <i data-lucide="target" style="width: 24px; height: 24px; margin-right: 8px; color: #ec4899;"></i>
-                    Planificación 50/30/20 (Basado en Ingresos)
-                </h2>
+            <section class="grid-cols-2-gap mb-10">
                 
-                <div style="display: grid; grid-template-columns: 1fr 3fr; gap: 32px; align-items: center;">
-                    <div style="text-align: center;">
-                        <div id="budget-ring" class="budget-ring" data-total="0%"></div>
-                        <p style="font-size: 1.125rem; font-weight: 600; color: #475569; margin-top: 16px;">Porcentaje de Ingreso Usado</p>
-                        <p id="ingreso-neto-503020" style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">$0.00</p>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div class="grid-cols-3-gap" style="font-size: 0.875rem; font-weight: 600; text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
-                            <span style="color: #ef4444;">50% Necesidades</span>
-                            <span style="color: #f97316;">30% Deseos</span>
-                            <span style="color: #10b981;">20% Ahorro/Deudas</span>
+                <div class="card-shadow space-y-6">
+                    <h2 style="font-size: 1.5rem; color: #475569; margin-bottom: 16px;">
+                        <i data-lucide="plus-circle" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
+                        Nueva Transacción
+                    </h2>
+                    <form id="form-transaccion" style="display: flex; flex-direction: column; gap: 16px;">
+                        
+                        <div>
+                            <label for="tipo" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Tipo</label>
+                            <select id="tipo" required>
+                                <option value="ingreso">Ingreso</option>
+                                <option value="gasto">Gasto</option>
+                                <option value="ahorro">Ahorro</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="cuenta" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Cuenta/Fondo</label>
+                            <select id="cuenta" required>
+                            </select>
                         </div>
 
-                        <div class="grid-cols-3-gap">
+                        <div>
+                            <label for="categoria" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Categoría</label>
+                            <select id="categoria" required>
+                            </select>
+                        </div>
+
+                        <div id="ahorro-sugerencia-container" style="display: none; flex-direction: column; gap: 8px;">
+                            <label for="ahorro-porcentaje" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Porcentaje de Ahorro Sugerido (20%)</label>
+                            <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="20" placeholder="Ej: 20">
+                            <p id="ahorro-sugerencia-monto" style="font-size: 0.875rem; color: #4f46e5; font-weight: 600;">Sugerencia: $0.00</p>
+                        </div>
+
+                        <div>
+                            <label for="monto" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Monto ($)</label>
+                            <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00">
+                        </div>
+
+                        <div>
+                            <label for="descripcion" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Descripción</label>
+                            <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler">
+                        </div>
+                        
+                        <div>
+                            <label for="fecha" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Fecha</label>
+                            <input type="date" id="fecha" required>
+                        </div>
+
+                        <button type="submit">
+                            Guardar Transacción
+                        </button>
+                        <div id="form-message" style="text-align: center; margin-top: 8px; font-size: 0.875rem; display: none;"></div>
+                    </form>
+                </div>
+                
+                <div class="card-shadow space-y-6">
+                    <h2 style="margin-bottom: 24px;">
+                        <i data-lucide="target" style="width: 24px; height: 24px; margin-right: 8px; color: #ec4899;"></i>
+                        Resumen 50/30/20
+                    </h2>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="text-align: center;">
+                            <div id="budget-ring" class="budget-ring" data-total="0%"></div>
+                            <p style="font-size: 1.125rem; font-weight: 600; color: #475569; margin-top: 16px;">Uso de Ingreso Total</p>
+                            <p id="ingreso-neto-503020" style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">$0.00</p>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
                             <div class="budget-box bg-red-50" id="box-50">
-                                <p class="text-red-700" style="font-weight: 700;">Objetivo: <span id="objetivo-50">$0.00</span></p>
-                                <p style="color: #475569;">Gastado: <span id="gasto-50" style="font-weight: 600;">$0.00</span></p>
+                                <p class="text-red-700" style="font-weight: 700; font-size: 0.875rem;">50% Nec.</p>
+                                <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-50">$0.00</span></p>
+                                <p style="color: #475569; font-size: 0.75rem;">Gasto: <span id="gasto-50" style="font-weight: 600;">$0.00</span></p>
                             </div>
                             <div class="budget-box bg-orange-50" id="box-30">
-                                <p class="text-orange-700" style="font-weight: 700;">Objetivo: <span id="objetivo-30">$0.00</span></p>
-                                <p style="color: #475569;">Gastado: <span id="gasto-30" style="font-weight: 600;">$0.00</span></p>
+                                <p class="text-orange-700" style="font-weight: 700; font-size: 0.875rem;">30% Deseos</p>
+                                <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-30">$0.00</span></p>
+                                <p style="color: #475569; font-size: 0.75rem;">Gasto: <span id="gasto-30" style="font-weight: 600;">$0.00</span></p>
                             </div>
                             <div class="budget-box bg-emerald-50" id="box-20">
-                                <p class="text-emerald-700" style="font-weight: 700;">Objetivo: <span id="objetivo-20">$0.00</span></p>
-                                <p style="color: #475569;">Aportado: <span id="gasto-20" style="font-weight: 600;">$0.00</span></p>
+                                <p class="text-emerald-700" style="font-weight: 700; font-size: 0.875rem;">20% Ahorro</p>
+                                <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-20">$0.00</span></p>
+                                <p style="color: #475569; font-size: 0.75rem;">Aport: <span id="gasto-20" style="font-weight: 600;">$0.00</span></p>
                             </div>
                         </div>
 
                         <p style="font-size: 0.75rem; color: #64748b; padding-top: 8px;">
-                            *Nota: Las categorías **Vivienda, Servicios, Salud, Educación y Deudas** se consideran **Necesidades** (50%). Las transacciones de tipo **Ahorro** más la categoría **Deudas** cuentan como **Ahorro/Deudas** (20%). El resto es **Deseos** (30%).
+                            *Las categorías están codificadas según la regla 50/30/20.
                         </p>
                     </div>
                 </div>
             </section>
 
-            <button id="toggle-advanced" style="width: 100%; padding: 12px; margin-bottom: 24px; background-color: #cbd5e1; color: #475569; font-weight: 600; border-radius: 6px; cursor: pointer;">
-                Mostrar Formulario de Transacción y Gráficos Secundarios (↓)
-            </button>
-            
-            <div id="advanced-container" class="hidden">
-                <section class="grid-4-gap mb-10">
-                    <div class="grid-col-1-lg-4 space-y-6" style="grid-column: span 1 / span 1;">
-                        <div class="card-shadow">
-                            <h2 style="font-size: 1.5rem; color: #475569; margin-bottom: 16px;">
-                                <i data-lucide="plus-circle" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
-                                Nueva Transacción
-                            </h2>
-                            <form id="form-transaccion" style="display: flex; flex-direction: column; gap: 16px;">
-                                
-                                <div>
-                                    <label for="tipo" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Tipo</label>
-                                    <select id="tipo" required>
-                                        <option value="ingreso">Ingreso</option>
-                                        <option value="gasto">Gasto</option>
-                                        <option value="ahorro">Ahorro</option>
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label for="cuenta" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Cuenta/Fondo</label>
-                                    <select id="cuenta" required>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label for="categoria" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Categoría</label>
-                                    <select id="categoria" required>
-                                    </select>
-                                </div>
-
-                                <div id="ahorro-sugerencia-container" style="display: none; flex-direction: column; gap: 8px;">
-                                    <label for="ahorro-porcentaje" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Porcentaje de Ahorro Sugerido (20%)</label>
-                                    <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="20" placeholder="Ej: 20">
-                                    <p id="ahorro-sugerencia-monto" style="font-size: 0.875rem; color: #4f46e5; font-weight: 600;">Sugerencia: $0.00</p>
-                                </div>
-
-                                <div>
-                                    <label for="monto" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Monto ($)</label>
-                                    <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00">
-                                </div>
-
-                                <div>
-                                    <label for="descripcion" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Descripción</label>
-                                    <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler">
-                                </div>
-                                
-                                <div>
-                                    <label for="fecha" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Fecha</label>
-                                    <input type="date" id="fecha" required>
-                                </div>
-
-                                <button type="submit">
-                                    Guardar Transacción
-                                </button>
-                                <div id="form-message" style="text-align: center; margin-top: 8px; font-size: 0.875rem; display: none;"></div>
-                            </form>
-                        </div>
-                    </div>
-                    
-                    <div class="grid-col-lg-3" style="grid-column: span 3 / span 3; display: flex; flex-direction: column; gap: 24px;">
-                        <div class="card-shadow">
-                            <h2>Resumen de Fondos por Cuenta</h2>
-                            <div id="resumen-cuentas" class="grid-cols-3-gap">
-                                <p style="color: #64748b;">Calculando saldos...</p>
-                            </div>
-                        </div>
-
-                        <div class="card-shadow">
-                            <h2>Distribución de Ingresos y Gastos</h2>
-                            
-                            <h3 style="color: #ef4444;">Gastos por Categoría</h3>
-                            <div id="gastos-por-categoria" style="display: flex; flex-direction: column; gap: 12px;">
-                                <p style="color: #64748b; text-align: center; padding: 16px 0;">No hay gastos registrados aún.</p>
-                            </div>
-                            
-                            <h3 style="color: #22c55e; margin-top: 24px;">Ingresos por Categoría</h3>
-                            <div id="ingresos-por-categoria" style="display: flex; flex-direction: column; gap: 12px;">
-                                <p style="color: #64748b; text-align: center; padding: 16px 0;">No hay ingresos registrados aún.</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <section class="card-shadow">
+            <section class="card-shadow" style="margin-top: 40px;">
                 <h2>Historial de Transacciones del Mes</h2>
                 
                 <div style="overflow-x: auto;">
@@ -525,8 +487,8 @@
             ingreso: ['Salario', 'Freelance', 'Venta', 'Intereses', 'Otro Ingreso'],
             gasto: [
                 // 50% NECESIDADES (Gasto Fijo)
-                'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica', 'Salud Esencial', 
-                'Educación Obligatoria', 'Pagos Mínimos Deuda', 
+                'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica', 
+                'Salud Esencial', 'Educación Obligatoria', 'Pagos Mínimos Deuda', 
                 // 30% DESEOS (Gasto Variable/Flexible)
                 'Transporte', 'Entretenimiento/Ocio', 'Comer Fuera', 'Ropa y Accesorios', 'Otro Gasto'
             ],
@@ -546,8 +508,6 @@
         const cuentaSelect = document.getElementById('cuenta'); 
         const formTransaccion = document.getElementById('form-transaccion');
         const listaTransaccionesEl = document.getElementById('lista-transacciones');
-        const gastosPorCategoriaEl = document.getElementById('gastos-por-categoria');
-        const ingresosPorCategoriaEl = document.getElementById('ingresos-por-categoria');
         const formMessageEl = document.getElementById('form-message');
         const fechaInput = document.getElementById('fecha');
         const selectorMesEl = document.getElementById('selector-mes');
@@ -560,11 +520,7 @@
         const gastosTotalesEl = document.getElementById('gastos-totales');
         const balanceNetoEl = document.getElementById('balance-neto');
         
-        // Elementos Dashboard Colapsable
-        const toggleAdvancedBtn = document.getElementById('toggle-advanced');
-        const advancedContainer = document.getElementById('advanced-container');
-
-        // DOM UI Avanzada
+        // DOM UI Avanzada (Administración)
         const categoriasListas = {
             ingreso: document.getElementById('lista-ingreso'),
             gasto: document.getElementById('lista-gasto'),
@@ -713,13 +669,19 @@
             
             // CÁLCULO DEL 30% (Gastos Deseos/Flexibles)
             
-            // Suma todos los gastos de tipo 'gasto' del mes
-            const totalGastosTipoGasto = transaccionesMesActual.filter(t => t.tipo === 'gasto').reduce((sum, t) => sum + t.monto, 0);
+            const ahorroPuroMes = transaccionesMesActual.filter(t => t.tipo === 'ahorro').reduce((sum, t) => sum + t.monto, 0);
+            const deudasPurasMes = transaccionesMesActual.filter(t => t.tipo === 'gasto' && t.categoria === 'Pagos Mínimos Deuda').reduce((sum, t) => sum + t.monto, 0);
 
-            // Restamos las Necesidades Fijas (50%) para obtener el balance que es 'Deseos'
-            const gastoDeseos = Math.max(0, totalGastosTipoGasto - gastoNecesidades);
+            // Gastos Esenciales Puros (sin deudas): Necesidades - Deudas
+            const necesidadesPurasMes = gastoNecesidades - deudasPurasMes;
+
+            // Deseos = (Total Gastos tipo 'gasto') - Necesidades Puras
+            const totalGastosTipoGasto = transaccionesMesActual.filter(t => t.tipo === 'gasto').reduce((sum, t) => sum + t.monto, 0);
             
-            // Nota: gastoAhorroDeudas ya incluye los pagos mínimos de deuda (50%) y el ahorro (20%)
+            const gastoDeseos = Math.max(0, totalGastosTipoGasto - necesidadesPurasMes);
+            
+            // El 20% es la suma de Ahorro y Deudas.
+            gastoAhorroDeudas = ahorroPuroMes + deudasPurasMes;
 
             return { 
                 ingresosTotales: ingresosRealesMes, 
@@ -808,7 +770,6 @@
             renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas);
             renderizarListaTransacciones();
             calcularSugerenciaAhorro(); 
-            renderizarResumenCuentas(); 
             // Vuelve a aplicar los iconos después de renderizar listas
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
@@ -872,28 +833,17 @@
             });
         }
         
-        function renderizarResumenCuentas() {
-            const saldos = calcularSaldosCuentas();
-            const resumenCuentasEl = document.getElementById('resumen-cuentas');
-            resumenCuentasEl.innerHTML = '';
+        function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroGastado) {
+            saldoInicialEl.textContent = formatCurrency(saldoInicial);
+            ingresosTotalesEl.textContent = formatCurrency(ingresosTotales);
+            gastosTotalesEl.textContent = formatCurrency(gastosTotales);
             
-            const saldosOrdenados = cuentas.map(c => [c, saldos[c] !== undefined ? saldos[c] : 0]);
+            balanceNetoEl.textContent = formatCurrency(balanceNeto);
+            
+            // Colorear Saldo Final
+            balanceNetoEl.style.color = (balanceNeto > 0) ? '#10b981' : (balanceNeto < 0) ? '#ef4444' : '#4f46e5';
 
-            if (saldosOrdenados.length === 0) {
-                resumenCuentasEl.innerHTML = '<p style="color: #64748b;">No hay cuentas configuradas o transacciones registradas.</p>';
-                return;
-            }
-
-            saldosOrdenados.forEach(([cuenta, saldo]) => {
-                const color = saldo >= 0 ? 'background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;' : 'background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;';
-                const html = `
-                    <div style="${color} padding: 12px; border-radius: 6px;">
-                        <p style="font-size: 0.875rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${cuenta}</p>
-                        <p style="font-size: 1.25rem; font-weight: 700; margin-top: 4px;">${formatCurrency(saldo)}</p>
-                    </div>
-                `;
-                resumenCuentasEl.insertAdjacentHTML('beforeend', html);
-            });
+            // Ya no renderizamos los gráficos secundarios aquí, solo el principal.
         }
 
         // --- FUNCIÓN PLANIFICADOR 50/30/20 ---
@@ -984,84 +934,8 @@
         }
         // --- FIN FUNCIÓN PLANIFICADOR 50/30/20 ---
 
-
-        function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroGastado) {
-            saldoInicialEl.textContent = formatCurrency(saldoInicial);
-            ingresosTotalesEl.textContent = formatCurrency(ingresosTotales);
-            gastosTotalesEl.textContent = formatCurrency(gastosTotales);
-            
-            balanceNetoEl.textContent = formatCurrency(balanceNeto);
-            
-            // Colorear Saldo Final
-            balanceNetoEl.style.color = (balanceNeto > 0) ? '#10b981' : (balanceNeto < 0) ? '#ef4444' : '#4f46e5';
-
-            renderizarGastosPorCategoria(resumenMensual.gastosPorCategoria, resumenMensual.gastosTotales);
-            renderizarIngresosPorCategoria(resumenMensual.ingresosPorCategoria, ingresosTotales);
-        }
-
-        function renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales) {
-            gastosPorCategoriaEl.innerHTML = '';
-            // Solo mostrar categorías de Gasto tipo 'gasto'
-            const categoriasGastos = Object.entries(gastosPorCategoria).filter(([cat, monto]) => categorias.gasto.includes(cat)); 
-            const totalGastosVisual = categoriasGastos.reduce((sum, [, monto]) => sum + monto, 0);
-
-            if (totalGastosVisual === 0) {
-                gastosPorCategoriaEl.innerHTML = '<p style="color: #64748b; text-align: center; padding: 16px 0;">No hay transacciones de tipo Gasto registradas en este mes.</p>';
-                return;
-            }
-            const colores = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f43f5e'];
-            let colorIndex = 0;
-            const categoriasOrdenadas = categoriasGastos.sort(([, a], [, b]) => b - a);
-
-            categoriasOrdenadas.forEach(([categoria, monto]) => {
-                const porcentaje = (monto / totalGastosVisual) * 100;
-                const color = colores[colorIndex % colores.length];
-                colorIndex++;
-                const html = `
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 500;">
-                            <span style="color: #475569;">${categoria}</span>
-                            <span style="color: #64748b;">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
-                        </div>
-                        <div style="height: 8px; border-radius: 4px; overflow: hidden; background-color: #e2e8f0;">
-                            <div style="height: 100%; width: ${porcentaje}%; background-color: ${color}; transition: width 0.5s;"></div>
-                        </div>
-                    </div>
-                `;
-                gastosPorCategoriaEl.insertAdjacentHTML('beforeend', html);
-            });
-        }
-        
-        function renderizarIngresosPorCategoria(ingresosPorCategoria, ingresosTotales) {
-            ingresosPorCategoriaEl.innerHTML = '';
-            
-            if (ingresosTotales === 0) {
-                ingresosPorCategoriaEl.innerHTML = '<p style="color: #64748b; text-align: center; padding: 16px 0;">No hay ingresos registrados en este mes.</p>';
-                return;
-            }
-            
-            const colores = ['#22c55e', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5']; 
-            let colorIndex = 0;
-            const categoriasOrdenadas = Object.entries(ingresosPorCategoria).sort(([, a], [, b]) => b - a);
-
-            categoriasOrdenadas.forEach(([categoria, monto]) => {
-                const porcentaje = (monto / ingresosTotales) * 100;
-                const color = colores[colorIndex % colores.length];
-                colorIndex++;
-                const html = `
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 500;">
-                            <span style="color: #475569;">${categoria}</span>
-                            <span style="color: #64748b;">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
-                        </div>
-                        <div style="height: 8px; border-radius: 4px; overflow: hidden; background-color: #e2e8f0;">
-                            <div style="height: 100%; width: ${porcentaje}%; background-color: ${color}; transition: width 0.5s;"></div>
-                        </div>
-                    </div>
-                `;
-                ingresosPorCategoriaEl.insertAdjacentHTML('beforeend', html);
-            });
-        }
+        // Función eliminada: renderizarGastosPorCategoria (No usada)
+        // Función eliminada: renderizarIngresosPorCategoria (No usada)
 
         function renderizarListaTransacciones() {
             if (transaccionesMesActual.length === 0) {
@@ -1184,20 +1058,6 @@
             }
         });
         
-        // Listener para el botón colapsable
-        document.getElementById('toggle-advanced').addEventListener('click', () => {
-            const container = document.getElementById('advanced-container');
-            const button = document.getElementById('toggle-advanced');
-
-            if (container.style.display === 'none' || container.style.display === '') {
-                container.style.display = 'block';
-                button.innerHTML = 'Ocultar Formulario de Transacción y Gráficos Secundarios (↑)';
-            } else {
-                container.style.display = 'none';
-                button.innerHTML = 'Mostrar Formulario de Transacción y Gráficos Secundarios (↓)';
-            }
-        });
-
         // --- LISTENERS DE ACCIONES DE LA TABLA Y MODALES ---
 
         listaTransaccionesEl.addEventListener('click', (e) => {

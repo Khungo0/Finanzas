@@ -17,7 +17,7 @@
             color: #1e293b;
         }
         main { 
-            max-width: 1024px; 
+            max-width: 1280px; /* Ampliado para 3 columnas */
             margin: 0 auto; 
         }
 
@@ -36,16 +36,26 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
-        .grid-cols-2-gap {
+        /* Layout para el Dashboard (3 columnas) */
+        .grid-cols-3-dashboard {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(1, 1fr); /* Default 1 columna en móvil */
             gap: 24px;
         }
+        @media (min-width: 1024px) { /* En pantallas grandes (lg) */
+            .grid-cols-3-dashboard {
+                /* 1.5fr para el Form, 1.5fr para el 50/30, 1fr para Tarjetas */
+                grid-template-columns: 1.5fr 1.5fr 1fr;
+            }
+        }
+        
+        /* Grid para Admin */
         .grid-cols-4-gap-admin {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
+
 
         /* Typography and Headings */
         h1 { font-size: 2.25rem; font-weight: 800; color: #1e293b; text-align: center; margin-bottom: 24px; }
@@ -183,36 +193,9 @@
 
         <div id="seccion-resumen" class="tab-content">
             
-            <section id="resumen-dashboard" class="grid-5-gap mb-10">
-                <div class="card-shadow border-gray-500">
-                    <h2 class="dashboard-card-title">Saldo Inicial</h2>
-                    <p id="saldo-inicial" class="dashboard-card-value text-gray-800">$0.00</p>
-                </div>
-
-                <div class="card-shadow border-green-500">
-                    <h2 class="dashboard-card-title">Ingresos Totales</h2>
-                    <p id="ingresos-totales" class="dashboard-card-value text-green-600">$0.00</p>
-                </div>
-
-                <div class="card-shadow border-red-500">
-                    <h2 class="dashboard-card-title">Salidas (Gastos + Ahorro)</h2>
-                    <p id="gastos-totales" class="dashboard-card-value text-red-600">$0.00</p>
-                </div>
-
-                <div class="card-shadow border-indigo-500">
-                    <h2 class="dashboard-card-title">Saldo Final (Global)</h2>
-                    <p id="balance-neto" class="dashboard-card-value text-indigo-700">$0.00</p>
-                </div>
+            <section class="grid-cols-3-dashboard mb-10">
                 
-                <div class="card-shadow border-emerald-500">
-                    <h2 class="dashboard-card-title">Ahorro Acumulado</h2>
-                    <p id="ahorro-acumulado-total" class="dashboard-card-value text-emerald-600">$0.00</p>
-                </div>
-            </section>
-
-            <section class="grid-cols-2-gap mb-10">
-                
-                <div class="card-shadow space-y-6">
+                <div class="card-shadow" style="display: flex; flex-direction: column; gap: 16px;">
                     <h2 style="font-size: 1.5rem; color: #475569; margin-bottom: 16px;">
                         <i data-lucide="plus-circle" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
                         Nueva Transacción
@@ -262,7 +245,7 @@
                     </form>
                 </div>
                 
-                <div class="card-shadow space-y-6">
+                <div class="card-shadow" style="display: flex; flex-direction: column; gap: 16px;">
                     <h2 style="margin-bottom: 24px;">
                         <i data-lucide="target" style="width: 24px; height: 24px; margin-right: 8px; color: #ec4899;"></i>
                         Resumen 50/30/20
@@ -299,6 +282,33 @@
                         <p style="font-size: 0.75rem; color: #64748b; padding-top: 8px;">
                             *Las categorías están codificadas según la regla 50/30/20.
                         </p>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <div class="card-shadow border-gray-500">
+                        <h2 class="dashboard-card-title">Saldo Inicial</h2>
+                        <p id="saldo-inicial" class="dashboard-card-value text-gray-800">$0.00</p>
+                    </div>
+    
+                    <div class="card-shadow border-green-500">
+                        <h2 class="dashboard-card-title">Ingresos Totales</h2>
+                        <p id="ingresos-totales" class="dashboard-card-value text-green-600">$0.00</p>
+                    </div>
+    
+                    <div class="card-shadow border-red-500">
+                        <h2 class="dashboard-card-title">Salidas (Gastos + Ahorro)</h2>
+                        <p id="gastos-totales" class="dashboard-card-value text-red-600">$0.00</p>
+                    </div>
+    
+                    <div class="card-shadow border-indigo-500">
+                        <h2 class="dashboard-card-title">Saldo Final (Global)</h2>
+                        <p id="balance-neto" class="dashboard-card-value text-indigo-700">$0.00</p>
+                    </div>
+                    
+                    <div class="card-shadow border-emerald-500">
+                        <h2 class="dashboard-card-title">Ahorro Acumulado</h2>
+                        <p id="ahorro-acumulado-total" class="dashboard-card-value text-emerald-600">$0.00</p>
                     </div>
                 </div>
             </section>

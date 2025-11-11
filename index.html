@@ -321,36 +321,45 @@
             <div class="card-shadow">
                 <h2>
                     <i data-lucide="list-checks" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
-                    Administración de Categorías
+                    Clasificación y Administración de Categorías
                 </h2>
-                <p style="color: #64748b; margin-bottom: 24px;">Modifica las categorías de Ingreso (fuentes) y las categorías de Gasto/Ahorro (destinos) para ajustar el análisis 50/30/20 a tu estilo de vida. La cuenta es única y global.</p>
+                <p style="color: #64748b; margin-bottom: 24px;">Administra tus **Categorías de Ingreso** y clasifica tus **Gastos/Ahorros** directamente en la categoría porcentual deseada (50%, 30%, 20%).</p>
 
-                <div class="grid-cols-3-gap-admin">
+                <div class="grid-4-gap">
                     
                     <div style="display: flex; flex-direction: column;">
-                        <h3 style="color: #22c55e;">Ingresos <span id="count-ingreso" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
+                        <h3 style="color: #22c55e;">Ingresos (Fuentes) <span id="count-ingreso" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
                         <ul id="lista-ingreso" style="display: flex; flex-direction: column; gap: 12px;"></ul>
                         <div style="margin-top: 16px;">
-                            <input type="text" id="input-ingreso" placeholder="Nueva categoría de Ingreso" style="margin-bottom: 8px;">
+                            <input type="text" id="input-ingreso" placeholder="Nueva fuente de Ingreso" style="margin-bottom: 8px;">
                             <button data-tipo="ingreso" class="btn-agregar-general" style="background-color: #22c55e;">Agregar</button>
                         </div>
                     </div>
 
                     <div style="display: flex; flex-direction: column;">
-                        <h3 style="color: #ef4444;">Gastos (50% Necesidades / 30% Deseos) <span id="count-gasto" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
-                        <ul id="lista-gasto" style="display: flex; flex-direction: column; gap: 12px;"></ul>
+                        <h3 style="color: #ef4444;">50% Necesidades <span id="count-gasto-50" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
+                        <ul id="lista-gasto-50" style="display: flex; flex-direction: column; gap: 12px;"></ul>
                         <div style="margin-top: 16px;">
-                            <input type="text" id="input-gasto" placeholder="Nueva categoría de Gasto" style="margin-bottom: 8px;">
-                            <button data-tipo="gasto" class="btn-agregar-general" style="background-color: #ef4444;">Agregar</button>
+                            <input type="text" id="input-gasto-50" placeholder="Ej: Alimentación Básica" style="margin-bottom: 8px;">
+                            <button data-tipo="gasto-50" class="btn-agregar-general" style="background-color: #ef4444;">Agregar al 50%</button>
                         </div>
                     </div>
 
                     <div style="display: flex; flex-direction: column;">
-                        <h3 style="color: #3b82f6;">Ahorros (20% Objetivos) <span id="count-ahorro" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
-                        <ul id="lista-ahorro" style="display: flex; flex-direction: column; gap: 12px;"></ul>
+                        <h3 style="color: #f97316;">30% Deseos <span id="count-gasto-30" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
+                        <ul id="lista-gasto-30" style="display: flex; flex-direction: column; gap: 12px;"></ul>
                         <div style="margin-top: 16px;">
-                            <input type="text" id="input-ahorro" placeholder="Nueva categoría de Ahorro" style="margin-bottom: 8px;">
-                            <button data-tipo="ahorro" class="btn-agregar-general" style="background-color: #3b82f6;">Agregar</button>
+                            <input type="text" id="input-gasto-30" placeholder="Ej: Comer Fuera/Ocio" style="margin-bottom: 8px;">
+                            <button data-tipo="gasto-30" class="btn-agregar-general" style="background-color: #f97316;">Agregar al 30%</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column;">
+                        <h3 style="color: #3b82f6;">20% Ahorro/Deuda <span id="count-ahorro-20" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
+                        <ul id="lista-ahorro-20" style="display: flex; flex-direction: column; gap: 12px;"></ul>
+                        <div style="margin-top: 16px;">
+                            <input type="text" id="input-ahorro-20" placeholder="Ej: Fondo de Emergencia" style="margin-bottom: 8px;">
+                            <button data-tipo="ahorro-20" class="btn-agregar-general" style="background-color: #3b82f6;">Agregar al 20%</button>
                         </div>
                     </div>
 
@@ -440,7 +449,7 @@
         
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // --- 2. VARIABLES Y ESTADO (CATEGORÍAS ACTUALIZADAS) ---
+        // --- 2. VARIABLES Y ESTADO (CATEGORÍAS REESTRUCTURADAS) ---
         
         // ** ÚNICA CUENTA HARDCODEADA **
         const UNICA_CUENTA = 'Global'; 
@@ -450,25 +459,28 @@
         let mesSeleccionado = ''; 
         let resumenMensual = {}; 
         
-        // CATEGORÍAS OPTIMIZADAS (Se mantiene la última versión)
+        // El objeto 'categorias' ahora solo tiene 'ingreso'. Las categorías de gasto/ahorro están separadas por porcentaje.
         let categorias = JSON.parse(localStorage.getItem('finanzasCategorias')) || {
-            ingreso: ['Salario', 'Freelance', 'Venta', 'Intereses', 'Otro Ingreso'],
-            gasto: [
-                // 50% NECESIDADES (Gasto Fijo)
-                'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica', 
-                'Salud Esencial', 'Educación Obligatoria', 'Pagos Mínimos Deuda', 
-                // 30% DESEOS (Gasto Variable/Flexible)
-                'Transporte', 'Entretenimiento/Ocio', 'Comer Fuera', 'Ropa y Accesorios'
-            ],
-            ahorro: [
-                // 20% AHORRO/INVERSIÓN (Objetivos)
-                'Fondo de Emergencia', 'Inversión Crecimiento', 'Meta Viaje', 'Pago Extra Deuda'
-            ]
+            ingreso: ['Salario', 'Freelance', 'Venta', 'Intereses', 'Otro Ingreso']
         };
+
+        let categorias50 = JSON.parse(localStorage.getItem('categorias50')) || [
+            'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica', 
+            'Salud Esencial', 'Educación Obligatoria', 'Pagos Mínimos Deuda'
+        ];
+
+        let categorias30 = JSON.parse(localStorage.getItem('categorias30')) || [
+            'Transporte', 'Entretenimiento/Ocio', 'Comer Fuera', 'Ropa y Accesorios'
+        ];
         
-        // Cuentas se define como un array con la única cuenta para mantener la compatibilidad mínima
-        let cuentas = [UNICA_CUENTA]; 
+        let categorias20 = JSON.parse(localStorage.getItem('categorias20')) || [
+            'Fondo de Emergencia', 'Inversión Crecimiento', 'Meta Viaje', 'Pago Extra Deuda'
+        ];
         
+        // La lista de todas las categorías de gasto/ahorro se combina al iniciar y al renderizar el formulario.
+        let todasCategoriasGastoAhorro = [];
+
+
         // Referencias del DOM 
         const tipoSelect = document.getElementById('tipo');
         const categoriaSelect = document.getElementById('categoria');
@@ -489,18 +501,21 @@
         // DOM UI Avanzada (Administración)
         const categoriasListas = {
             ingreso: document.getElementById('lista-ingreso'),
-            gasto: document.getElementById('lista-gasto'),
-            ahorro: document.getElementById('lista-ahorro'),
+            'gasto-50': document.getElementById('lista-gasto-50'),
+            'gasto-30': document.getElementById('lista-gasto-30'),
+            'ahorro-20': document.getElementById('lista-ahorro-20'),
         };
         const categoriasInputs = {
             ingreso: document.getElementById('input-ingreso'),
-            gasto: document.getElementById('input-gasto'),
-            ahorro: document.getElementById('input-ahorro'),
+            'gasto-50': document.getElementById('input-gasto-50'),
+            'gasto-30': document.getElementById('input-gasto-30'),
+            'ahorro-20': document.getElementById('input-ahorro-20'),
         };
         const categoriasCounts = {
             ingreso: document.getElementById('count-ingreso'),
-            gasto: document.getElementById('count-gasto'),
-            ahorro: document.getElementById('count-ahorro'),
+            'gasto-50': document.getElementById('count-gasto-50'),
+            'gasto-30': document.getElementById('count-gasto-30'),
+            'ahorro-20': document.getElementById('count-ahorro-20'),
         };
         const btnAgregarGeneral = document.querySelectorAll('.btn-agregar-general');
         
@@ -550,7 +565,6 @@
                     saldo -= t.monto;
                 } 
             });
-            // Retornamos un objeto para simular la estructura de cuentas, pero solo con el total global
             return { [UNICA_CUENTA]: saldo };
         }
 
@@ -561,19 +575,19 @@
             
             let ingresosRealesMes = 0;
             
-            let gastosPorCategoria = {};
             let ingresosPorCategoria = {};
             let saldoInicial = 0;
             
             // --- VARIABLES 50/30/20 ---
             let gastoNecesidades = 0; // 50%
+            let gastoDeseos = 0; // 30%
             let gastoAhorroDeudas = 0; // 20%
             
-            // Categorías definidas como Necesidades (50% de los gastos)
-            const categoriasNecesidades = [
-                'Alquiler/Hipoteca', 'Suministros Básicos', 'Alimentación Básica', 
-                'Salud Esencial', 'Educación Obligatoria', 'Pagos Mínimos Deuda'
-            ];
+            // Arreglos de categorías activas (Cargados desde localStorage en el inicio)
+            const categorias50Activas = categorias50;
+            const categorias30Activas = categorias30;
+            const categorias20Activas = categorias20;
+
             
             const mesActualSeleccionado = mesSeleccionado;
 
@@ -602,21 +616,25 @@
                         totalSalidasMes += monto; 
                         
                         if (t.tipo === 'gasto') {
-                            gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + monto;
-
                             // Clasificación 50% Necesidades
-                            if (categoriasNecesidades.includes(t.categoria)) {
+                            if (categorias50Activas.includes(t.categoria)) {
                                 gastoNecesidades += monto;
                             }
-                            
-                            // Clasificación 20% Ahorro/Deudas (solo para Pagos Mínimos Deuda)
-                            if (t.categoria === 'Pagos Mínimos Deuda') {
-                                gastoAhorroDeudas += monto;
+                            // Clasificación 30% Deseos
+                            else if (categorias30Activas.includes(t.categoria)) {
+                                gastoDeseos += monto;
                             }
 
+                            // Clasificación 20% Ahorro/Deudas (solo si es un Pago Mínimo Deuda)
+                            if (t.categoria === 'Pagos Mínimos Deuda' && categorias50Activas.includes('Pagos Mínimos Deuda')) {
+                                gastoAhorroDeudas += monto;
+                            }
+                            
                         } else if (t.tipo === 'ahorro') {
                             // Clasificación 20% Ahorro/Deudas (para cualquier categoría de Ahorro)
-                            gastoAhorroDeudas += monto;
+                            if (categorias20Activas.includes(t.categoria)) {
+                                gastoAhorroDeudas += monto;
+                            }
                         }
                     }
                 }
@@ -624,23 +642,12 @@
             
             const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
             
-            // CÁLCULO DEL 30% (Gastos Deseos/Flexibles)
-            
-            const ahorroPuroMes = transaccionesMesActual.filter(t => t.tipo === 'ahorro').reduce((sum, t) => sum + t.monto, 0);
-            const deudasPurasMes = transaccionesMesActual.filter(t => t.tipo === 'gasto' && t.categoria === 'Pagos Mínimos Deuda').reduce((sum, t) => sum + t.monto, 0);
-
-            const necesidadesPurasMes = gastoNecesidades - deudasPurasMes;
-            const totalGastosTipoGasto = transaccionesMesActual.filter(t => t.tipo === 'gasto').reduce((sum, t) => sum + t.monto, 0);
-            
-            const gastoDeseos = Math.max(0, totalGastosTipoGasto - necesidadesPurasMes);
-            gastoAhorroDeudas = ahorroPuroMes + deudasPurasMes;
-
             return { 
                 ingresosTotales: ingresosRealesMes, 
                 gastosTotales: totalSalidasMes, 
                 balanceNeto: balanceNeto, 
                 saldoInicial: saldoInicial,
-                gastosPorCategoria: gastosPorCategoria, 
+                // Ingresos/Gastos por categoría ya no se calculan de manera sofisticada, se usa el total simple
                 ingresosPorCategoria: ingresosPorCategoria,
                 // Valores 50/30/20
                 gastoNecesidades: gastoNecesidades, 
@@ -652,7 +659,10 @@
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
         function guardarConfiguracionLocal() {
-            localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
+            localStorage.setItem('finanzasCategorias', JSON.stringify(categorias)); // Guarda Ingresos
+            localStorage.setItem('categorias50', JSON.stringify(categorias50));
+            localStorage.setItem('categorias30', JSON.stringify(categorias30));
+            localStorage.setItem('categorias20', JSON.stringify(categorias20));
         }
         
         async function cargarDatosDesdeSupabase() {
@@ -795,7 +805,6 @@
 
                     if (targetId === 'seccion-clasificacion-503020') {
                         renderizarCategorias();
-                        // No hay renderizarCuentas
                     }
                     
                     if (targetId === 'seccion-resumen') {
@@ -890,8 +899,6 @@
         }
         // --- FIN FUNCIÓN PLANIFICADOR 50/30/20 ---
 
-        // Función eliminada: renderizarResumenCuentas (No necesaria)
-
         function renderizarListaTransacciones() {
             if (transaccionesMesActual.length === 0) {
                 listaTransaccionesEl.innerHTML = `<tr><td colspan="6" style="padding: 16px; text-align: center; color: #64748b;">No hay transacciones registradas para este mes.</td></tr>`;
@@ -943,17 +950,31 @@
 
         function actualizarCategoriasYCuentas() {
             actualizarCategorias();
-            // Lógica de cuentas eliminada
         }
 
         function actualizarCategorias() {
             const tipo = tipoSelect.value;
-            const cats = categorias[tipo] || [];
+            let cats = [];
+
+            // Combina las categorías de Gastos y Ahorros en la lista principal del formulario
+            if (tipo === 'ingreso') {
+                cats = categorias.ingreso || [];
+            } else if (tipo === 'gasto') {
+                cats = [...categorias50, ...categorias30] || [];
+            } else if (tipo === 'ahorro') {
+                cats = categorias20 || [];
+            }
+
             categoriaSelect.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
             calcularSugerenciaAhorro(); 
         }
         
-        // FUNCIÓN ELIMINADA: guardarCuentas
+        function guardarConfiguracionLocal() {
+            localStorage.setItem('finanzasCategorias', JSON.stringify(categorias)); // Solo Ingresos
+            localStorage.setItem('categorias50', JSON.stringify(categorias50));
+            localStorage.setItem('categorias30', JSON.stringify(categorias30));
+            localStorage.setItem('categorias20', JSON.stringify(categorias20));
+        }
         
         // --- EVENT HANDLERS ---
         
@@ -1006,7 +1027,7 @@
             }
         });
         
-        // --- LISTENERS DE ACCIONES DE LA TABLA Y MODALES ---
+        // --- LISTENERS DE ACCIONES DE LA TABLA Y MODALES (Resto del CRUD) ---
 
         listaTransaccionesEl.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-eliminar');
@@ -1045,7 +1066,15 @@
         function actualizarOpcionesEdicion(currentTipo, currentCategoria) { 
             
             const llenarCategorias = (tipo) => {
-                const cats = categorias[tipo] || [];
+                let cats = [];
+                if (tipo === 'ingreso') {
+                    cats = categorias.ingreso || [];
+                } else if (tipo === 'gasto') {
+                    cats = [...categorias50, ...categorias30] || [];
+                } else if (tipo === 'ahorro') {
+                    cats = categorias20 || [];
+                }
+
                 editCategoriaSelect.innerHTML = cats.map(cat => 
                     `<option value="${cat}" ${cat === currentCategoria ? 'selected' : ''}>${cat}</option>`
                 ).join('');
@@ -1107,14 +1136,22 @@
             if (!nombre) return false;
             
             let array;
-            let guardarFn = guardarConfiguracionLocal;
-
-            array = categorias[tipo];
             
+            if (tipo === 'ingreso') {
+                array = categorias.ingreso;
+            } else if (tipo === 'gasto-50') {
+                array = categorias50;
+            } else if (tipo === 'gasto-30') {
+                array = categorias30;
+            } else if (tipo === 'ahorro-20') {
+                array = categorias20;
+            } else {
+                return false;
+            }
+
             if (!array.includes(nombre)) {
                 array.push(nombre); 
-                
-                guardarFn();
+                guardarConfiguracionLocal();
                 renderizarCategorias();
                 categoriasInputs[tipo].value = ''; 
                 actualizarCategoriasYCuentas(); 
@@ -1126,8 +1163,19 @@
         }
 
         function eliminarGeneral(tipo, nombre) {
-            let array = categorias[tipo];
-            let guardarFn = guardarConfiguracionLocal;
+            let array;
+            
+            if (tipo === 'ingreso') {
+                array = categorias.ingreso;
+            } else if (tipo === 'gasto-50') {
+                array = categorias50;
+            } else if (tipo === 'gasto-30') {
+                array = categorias30;
+            } else if (tipo === 'ahorro-20') {
+                array = categorias20;
+            } else {
+                return false;
+            }
             
             const index = array.indexOf(nombre);
             if (index > -1) {
@@ -1139,7 +1187,7 @@
                 }
                 
                 array.splice(index, 1);
-                guardarFn();
+                guardarConfiguracionLocal();
                 renderizarCategorias();
                 actualizarCategoriasYCuentas(); 
                 return true;
@@ -1148,38 +1196,78 @@
         }
         
         function renderizarCategorias() {
-            // Se eliminó la lógica de Cuentas/Fondos
-            const categoriasKeys = ['ingreso', 'gasto', 'ahorro'];
-
-            categoriasKeys.forEach(tipo => {
-                const listaEl = categoriasListas[tipo];
-                const countEl = categoriasCounts[tipo];
-                listaEl.innerHTML = '';
-                
-                // Nota: Las categorías de Gasto/Ahorro se definen por su rol en el 50/30/20.
-                const tituloTipo = tipo === 'gasto' ? 'Gastos (50% Nec. / 30% Deseos)' :
-                                   tipo === 'ahorro' ? 'Ahorros (20% Objetivos)' : 'Ingresos';
-                
-                // Actualiza el título del h3 en la pestaña de clasificación
-                document.querySelector(`#seccion-clasificacion-503020 h3[style*="${tipo === 'gasto' ? '#ef4444' : tipo === 'ahorro' ? '#3b82f6' : '#22c55e'}"]`).innerHTML = 
-                    `${tituloTipo} <span id="count-${tipo}" style="font-size: 0.875rem; font-weight: 400; color: #64748b;">(${categorias[tipo].length} categorías)</span>`;
-                
-                categorias[tipo].forEach(categoria => {
-                    const listItem = document.createElement('li');
-                    listItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 6px; background-color: #f8fafc; border: 1px solid #e2e8f0;';
-                    listItem.innerHTML = `
-                        <span style="color: #1e293b; font-weight: 500;">${categoria}</span>
-                        <div>
-                            <button data-tipo="${tipo}" data-nombre="${categoria}" class="btn-eliminar-general" style="color: #ef4444; background: none; border: none; cursor: pointer;">
-                                <i data-lucide="x-circle" style="width: 18px; height: 18px; display: inline-block;"></i>
-                            </button>
-                        </div>
-                    `;
-                    listaEl.appendChild(listItem);
-                });
-                
-                // El conteo se actualiza en el innerHTML del h3, solo queda asegurar los iconos
+            // Sección de Ingresos
+            const listaIngreso = categoriasListas.ingreso;
+            listaIngreso.innerHTML = '';
+            categorias.ingreso.forEach(categoria => {
+                const listItem = document.createElement('li');
+                listItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 6px; background-color: #f8fafc; border: 1px solid #e2e8f0;';
+                listItem.innerHTML = `
+                    <span style="color: #1e293b; font-weight: 500;">${categoria}</span>
+                    <div>
+                        <button data-tipo="ingreso" data-nombre="${categoria}" class="btn-eliminar-general" style="color: #ef4444; background: none; border: none; cursor: pointer;">
+                            <i data-lucide="x-circle" style="width: 18px; height: 18px; display: inline-block;"></i>
+                        </button>
+                    </div>
+                `;
+                listaIngreso.appendChild(listItem);
             });
+            categoriasCounts.ingreso.textContent = `(${categorias.ingreso.length} categorías)`;
+
+            // Sección 50%
+            const lista50 = categoriasListas['gasto-50'];
+            lista50.innerHTML = '';
+            categorias50.forEach(categoria => {
+                const listItem = document.createElement('li');
+                listItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 6px; background-color: #fef2f2; border: 1px solid #fecaca;';
+                listItem.innerHTML = `
+                    <span style="color: #1e293b; font-weight: 500;">${categoria}</span>
+                    <div>
+                        <button data-tipo="gasto-50" data-nombre="${categoria}" class="btn-eliminar-general" style="color: #ef4444; background: none; border: none; cursor: pointer;">
+                            <i data-lucide="x-circle" style="width: 18px; height: 18px; display: inline-block;"></i>
+                        </button>
+                    </div>
+                `;
+                lista50.appendChild(listItem);
+            });
+            categoriasCounts['gasto-50'].textContent = `(${categorias50.length} categorías)`;
+
+            // Sección 30%
+            const lista30 = categoriasListas['gasto-30'];
+            lista30.innerHTML = '';
+            categorias30.forEach(categoria => {
+                const listItem = document.createElement('li');
+                listItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 6px; background-color: #fff7ed; border: 1px solid #fed7aa;';
+                listItem.innerHTML = `
+                    <span style="color: #1e293b; font-weight: 500;">${categoria}</span>
+                    <div>
+                        <button data-tipo="gasto-30" data-nombre="${categoria}" class="btn-eliminar-general" style="color: #ef4444; background: none; border: none; cursor: pointer;">
+                            <i data-lucide="x-circle" style="width: 18px; height: 18px; display: inline-block;"></i>
+                        </button>
+                    </div>
+                `;
+                lista30.appendChild(listItem);
+            });
+            categoriasCounts['gasto-30'].textContent = `(${categorias30.length} categorías)`;
+
+            // Sección 20%
+            const lista20 = categoriasListas['ahorro-20'];
+            lista20.innerHTML = '';
+            categorias20.forEach(categoria => {
+                const listItem = document.createElement('li');
+                listItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 6px; background-color: #ecfdf5; border: 1px solid #a7f3d0;';
+                listItem.innerHTML = `
+                    <span style="color: #1e293b; font-weight: 500;">${categoria}</span>
+                    <div>
+                        <button data-tipo="ahorro-20" data-nombre="${categoria}" class="btn-eliminar-general" style="color: #ef4444; background: none; border: none; cursor: pointer;">
+                            <i data-lucide="x-circle" style="width: 18px; height: 18px; display: inline-block;"></i>
+                        </button>
+                    </div>
+                `;
+                lista20.appendChild(listItem);
+            });
+            categoriasCounts['ahorro-20'].textContent = `(${categorias20.length} categorías)`;
+
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
         

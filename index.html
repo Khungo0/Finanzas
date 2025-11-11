@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanzas Simplificadas 50/30/20</title>
+    <title>Finanzas 50/30/20</title>
     
     <link rel="icon" type="image/png" href="mi-icono.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,11 +14,12 @@
         .category-bar-container { height: 1rem; border-radius: 0.25rem; overflow: hidden; display: flex; }
         .category-bar-segment { height: 100%; transition: width 0.5s ease-in-out; }
 
-        /* Estilos específicos para el Planificador 50/30/20 */
+        /* Estilos clave para el Gráfico 50/30/20 */
         .budget-ring {
             width: 150px;
             height: 150px;
             border-radius: 50%;
+            /* Definición de los segmentos del anillo con variables CSS */
             background: conic-gradient(
                 #ef4444 0% var(--pct-50),
                 #f97316 var(--pct-50) calc(var(--pct-50) + var(--pct-30)),
@@ -48,7 +49,7 @@
 <body class="p-4 md:p-10">
 
     <header class="mb-10 text-center">
-        <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">💰 Finanzas Simplificadas</h1>
+        <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">🎯 Finanzas 50/30/20</h1>
         <p id="auth-status" class="text-sm text-green-600 mt-1">Conectado a la nube. Datos en Supabase. ☁️</p>
     </header>
 
@@ -79,22 +80,22 @@
             
             <section id="resumen-dashboard" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                 <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-gray-500">
-                    <h2 class="text-lg font-medium text-gray-500">Ingresos del Mes</h2>
+                    <h2 class="text-lg font-medium text-gray-500">Saldo Inicial</h2>
+                    <p id="saldo-inicial" class="text-3xl font-bold text-gray-800 mt-1">$0.00</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-green-500">
+                    <h2 class="text-lg font-medium text-gray-500">Ingresos Totales</h2>
                     <p id="ingresos-totales" class="text-3xl font-bold text-green-600 mt-1">$0.00</p>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-red-500">
-                    <h2 class="text-lg font-medium text-gray-500">Gastos del Mes</h2>
+                    <h2 class="text-lg font-medium text-gray-500">Salidas (Gastos + Ahorro)</h2>
                     <p id="gastos-totales" class="text-3xl font-bold text-red-600 mt-1">$0.00</p>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-blue-500">
-                    <h2 class="text-lg font-medium text-gray-500">Ahorro/Deudas</h2>
-                    <p id="ahorro-gastado-503020" class="text-3xl font-bold text-blue-600 mt-1">$0.00</p>
-                </div>
-
                 <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-indigo-500">
-                    <h2 class="text-lg font-medium text-gray-500">Saldo Neto (Total)</h2>
+                    <h2 class="text-lg font-medium text-gray-500">Saldo Final</h2>
                     <p id="balance-neto" class="text-3xl font-bold mt-1 text-indigo-700">$0.00</p>
                 </div>
             </section>
@@ -102,13 +103,13 @@
             <section id="planificador-50-30-20" class="bg-white p-8 rounded-xl card-shadow mb-10 border border-gray-100">
                 <h2 class="text-2xl font-bold mb-6 text-gray-700 flex items-center">
                     <i data-lucide="target" class="w-6 h-6 mr-2 text-pink-500"></i>
-                    Planificación 50/30/20
+                    Planificación 50/30/20 (Basado en Ingresos)
                 </h2>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
                     <div class="lg:col-span-1 text-center">
                         <div id="budget-ring" class="budget-ring" data-total="0%"></div>
-                        <p class="text-lg font-semibold text-gray-600 mt-4">Uso de Ingresos</p>
+                        <p class="text-lg font-semibold text-gray-600 mt-4">Porcentaje de Ingreso Usado</p>
                         <p id="ingreso-neto-503020" class="text-xl font-bold text-gray-800">$0.00</p>
                     </div>
 
@@ -121,21 +122,21 @@
 
                         <div class="grid grid-cols-3 gap-4">
                             <div class="p-3 bg-red-50 rounded-lg border border-red-200" id="box-50">
-                                <p class="text-red-700 font-bold" id="objetivo-50">$0.00</p>
+                                <p class="text-red-700 font-bold">Objetivo: <span id="objetivo-50">$0.00</span></p>
                                 <p class="text-gray-600">Gastado: <span id="gasto-50" class="font-semibold">$0.00</span></p>
                             </div>
                             <div class="p-3 bg-orange-50 rounded-lg border border-orange-200" id="box-30">
-                                <p class="text-orange-700 font-bold" id="objetivo-30">$0.00</p>
+                                <p class="text-orange-700 font-bold">Objetivo: <span id="objetivo-30">$0.00</span></p>
                                 <p class="text-gray-600">Gastado: <span id="gasto-30" class="font-semibold">$0.00</span></p>
                             </div>
                             <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200" id="box-20">
-                                <p class="text-emerald-700 font-bold" id="objetivo-20">$0.00</p>
+                                <p class="text-emerald-700 font-bold">Objetivo: <span id="objetivo-20">$0.00</span></p>
                                 <p class="text-gray-600">Aportado: <span id="gasto-20" class="font-semibold">$0.00</span></p>
                             </div>
                         </div>
 
                         <p class="text-xs text-gray-500 pt-2">
-                            *El cálculo asume que **Ingresos Totales** es tu base de presupuesto 100%. Las categorías de gastos se clasifican automáticamente para este reporte.
+                            *Nota: Las categorías **Vivienda, Servicios, Salud, Educación y Deudas** se consideran **Necesidades** (50%). Las transacciones de tipo **Ahorro** más la categoría **Deudas** cuentan como **Ahorro/Deudas** (20%). El resto es **Deseos** (30%).
                         </p>
                     </div>
                 </div>
@@ -172,7 +173,7 @@
                             </div>
 
                             <div id="ahorro-sugerencia-container" class="space-y-2 hidden">
-                                <label for="ahorro-porcentaje" class="block text-sm font-medium text-gray-700">Porcentaje de Ahorro (%)</label>
+                                <label for="ahorro-porcentaje" class="block text-sm font-medium text-gray-700">Porcentaje de Ahorro Sugerido (20%)</label>
                                 <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="20" placeholder="Ej: 20" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
                                 <p id="ahorro-sugerencia-monto" class="text-sm text-indigo-600 font-semibold mt-1">Sugerencia: $0.00</p>
                             </div>
@@ -403,23 +404,10 @@
             ahorro: ['Fondo de Emergencia', 'Meta Viaje', 'Meta Casa', 'Inversión Crecimiento']
         };
         
-        const NOMBRE_CUENTA_AHORROS_CLAVE = 'Cuenta de Ahorros'; 
-        let nombreCuentaAhorrosActual = localStorage.getItem('finanzasNombreAhorrosActual') || NOMBRE_CUENTA_AHORROS_CLAVE;
-
         let cuentas = JSON.parse(localStorage.getItem('finanzasCuentas')) || [
-            'Efectivo', 'Mercantil', 'Binance', 'Zinli', nombreCuentaAhorrosActual
+            'Efectivo', 'Mercantil', 'Binance', 'Zinli'
         ];
         
-        (function initialAccountSetup() {
-            const index = cuentas.indexOf(nombreCuentaAhorrosActual);
-            if (index === -1) {
-                cuentas.push(nombreCuentaAhorrosActual);
-            } else if (index !== cuentas.length - 1) {
-                cuentas.splice(index, 1);
-                cuentas.push(nombreCuentaAhorrosActual);
-            }
-        })();
-
         // Referencias del DOM
         const tipoSelect = document.getElementById('tipo');
         const categoriaSelect = document.getElementById('categoria');
@@ -427,12 +415,14 @@
         const formTransaccion = document.getElementById('form-transaccion');
         const listaTransaccionesEl = document.getElementById('lista-transacciones');
         const gastosPorCategoriaEl = document.getElementById('gastos-por-categoria');
+        const ingresosPorCategoriaEl = document.getElementById('ingresos-por-categoria');
         const formMessageEl = document.getElementById('form-message');
         const fechaInput = document.getElementById('fecha');
         const selectorMesEl = document.getElementById('selector-mes');
         const ahorroPorcentajeInput = document.getElementById('ahorro-porcentaje'); 
         const ahorroSugerenciaContainer = document.getElementById('ahorro-sugerencia-container');
         const budgetRingEl = document.getElementById('budget-ring');
+        const saldoInicialEl = document.getElementById('saldo-inicial');
         
         // DOM UI Avanzada
         const categoriasListas = {
@@ -493,11 +483,10 @@
             }
         }
         
+        // Cálculo de saldos simple: Ingresos suman, Gastos/Ahorros restan.
         function calcularSaldosCuentas() {
             const saldos = {};
             cuentas.forEach(c => saldos[c] = 0);
-            
-            const nombreCuentaAhorros = nombreCuentaAhorrosActual; 
             
             todasTransacciones.forEach(t => {
                 if (t.cuenta && saldos.hasOwnProperty(t.cuenta)) {
@@ -506,17 +495,9 @@
                         saldos[t.cuenta] += t.monto;
                     } 
                     
-                    else if (t.tipo === 'gasto') { 
+                    else if (t.tipo === 'gasto' || t.tipo === 'ahorro') { 
                         saldos[t.cuenta] -= t.monto;
                     } 
-                    
-                    else if (t.tipo === 'ahorro') {
-                        if (t.cuenta === nombreCuentaAhorros) {
-                            saldos[t.cuenta] += t.monto;
-                        } else {
-                            saldos[t.cuenta] -= t.monto;
-                        }
-                    }
                 }
             });
             return saldos;
@@ -532,25 +513,19 @@
             
             let gastosPorCategoria = {};
             let ingresosPorCategoria = {};
-            let ahorroAcumulado = 0;
             let saldoInicial = 0;
             
-            // --- NUEVAS VARIABLES PARA 50/30/20 ---
-            let gastoNecesidades = 0;
-            let gastoAhorroDeudas = 0;
+            // --- VARIABLES 50/30/20 ---
+            let gastoNecesidades = 0; // 50%
+            let gastoAhorroDeudas = 0; // 20%
             // Categorías asumidas como necesidades (50%)
-            const categoriasNecesidades = ['Vivienda', 'Servicios', 'Salud', 'Educación'];
+            const categoriasNecesidades = ['Vivienda', 'Servicios', 'Salud', 'Educación', 'Deudas'];
             
             const mesActualSeleccionado = mesSeleccionado;
 
             todasTransacciones.forEach(t => {
                 const monto = t.monto;
                 
-                // El ahorro acumulado total es histórico
-                if (t.tipo === 'ahorro') {
-                    ahorroAcumulado += monto;
-                }
-
                 // 1. CÁLCULO DEL SALDO INICIAL (Transacciones de meses anteriores)
                 if (t.mesAnio < mesActualSeleccionado) {
                     if (t.tipo === 'ingreso') {
@@ -562,13 +537,13 @@
                 // 2. CÁLCULO DEL MES ACTUAL
                 } else if (t.mesAnio === mesActualSeleccionado) {
                     
-                    // --- Flujos de ENTRADA (para el balance) ---
+                    // --- Flujos de ENTRADA ---
                     if (t.tipo === 'ingreso') { 
                         totalEntradasMes += monto;
                         ingresosRealesMes += monto;
                         ingresosPorCategoria[t.categoria] = (ingresosPorCategoria[t.categoria] || 0) + monto;
                     
-                    // --- Flujos de SALIDA (para el balance) ---
+                    // --- Flujos de SALIDA ---
                     } else if (t.tipo === 'gasto' || t.tipo === 'ahorro') {
                         totalSalidasMes += monto; 
                         
@@ -587,7 +562,7 @@
                             }
 
                         } else if (t.tipo === 'ahorro') {
-                            // El ahorro también lo contamos como "gasto" en el resumen general
+                            // El ahorro también es un "gasto"
                             gastosRealesMes += monto; 
                             // Es ahorro (20%)
                             gastoAhorroDeudas += monto;
@@ -599,37 +574,36 @@
             const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
             
             // CÁLCULO DEL 30% (Gastos Deseos/Flexibles)
-            let gastoDeseos = gastosRealesMes - gastoNecesidades;
-
-            // Ajuste fino: el 20% incluye DEUDAS Y AHORRO. Las deudas ya se contaron en Necesidades.
-            // Para Deseos: GastosReales - (Necesidades sin Deudas) - (Ahorro)
-            const gastosNoNecesidadNiAhorro = gastosRealesMes - gastoNecesidades - (gastoAhorroDeudas - (gastosPorCategoria['Deudas'] || 0));
-            gastoDeseos = Math.max(0, gastosNoNecesidadNiAhorro);
             
-            // Suma del 50/30/20. Debería ser igual a gastosRealesMes (Gastos + Ahorro)
-            // let total503020 = gastoNecesidades + gastoDeseos + gastoAhorroDeudas;
+            // NecesidadesPuras: Solo las categorías de gasto definidas como Necesidades, incluyendo Deudas.
+            // AhorroPuro: Solo las transacciones de tipo 'ahorro' del mes actual.
+            const ahorroPuroMes = transaccionesMesActual.filter(t => t.tipo === 'ahorro').reduce((sum, t) => sum + t.monto, 0);
+
+            // Los gastos reales que NO son Necesidades (50%) ni Ahorro (20%) son Deseos (30%).
+            // NOTA: Para este cálculo, solo sumamos los gastos de tipo 'gasto' y luego restamos las necesidades/ahorros.
+            const gastoTotalRealMes = totalSalidasMes;
+            const gastoDeseos = Math.max(0, gastoTotalRealMes - gastoNecesidades - ahorroPuroMes);
+            // Esto es una forma más simple de decir: Deseos = TotalSalidas - Necesidades - Ahorro
 
             return { 
                 ingresosTotales: ingresosRealesMes, 
-                gastosTotales: gastosRealesMes, 
+                gastosTotales: totalSalidasMes, 
                 balanceNeto: balanceNeto, 
-                saldoInicial: saldoInicial, 
+                saldoInicial: saldoInicial,
                 gastosPorCategoria: gastosPorCategoria, 
                 ingresosPorCategoria: ingresosPorCategoria,
-                ahorroAcumulado: ahorroAcumulado,
                 // Valores 50/30/20
                 gastoNecesidades: gastoNecesidades, 
                 gastoDeseos: gastoDeseos,
-                gastoAhorroDeudas: gastoAhorroDeudas
+                gastoAhorroDeudas: gastoAhorroDeudas // Ahorro + Deudas
             };
         }
 
-        // --- 4. FUNCIONES CRUD CON SUPABASE ---
+        // --- 4. FUNCIONES CRUD CON SUPABASE (Mantenidas) ---
         
         function guardarConfiguracionLocal() {
             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias));
             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-            localStorage.setItem('finanzasNombreAhorrosActual', nombreCuentaAhorrosActual);
         }
         
         async function cargarDatosDesdeSupabase() {
@@ -653,7 +627,6 @@
         }
 
         async function guardarTransaccion(transaccion) {
-            
             const { error } = await supabase
                 .from(TABLA_TRANSACCIONES)
                 .insert([{
@@ -673,7 +646,6 @@
         }
 
         async function eliminarTransaccion(id) {
-            
             const { error } = await supabase
                 .from(TABLA_TRANSACCIONES)
                 .delete()
@@ -695,7 +667,7 @@
                 
             resumenMensual = calcularResumenMensual();
 
-            const { ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastosPorCategoria, ahorroAcumulado, gastoNecesidades, gastoDeseos, gastoAhorroDeudas } = resumenMensual;
+            const { ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastoNecesidades, gastoDeseos, gastoAhorroDeudas } = resumenMensual;
             renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastoAhorroDeudas);
             renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas);
             renderizarListaTransacciones();
@@ -714,7 +686,7 @@
             let opcionesHTML = '';
             const mesesNombre = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-            for (let i = -6; i <= 5; i++) { // Rango: 6 meses atrás hasta 5 meses adelante
+            for (let i = -6; i <= 5; i++) {
                 const fecha = new Date(year, month + i, 1);
                 const valor = `${fecha.getFullYear()}-${(fecha.getMonth() + 1).toString().padStart(2, '0')}`;
                 const nombre = `${mesesNombre[fecha.getMonth()]} ${fecha.getFullYear()}`;
@@ -786,9 +758,8 @@
             });
         }
 
-        // --- FUNCIÓN PLANIFICADOR 50/30/20 (Mejorada con Gráfico Circular) ---
+        // --- FUNCIÓN PLANIFICADOR 50/30/20 ---
         function renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas) {
-            const totalGastadoAhorrado = gastoNecesidades + gastoDeseos + gastoAhorroDeudas;
             document.getElementById('ingreso-neto-503020').textContent = formatCurrency(ingresosTotales);
             
             // 1. Calcular Objetivos (Basado en Ingresos Totales del Mes)
@@ -814,19 +785,15 @@
             // 3. Renderizar Gráfico Circular (Anillo)
             const budgetRingEl = document.getElementById('budget-ring');
             
-            // Usamos los porcentajes de consumo de los ingresos, limitados a no más de 50%, 30% y 20% visualmente.
             const visualPct50 = Math.min(pctNecesidades, 50);
             const visualPct30 = Math.min(pctDeseos, 30);
             const visualPct20 = Math.min(pctAhorro, 20);
 
-            // Calcular los grados para el conic-gradient (3.6 grados por 1%)
             const deg50 = (visualPct50 / 100) * 360;
             const deg30 = (visualPct30 / 100) * 360;
-            const deg20 = (visualPct20 / 100) * 360;
             
             const totalConsumedPct = Math.min(totalPct, 100);
 
-            // Actualizar la variable CSS para el gradiente
             budgetRingEl.style.setProperty('--pct-50', `${deg50}deg`);
             budgetRingEl.style.setProperty('--pct-30', `${deg30}deg`);
             budgetRingEl.setAttribute('data-total', `${totalConsumedPct.toFixed(1)}%`);
@@ -850,7 +817,6 @@
                     }
                 }
                 
-                // Reset a los colores base para cada caja antes de aplicar la alerta.
                 if (id === 'box-50' && monto <= objetivo) el.classList.add('bg-red-50', 'border-red-200');
                 if (id === 'box-30' && monto <= objetivo) el.classList.add('bg-orange-50', 'border-orange-200');
                 if (id === 'box-20' && monto >= objetivo) el.classList.add('bg-emerald-50', 'border-emerald-200');
@@ -864,8 +830,8 @@
 
 
         function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroGastado) {
-            // El saldo inicial se elimina de las tarjetas principales por simplificación
-            document.getElementById('ingresos-totales').textContent = formatCurrency(ingresosTotales);
+            saldoInicialEl.textContent = formatCurrency(saldoInicial);
+            ingresosTotalesEl.textContent = formatCurrency(ingresosTotales);
             document.getElementById('gastos-totales').textContent = formatCurrency(gastosTotales);
             document.getElementById('ahorro-gastado-503020').textContent = formatCurrency(ahorroGastado); 
             
@@ -882,16 +848,20 @@
 
         function renderizarGastosPorCategoria(gastosPorCategoria, gastosTotales) {
             gastosPorCategoriaEl.innerHTML = '';
-            if (gastosTotales === 0) {
-                gastosPorCategoriaEl.innerHTML = '<p class="text-gray-500 text-center py-4">No hay gastos de tipo "Gasto" registrados en este mes.</p>';
+            // Excluir Ahorros del gráfico de categorías de "Gastos" para evitar duplicación
+            const categoriasGastos = Object.entries(gastosPorCategoria).filter(([cat, monto]) => categorias.gasto.includes(cat)); 
+            const totalGastosVisual = categoriasGastos.reduce((sum, [, monto]) => sum + monto, 0);
+
+            if (totalGastosVisual === 0) {
+                gastosPorCategoriaEl.innerHTML = '<p class="text-gray-500 text-center py-4">No hay transacciones de tipo Gasto registradas en este mes.</p>';
                 return;
             }
             const colores = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f43f5e'];
             let colorIndex = 0;
-            const categoriasOrdenadas = Object.entries(gastosPorCategoria).sort(([, a], [, b]) => b - a);
+            const categoriasOrdenadas = categoriasGastos.sort(([, a], [, b]) => b - a);
 
             categoriasOrdenadas.forEach(([categoria, monto]) => {
-                const porcentaje = (monto / gastosTotales) * 100;
+                const porcentaje = (monto / totalGastosVisual) * 100;
                 const color = colores[colorIndex % colores.length];
                 colorIndex++;
                 const html = `
@@ -910,7 +880,6 @@
         }
         
         function renderizarIngresosPorCategoria(ingresosPorCategoria, ingresosTotales) {
-            const ingresosPorCategoriaEl = document.getElementById('ingresos-por-categoria'); 
             ingresosPorCategoriaEl.innerHTML = '';
             
             if (ingresosTotales === 0) {
@@ -1005,15 +974,10 @@
             calcularSugerenciaAhorro(); 
         }
         
-        // --- FUNCIÓN CRUD LOCALES (para configuración) ---
+        // --- FUNCIÓN CRUD LOCALES ---
         
         function guardarCuentas() {
             localStorage.setItem('finanzasCuentas', JSON.stringify(cuentas));
-        }
-
-        function guardarNombreCuentaAhorros(nuevoNombre) {
-            localStorage.setItem('finanzasNombreAhorrosActual', nuevoNombre);
-            nombreCuentaAhorrosActual = nuevoNombre;
         }
 
         // --- EVENT HANDLERS ---
@@ -1192,7 +1156,7 @@
             modalContainerEdicion.classList.add('flex');
         }
 
-        // --- Funciones para la pestaña Administrar Datos (DRAG & DROP y Edición) ---
+        // --- Funciones para la pestaña Administrar Datos ---
 
         function agregarGeneral(tipo, nombre) {
             nombre = nombre.trim();
@@ -1209,23 +1173,8 @@
                 guardarFn = guardarConfiguracionLocal;
             }
             
-            if (tipo === 'cuenta' && (nombre === NOMBRE_CUENTA_AHORROS_CLAVE || nombre === nombreCuentaAhorrosActual)) {
-                alert("No puedes agregar otra cuenta con ese nombre reservado para ahorros.");
-                return false;
-            }
-
             if (!array.includes(nombre)) {
-                
-                const indexAhorros = array.indexOf(nombreCuentaAhorrosActual);
-                if (indexAhorros !== -1) {
-                    array.splice(indexAhorros, 1);
-                }
-                
                 array.push(nombre); 
-                
-                if (indexAhorros !== -1) {
-                    array.push(nombreCuentaAhorrosActual);
-                }
                 
                 guardarFn();
                 if (tipo === 'cuenta') renderizarCuentas();
@@ -1245,11 +1194,6 @@
             let transaccionKey = tipo === 'cuenta' ? 'cuenta' : 'categoria';
 
             if (tipo === 'cuenta') {
-                if (nombre === nombreCuentaAhorrosActual) {
-                    alert("La cuenta de ahorro principal no puede ser eliminada.");
-                    return false;
-                }
-                
                 array = cuentas;
                 guardarFn = guardarCuentas;
             } else {
@@ -1281,27 +1225,20 @@
             const countEl = categoriasCounts['cuenta'];
             listaEl.innerHTML = '';
             
-            cuentas.forEach((cuenta, index) => {
-                const esAhorros = cuenta === nombreCuentaAhorrosActual;
+            cuentas.forEach((cuenta) => {
                 const listItem = document.createElement('li');
                 
                 listItem.dataset.nombre = cuenta;
-                listItem.dataset.index = index; 
 
-                listItem.className = `flex justify-between items-center p-3 rounded-lg border ${esAhorros ? 'bg-blue-100 border-blue-300 font-semibold' : 'bg-gray-50 draggable-item'}`;
+                // Se eliminan los listeners de Drag & Drop para simplificar.
+                listItem.className = `flex justify-between items-center p-3 rounded-lg border bg-gray-50`;
                 
                 listItem.innerHTML = `
                     <span class="text-gray-800" data-cuenta="${cuenta}">${cuenta}</span>
                     <div>
-                        ${esAhorros ? 
-                            `<button data-nombre="${cuenta}" class="btn-editar-nombre-ahorros text-blue-600 hover:text-blue-800 transition" title="Editar Nombre de Cuenta">
-                                <i data-lucide="pencil" class="w-5 h-5 inline-block"></i>
-                            </button>`
-                            : 
-                            `<button data-tipo="cuenta" data-nombre="${cuenta}" class="btn-eliminar-general text-red-400 hover:text-red-600 transition" title="Eliminar Cuenta">
-                                <i data-lucide="x-circle" class="w-5 h-5 inline-block"></i>
-                            </button>`
-                        }
+                        <button data-tipo="cuenta" data-nombre="${cuenta}" class="btn-eliminar-general text-red-400 hover:text-red-600 transition" title="Eliminar Cuenta">
+                            <i data-lucide="x-circle" class="w-5 h-5 inline-block"></i>
+                        </button>
                     </div>
                 `;
                 listaEl.appendChild(listItem);
@@ -1309,8 +1246,6 @@
 
             countEl.textContent = `(${cuentas.length} cuentas)`;
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
-            
-            addDragDropListeners(listaEl);
         }
         
         function renderizarCategorias() {
@@ -1334,152 +1269,6 @@
             });
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
-
-
-        // --- DRAG & DROP LOGIC (Mantenido para el orden de cuentas) ---
-        let dragSrcEl = null;
-
-        function handleDragStart(e) {
-            if (e.target.closest('li').dataset.nombre === nombreCuentaAhorrosActual) {
-                e.preventDefault(); 
-                return;
-            } 
-            dragSrcEl = e.target.closest('li');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
-            dragSrcEl.classList.add('dragging');
-        }
-
-        function handleDragOver(e) {
-            if (e.preventDefault) {
-                e.preventDefault(); 
-            }
-            const targetItem = e.target.closest('li');
-            if (targetItem && targetItem.dataset.nombre !== nombreCuentaAhorrosActual) {
-                 e.dataTransfer.dropEffect = 'move';
-            }
-            return false;
-        }
-
-        function handleDragEnter(e) {
-            const targetItem = e.target.closest('li');
-            if (targetItem && targetItem.dataset.nombre !== nombreCuentaAhorrosActual) {
-                 targetItem.classList.add('drag-over');
-            }
-        }
-
-        function handleDragLeave(e) {
-            const targetItem = e.target.closest('li');
-            if (targetItem) {
-                targetItem.classList.remove('drag-over');
-            }
-        }
-
-        function handleDrop(e) {
-            if (e.stopPropagation) e.stopPropagation();
-            
-            const targetEl = e.target.closest('li');
-
-            if (dragSrcEl !== targetEl && targetEl && dragSrcEl) {
-                if (targetEl.dataset.nombre !== nombreCuentaAhorrosActual) {
-                    targetEl.parentNode.insertBefore(dragSrcEl, targetEl.nextSibling);
-                    updateAccountOrder();
-                } else if (targetEl.dataset.nombre === nombreCuentaAhorrosActual) {
-                    targetEl.parentNode.insertBefore(dragSrcEl, targetEl);
-                    updateAccountOrder();
-                }
-            }
-            
-            if (targetEl) {
-                targetEl.classList.remove('drag-over');
-            }
-            return false;
-        }
-
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-            document.querySelectorAll('#lista-cuenta li').forEach(item => item.classList.remove('drag-over'));
-        }
-        
-        function updateAccountOrder() {
-            const listaEl = document.getElementById('lista-cuenta');
-            const newOrder = [];
-            
-            listaEl.querySelectorAll('li').forEach(item => {
-                 const nombre = item.dataset.nombre;
-                 if (nombre) {
-                     newOrder.push(nombre);
-                 }
-            });
-            
-            cuentas = newOrder;
-            guardarCuentas();
-        }
-
-        function addDragDropListeners(list) {
-            list.querySelectorAll('li').forEach(item => {
-                if (item.dataset.nombre !== nombreCuentaAhorrosActual) {
-                    item.setAttribute('draggable', 'true');
-                    item.addEventListener('dragstart', handleDragStart, false);
-                    item.addEventListener('dragenter', handleDragEnter, false);
-                    item.addEventListener('dragover', handleDragOver, false);
-                    item.addEventListener('dragleave', handleDragLeave, false);
-                    item.addEventListener('drop', handleDrop, false);
-                    item.addEventListener('dragend', handleDragEnd, false);
-                }
-            });
-        }
-        
-        // --- Eventos de Administración de Datos ---
-
-        // 1. Botones de AGREGAR (Cuentas/Categorías)
-        btnAgregarGeneral.forEach(button => {
-            button.addEventListener('click', () => {
-                const tipo = button.dataset.tipo;
-                const input = categoriasInputs[tipo];
-                agregarGeneral(tipo, input.value);
-            });
-        });
-
-        // 2. Botones de ELIMINAR (X) y EDICIÓN de cuentas/categorías
-        document.getElementById('seccion-categorias').addEventListener('click', (e) => {
-            const deleteButton = e.target.closest('.btn-eliminar-general');
-            const editBtn = e.target.closest('.btn-editar-nombre-ahorros');
-
-            if (deleteButton) {
-                const nombre = deleteButton.dataset.nombre;
-                const tipo = deleteButton.dataset.tipo;
-                eliminarGeneral(tipo, nombre);
-            }
-            
-            if (editBtn) {
-                const nombreAnterior = editBtn.dataset.nombre;
-                const nuevoNombre = prompt(`Introduce el nuevo nombre para la cuenta de ahorros:`, nombreAnterior);
-                
-                if (nuevoNombre && nuevoNombre.trim() !== '' && nuevoNombre.trim() !== nombreAnterior) {
-                    const nuevoNombreLimpio = nuevoNombre.trim();
-
-                    const index = cuentas.indexOf(nombreAnterior);
-                    if (index !== -1) {
-                        cuentas[index] = nuevoNombreLimpio;
-                    }
-                    
-                    todasTransacciones.forEach(t => {
-                        if (t.cuenta === nombreAnterior) {
-                            t.cuenta = nuevoNombreLimpio;
-                        }
-                    });
-                    
-                    guardarNombreCuentaAhorros(nuevoNombreLimpio); 
-                    guardarCuentas();
-                    guardarConfiguracionLocal(); 
-                    
-                    renderizarCuentas(); 
-                    filtrarYRenderizar(); 
-                }
-            }
-        });
-
 
         // --- 8. INICIO DE LA APLICACIÓN ---
         

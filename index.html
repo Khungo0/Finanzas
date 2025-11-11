@@ -31,9 +31,9 @@
         }
 
         /* Grid Layouts */
-        .grid-5-gap { /* ACTUALIZADO: 5 columnas para el dashboard */
+        .grid-4-gap {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
         .grid-cols-2-gap {
@@ -41,9 +41,10 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 24px;
         }
-        .grid-cols-4-gap-admin { /* ACTUALIZADO: 4 columnas para admin */
+        /* Ajuste para 3 columnas en la administración */
+        .grid-cols-3-gap-admin {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 24px;
         }
 
@@ -61,12 +62,10 @@
         .border-red-500 { border-left: 4px solid #ef4444; }
         .border-gray-500 { border-left: 4px solid #64748b; }
         .border-indigo-500 { border-left: 4px solid #6366f1; }
-        .border-emerald-500 { border-left: 4px solid #10b981; } /* NUEVO: Ahorro Total */
         .text-green-600 { color: #10b981; }
         .text-red-600 { color: #ef4444; }
         .text-indigo-700 { color: #4f46e5; }
         .text-gray-800 { color: #1e293b; }
-        .text-emerald-600 { color: #059669; } /* NUEVO: Ahorro Total */
         
         /* Tabs */
         .tab-button {
@@ -183,7 +182,7 @@
 
         <div id="seccion-resumen" class="tab-content">
             
-            <section id="resumen-dashboard" class="grid-5-gap mb-10">
+            <section id="resumen-dashboard" class="grid-4-gap mb-10">
                 <div class="card-shadow border-gray-500">
                     <h2 class="dashboard-card-title">Saldo Inicial</h2>
                     <p id="saldo-inicial" class="dashboard-card-value text-gray-800">$0.00</p>
@@ -202,11 +201,6 @@
                 <div class="card-shadow border-indigo-500">
                     <h2 class="dashboard-card-title">Saldo Final (Global)</h2>
                     <p id="balance-neto" class="dashboard-card-value text-indigo-700">$0.00</p>
-                </div>
-                
-                <div class="card-shadow border-emerald-500">
-                    <h2 class="dashboard-card-title">Ahorro Acumulado</h2>
-                    <p id="ahorro-acumulado-total" class="dashboard-card-value text-emerald-600">$0.00</p>
                 </div>
             </section>
 
@@ -280,19 +274,16 @@
                                 <p class="text-red-700" style="font-weight: 700; font-size: 0.875rem;">50% Nec.</p>
                                 <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-50">$0.00</span></p>
                                 <p style="color: #475569; font-size: 0.75rem;">Gasto: <span id="gasto-50" style="font-weight: 600;">$0.00</span></p>
-                                <p style="color: #b91c1c; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Restante: <span id="restante-50">$0.00</span></p>
                             </div>
                             <div class="budget-box bg-orange-50" id="box-30">
                                 <p class="text-orange-700" style="font-weight: 700; font-size: 0.875rem;">30% Deseos</p>
                                 <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-30">$0.00</span></p>
                                 <p style="color: #475569; font-size: 0.75rem;">Gasto: <span id="gasto-30" style="font-weight: 600;">$0.00</span></p>
-                                <p style="color: #c2410c; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Restante: <span id="restante-30">$0.00</span></p>
                             </div>
                             <div class="budget-box bg-emerald-50" id="box-20">
                                 <p class="text-emerald-700" style="font-weight: 700; font-size: 0.875rem;">20% Ahorro</p>
                                 <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-20">$0.00</span></p>
                                 <p style="color: #475569; font-size: 0.75rem;">Aport: <span id="gasto-20" style="font-weight: 600;">$0.00</span></p>
-                                <p style="color: #059669; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Faltante: <span id="restante-20">$0.00</span></p>
                             </div>
                         </div>
 
@@ -440,6 +431,7 @@
             const lucide = await import('https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js');
             createIcons = lucide.createIcons;
             window.lucideIcons = {
+                // Se mantuvieron los íconos necesarios
                 PlusCircle: lucide.PlusCircle, Trash2: lucide.Trash2, Pencil: lucide.Pencil,
                 ListChecks: lucide.ListChecks, XCircle: lucide.XCircle, Target: lucide.Target
             };
@@ -459,6 +451,7 @@
         
         // --- 2. VARIABLES Y ESTADO (CATEGORÍAS REESTRUCTURADAS) ---
         
+        // ** ÚNICA CUENTA HARDCODEADA **
         const UNICA_CUENTA = 'Global'; 
 
         let todasTransacciones = []; 
@@ -547,7 +540,7 @@
             const porcentaje = parseFloat(ahorroPorcentajeInput.value) || 0;
             const porcentajeValido = isNaN(porcentaje) || porcentaje < 0 ? 0 : porcentaje;
             
-            const ingresosTotales = resumenMensual.ingresosTotales || 0;
+            const ingresosTotales = (resumenMensual && resumenMensual.ingresosTotales) ? resumenMensual.ingresosTotales : 0;
             
             const montoSugerido = ingresosTotales * (porcentajeValido / 100);
 
@@ -623,7 +616,7 @@
                                 gastoDeseos += monto;
                             }
                             
-                            // Clasificación 20% Ahorro/Deudas (solo si está en la lista de 20% y es de tipo Gasto, ej: Deudas)
+                            // Clasificación 20% Ahorro/Deudas (solo si está en la lista de 20% y es de tipo Gasto)
                             if (categorias20Activas.includes(t.categoria)) {
                                 gastoAhorroDeudas += monto; 
                             }
@@ -656,7 +649,7 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
-        // CORRECCIÓN: ÚNICA DECLARACIÓN DE ESTA FUNCIÓN
+        // CORRECCIÓN: Esta es la ÚNICA declaración de guardarConfiguracionLocal
         function guardarConfiguracionLocal() {
             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias)); // Solo Ingresos
             localStorage.setItem('categorias50', JSON.stringify(categorias50));
@@ -748,10 +741,10 @@
             resumenMensual = calcularResumenMensual();
 
             const { ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal, gastoNecesidades, gastoDeseos, gastoAhorroDeudas } = resumenMensual;
-            renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal); // MEJORA 2
+            renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal);
             renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas);
             renderizarListaTransacciones();
-            actualizarCategoriasYCuentas(); // Asegura que los dropdowns se llenen
+            actualizarCategoriasYCuentas(); 
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
 
@@ -1107,7 +1100,6 @@
         function actualizarOpcionesEdicion(currentTipo, currentCategoria) { 
             
             const llenarCategorias = (tipo) => {
-                let cats = [];
                 let html = '';
 
                 if (tipo === 'ingreso') {

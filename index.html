@@ -585,6 +585,7 @@
             // Usamos los arrays de categorías activos desde localStorage
             const categorias50Activas = categorias50;
             const categorias30Activas = categorias30;
+            const categorias20Activas = categorias20;
             
             const mesActualSeleccionado = mesSeleccionado;
 
@@ -613,6 +614,7 @@
                         totalSalidasMes += monto; 
                         
                         if (t.tipo === 'gasto') {
+                            
                             // Clasificación 50% Necesidades
                             if (categorias50Activas.includes(t.categoria)) {
                                 gastoNecesidades += monto;
@@ -622,14 +624,15 @@
                                 gastoDeseos += monto;
                             }
                             
-                            // Clasificación 20% Ahorro/Deudas (solo para Pagos Mínimos Deuda si está en 50%)
-                            if (t.categoria === 'Pagos Mínimos Deuda' && categorias20.includes('Pagos Mínimos Deuda')) {
-                                gastoAhorroDeudas += monto;
+                            // Clasificación 20% Ahorro/Deudas (solo si está en la lista de 20% y es de tipo Gasto)
+                            if (categorias20Activas.includes(t.categoria)) {
+                                // Esto es para categorías de Deuda que el usuario puso en el 20%
+                                gastoAhorroDeudas += monto; 
                             }
 
                         } else if (t.tipo === 'ahorro') {
                             // Clasificación 20% Ahorro/Deudas (para cualquier categoría de Ahorro)
-                            if (categorias20.includes(t.categoria)) {
+                            if (categorias20Activas.includes(t.categoria)) {
                                 gastoAhorroDeudas += monto;
                             }
                         }
@@ -639,12 +642,6 @@
             
             const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
             
-            // Si el Pagos Mínimos Deuda no se incluye en 50% (para que el usuario tenga control total)
-            // entonces el cálculo es simple: lo que se gastó en cada grupo.
-            
-            // Lógica de Deseos ya está implícita con el uso de categorias30
-            // La lógica de Ahorro/Deudas ya usa categorias20
-
             return { 
                 ingresosTotales: ingresosRealesMes, 
                 gastosTotales: totalSalidasMes, 
@@ -755,6 +752,8 @@
             renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas);
             renderizarListaTransacciones();
             calcularSugerenciaAhorro(); 
+            // Esto asegura que los iconos de las pestañas funcionen al cargar
+            try { document.getElementById('tab-resumen').click(); } catch(e) {}
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
 
@@ -812,6 +811,8 @@
                     if (targetId === 'seccion-resumen') {
                         actualizarCategoriasYCuentas(); 
                     }
+                    // Re-renderiza íconos para asegurar que no falten después del cambio de pestaña
+                    try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
                 });
             });
         }

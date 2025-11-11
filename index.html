@@ -31,9 +31,9 @@
         }
 
         /* Grid Layouts */
-        .grid-4-gap {
+        .grid-5-gap { /* ACTUALIZADO: 5 columnas para el dashboard */
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 24px;
         }
         .grid-cols-2-gap {
@@ -41,10 +41,9 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 24px;
         }
-        /* Ajuste para 3 columnas en la administración */
-        .grid-cols-3-gap-admin {
+        .grid-cols-4-gap-admin { /* ACTUALIZADO: 4 columnas para admin */
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
 
@@ -62,10 +61,12 @@
         .border-red-500 { border-left: 4px solid #ef4444; }
         .border-gray-500 { border-left: 4px solid #64748b; }
         .border-indigo-500 { border-left: 4px solid #6366f1; }
+        .border-emerald-500 { border-left: 4px solid #10b981; } /* NUEVO: Ahorro Total */
         .text-green-600 { color: #10b981; }
         .text-red-600 { color: #ef4444; }
         .text-indigo-700 { color: #4f46e5; }
         .text-gray-800 { color: #1e293b; }
+        .text-emerald-600 { color: #059669; } /* NUEVO: Ahorro Total */
         
         /* Tabs */
         .tab-button {
@@ -182,7 +183,7 @@
 
         <div id="seccion-resumen" class="tab-content">
             
-            <section id="resumen-dashboard" class="grid-4-gap mb-10">
+            <section id="resumen-dashboard" class="grid-5-gap mb-10">
                 <div class="card-shadow border-gray-500">
                     <h2 class="dashboard-card-title">Saldo Inicial</h2>
                     <p id="saldo-inicial" class="dashboard-card-value text-gray-800">$0.00</p>
@@ -201,6 +202,11 @@
                 <div class="card-shadow border-indigo-500">
                     <h2 class="dashboard-card-title">Saldo Final (Global)</h2>
                     <p id="balance-neto" class="dashboard-card-value text-indigo-700">$0.00</p>
+                </div>
+                
+                <div class="card-shadow border-emerald-500">
+                    <h2 class="dashboard-card-title">Ahorro Acumulado</h2>
+                    <p id="ahorro-acumulado-total" class="dashboard-card-value text-emerald-600">$0.00</p>
                 </div>
             </section>
 
@@ -274,16 +280,19 @@
                                 <p class="text-red-700" style="font-weight: 700; font-size: 0.875rem;">50% Nec.</p>
                                 <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-50">$0.00</span></p>
                                 <p style="color: #475569; font-size: 0.75rem;">Gasto: <span id="gasto-50" style="font-weight: 600;">$0.00</span></p>
+                                <p style="color: #b91c1c; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Restante: <span id="restante-50">$0.00</span></p>
                             </div>
                             <div class="budget-box bg-orange-50" id="box-30">
                                 <p class="text-orange-700" style="font-weight: 700; font-size: 0.875rem;">30% Deseos</p>
                                 <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-30">$0.00</span></p>
                                 <p style="color: #475569; font-size: 0.75rem;">Gasto: <span id="gasto-30" style="font-weight: 600;">$0.00</span></p>
+                                <p style="color: #c2410c; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Restante: <span id="restante-30">$0.00</span></p>
                             </div>
                             <div class="budget-box bg-emerald-50" id="box-20">
                                 <p class="text-emerald-700" style="font-weight: 700; font-size: 0.875rem;">20% Ahorro</p>
                                 <p style="color: #475569; font-size: 0.75rem;">Obj: <span id="objetivo-20">$0.00</span></p>
                                 <p style="color: #475569; font-size: 0.75rem;">Aport: <span id="gasto-20" style="font-weight: 600;">$0.00</span></p>
+                                <p style="color: #059669; font-size: 0.75rem; font-weight: 600; margin-top: 8px;">Faltante: <span id="restante-20">$0.00</span></p>
                             </div>
                         </div>
 
@@ -431,7 +440,6 @@
             const lucide = await import('https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js');
             createIcons = lucide.createIcons;
             window.lucideIcons = {
-                // Se mantuvieron los íconos necesarios
                 PlusCircle: lucide.PlusCircle, Trash2: lucide.Trash2, Pencil: lucide.Pencil,
                 ListChecks: lucide.ListChecks, XCircle: lucide.XCircle, Target: lucide.Target
             };
@@ -451,7 +459,6 @@
         
         // --- 2. VARIABLES Y ESTADO (CATEGORÍAS REESTRUCTURADAS) ---
         
-        // ** ÚNICA CUENTA HARDCODEADA **
         const UNICA_CUENTA = 'Global'; 
 
         let todasTransacciones = []; 
@@ -562,6 +569,7 @@
             
             let ingresosPorCategoria = {};
             let saldoInicial = 0;
+            let ahorroAcumuladoTotal = 0; // MEJORA 2
             
             // --- VARIABLES 50/30/20 ---
             let gastoNecesidades = 0; // 50%
@@ -577,6 +585,11 @@
 
             todasTransacciones.forEach(t => {
                 const monto = t.monto;
+                
+                // MEJORA 2: Ahorro Acumulado Total (Histórico)
+                if (t.tipo === 'ahorro') {
+                    ahorroAcumuladoTotal += monto;
+                }
                 
                 // 1. CÁLCULO DEL SALDO INICIAL (Transacciones de meses anteriores)
                 if (t.mesAnio < mesActualSeleccionado) {
@@ -610,7 +623,7 @@
                                 gastoDeseos += monto;
                             }
                             
-                            // Clasificación 20% Ahorro/Deudas (solo si está en la lista de 20% y es de tipo Gasto)
+                            // Clasificación 20% Ahorro/Deudas (solo si está en la lista de 20% y es de tipo Gasto, ej: Deudas)
                             if (categorias20Activas.includes(t.categoria)) {
                                 gastoAhorroDeudas += monto; 
                             }
@@ -632,6 +645,7 @@
                 gastosTotales: totalSalidasMes, 
                 balanceNeto: balanceNeto, 
                 saldoInicial: saldoInicial,
+                ahorroAcumuladoTotal: ahorroAcumuladoTotal, // MEJORA 2
                 ingresosPorCategoria: ingresosPorCategoria,
                 // Valores 50/30/20
                 gastoNecesidades: gastoNecesidades, 
@@ -642,7 +656,7 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
-        // CORRECCIÓN: Esta es la ÚNICA declaración de guardarConfiguracionLocal
+        // CORRECCIÓN: ÚNICA DECLARACIÓN DE ESTA FUNCIÓN
         function guardarConfiguracionLocal() {
             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias)); // Solo Ingresos
             localStorage.setItem('categorias50', JSON.stringify(categorias50));
@@ -733,11 +747,11 @@
                 
             resumenMensual = calcularResumenMensual();
 
-            const { ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastoNecesidades, gastoDeseos, gastoAhorroDeudas } = resumenMensual;
-            renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, gastoAhorroDeudas);
+            const { ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal, gastoNecesidades, gastoDeseos, gastoAhorroDeudas } = resumenMensual;
+            renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal); // MEJORA 2
             renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas);
             renderizarListaTransacciones();
-            calcularSugerenciaAhorro(); 
+            actualizarCategoriasYCuentas(); // Asegura que los dropdowns se llenen
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
 
@@ -800,12 +814,15 @@
             });
         }
         
-        function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroGastado) {
+        function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal) {
             saldoInicialEl.textContent = formatCurrency(saldoInicial);
             ingresosTotalesEl.textContent = formatCurrency(ingresosTotales);
             gastosTotalesEl.textContent = formatCurrency(gastosTotales);
             
             balanceNetoEl.textContent = formatCurrency(balanceNeto);
+            
+            // MEJORA 2: Mostrar Ahorro Acumulado
+            document.getElementById('ahorro-acumulado-total').textContent = formatCurrency(ahorroAcumuladoTotal);
             
             balanceNetoEl.style.color = (balanceNeto > 0) ? '#10b981' : (balanceNeto < 0) ? '#ef4444' : '#4f46e5';
         }
@@ -825,6 +842,16 @@
             document.getElementById('gasto-50').textContent = formatCurrency(gastoNecesidades);
             document.getElementById('gasto-30').textContent = formatCurrency(gastoDeseos);
             document.getElementById('gasto-20').textContent = formatCurrency(gastoAhorroDeudas);
+
+            // MEJORA 4: Calcular y mostrar "Restante"
+            const restante50 = objetivo50 - gastoNecesidades;
+            const restante30 = objetivo30 - gastoDeseos;
+            const restante20 = objetivo20 - gastoAhorroDeudas; // "Faltante"
+
+            document.getElementById('restante-50').textContent = formatCurrency(restante50);
+            document.getElementById('restante-30').textContent = formatCurrency(restante30);
+            document.getElementById('restante-20').textContent = formatCurrency(restante20);
+
 
             const pctNecesidades = ingresosTotales > 0 ? (gastoNecesidades / ingresosTotales) * 100 : 0;
             const pctDeseos = ingresosTotales > 0 ? (gastoDeseos / ingresosTotales) * 100 : 0;
@@ -849,33 +876,47 @@
             const updateColor = (monto, objetivo, id, targetEl) => {
                 targetEl.style.backgroundColor = '';
                 targetEl.style.borderColor = '';
-                targetEl.querySelector('p').style.color = '';
-                targetEl.querySelector('p').style.fontWeight = '700';
+                
+                // Limpiar color de "Restante"
+                const restanteEl = document.getElementById(`restante-${id.split('-')[1]}`);
+                restanteEl.style.color = '';
+                restanteEl.parentElement.style.color = '';
 
                 if (id === 'box-50' || id === 'box-30') {
                     if (monto > objetivo) {
                         targetEl.style.backgroundColor = '#fee2e2'; 
-                        targetEl.style.borderColor = '#f87171';    
-                        targetEl.querySelector('p').style.color = '#b91c1c';
+                        targetEl.style.borderColor = '#f87171';
+                        // MEJORA 4: Indicar sobregasto
+                        restanteEl.style.color = '#ef4444'; 
                     } else {
-                        if (id === 'box-50') { targetEl.style.backgroundColor = '#fef2f2'; targetEl.style.borderColor = '#fecaca'; }
-                        if (id === 'box-30') { targetEl.style.backgroundColor = '#fff7ed'; targetEl.style.borderColor = '#fed7aa'; }
+                        if (id === 'box-50') { 
+                            targetEl.style.backgroundColor = '#fef2f2'; 
+                            targetEl.style.borderColor = '#fecaca'; 
+                            restanteEl.style.color = '#b91c1c';
+                            restanteEl.parentElement.style.color = '#b91c1c';
+                        }
+                        if (id === 'box-30') { 
+                            targetEl.style.backgroundColor = '#fff7ed'; 
+                            targetEl.style.borderColor = '#fed7aa'; 
+                            restanteEl.style.color = '#c2410c';
+                            restanteEl.parentElement.style.color = '#c2410c';
+                        }
                     }
                 } 
                 else if (id === 'box-20') {
                     if (monto < objetivo) {
                         targetEl.style.backgroundColor = '#fef2f2'; 
-                        targetEl.style.borderColor = '#fecaca';    
-                        targetEl.querySelector('p').style.color = '#b91c1c';
+                        targetEl.style.borderColor = '#fecaca';
+                        // MEJORA 4: Indicar que falta
+                        restanteEl.style.color = '#b91c1c'; 
+                        restanteEl.parentElement.style.color = '#b91c1c';
                     } else {
                         targetEl.style.backgroundColor = '#ecfdf5';
                         targetEl.style.borderColor = '#a7f3d0';
+                        restanteEl.style.color = '#059669';
+                        restanteEl.parentElement.style.color = '#059669';
                     }
                 }
-
-                if (id === 'box-50' && monto <= objetivo) targetEl.querySelector('p').style.color = '#b91c1c';
-                if (id === 'box-30' && monto <= objetivo) targetEl.querySelector('p').style.color = '#c2410c';
-                if (id === 'box-20' && monto >= objetivo) targetEl.querySelector('p').style.color = '#059669';
             };
 
 
@@ -904,13 +945,26 @@
                 tipoClase = esIngreso ? 'background-color: #d1fae5; color: #065f46;' : esAhorro ? 'background-color: #dbeafe; color: #1e40af;' : 'background-color: #fee2e2; color: #991b1b;';
                 tipoTexto = esIngreso ? 'INGRESO' : esAhorro ? 'AHORRO' : 'GASTO';
                 
+                // MEJORA 3: Badge de Color 50/30/20
+                let badgeColor = '';
+                if (esAhorro || categorias20.includes(t.categoria)) {
+                    badgeColor = '#10b981'; // Verde (20%)
+                } else if (categorias50.includes(t.categoria)) {
+                    badgeColor = '#ef4444'; // Rojo (50%)
+                } else if (categorias30.includes(t.categoria)) {
+                    badgeColor = '#f97316'; // Naranja (30%)
+                }
+
                 return `
                     <tr style="transition: background-color 0.15s;">
                         <td style="padding: 12px; font-size: 0.875rem; color: #64748b;">${t.fecha}</td>
                         <td style="padding: 12px;">
                             <span class="inline-flex text-xs leading-5 rounded-full px-2" style="${tipoClase} font-weight: 600;">${tipoTexto}</span>
                         </td>
-                        <td style="padding: 12px; font-size: 0.875rem; color: #1e293b;">${categoriaTexto}</td>
+                        <td style="padding: 12px; font-size: 0.875rem; color: #1e293b; display: flex; align-items: center;">
+                            ${badgeColor ? `<span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${badgeColor}; margin-right: 8px;"></span>` : ''}
+                            ${categoriaTexto}
+                        </td>
                         <td style="padding: 12px; font-size: 0.875rem; color: #64748b;" class="truncate">${t.descripcion}</td>
                         <td style="padding: 12px; text-align: right; font-size: 0.875rem; ${montoClase}">${formatCurrency(t.monto)}</td>
                         <td style="padding: 12px; text-align: right; font-size: 0.875rem;">
@@ -938,24 +992,30 @@
             actualizarCategorias();
         }
 
+        // MEJORA 1: Actualizar Categorías con <optgroup>
         function actualizarCategorias() {
             const tipo = tipoSelect.value;
-            let cats = [];
+            let html = '';
 
-            // Combina las categorías de Gastos y Ahorros en la lista principal del formulario
             if (tipo === 'ingreso') {
                 cats = categorias.ingreso || [];
+                html = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
             } else if (tipo === 'gasto') {
-                cats = [...categorias50, ...categorias30] || [];
+                html = `<optgroup label="50% Necesidades">`;
+                html += categorias50.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                html += `</optgroup>`;
+                html += `<optgroup label="30% Deseos">`;
+                html += categorias30.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                html += `</optgroup>`;
             } else if (tipo === 'ahorro') {
-                cats = categorias20 || [];
+                html = `<optgroup label="20% Ahorro/Deuda">`;
+                html += categorias20.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                html += `</optgroup>`;
             }
 
-            categoriaSelect.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            categoriaSelect.innerHTML = html;
             calcularSugerenciaAhorro(); 
         }
-        
-        // CORRECCIÓN: La función duplicada se eliminó. Esta es la única.
         
         // --- EVENT HANDLERS ---
         
@@ -1048,17 +1108,26 @@
             
             const llenarCategorias = (tipo) => {
                 let cats = [];
+                let html = '';
+
                 if (tipo === 'ingreso') {
                     cats = categorias.ingreso || [];
+                    html = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
                 } else if (tipo === 'gasto') {
-                    cats = [...categorias50, ...categorias30] || [];
+                    html = `<optgroup label="50% Necesidades">`;
+                    html += categorias50.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                    html += `</optgroup>`;
+                    html += `<optgroup label="30% Deseos">`;
+                    html += categorias30.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                    html += `</optgroup>`;
                 } else if (tipo === 'ahorro') {
-                    cats = categorias20 || [];
+                    html = `<optgroup label="20% Ahorro/Deuda">`;
+                    html += categorias20.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                    html += `</optgroup>`;
                 }
 
-                editCategoriaSelect.innerHTML = cats.map(cat => 
-                    `<option value="${cat}" ${cat === currentCategoria ? 'selected' : ''}>${cat}</option>`
-                ).join('');
+                editCategoriaSelect.innerHTML = html;
+                editCategoriaSelect.value = currentCategoria; // Re-selecciona la categoría actual
             };
 
             editTipoSelect.value = currentTipo;

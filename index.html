@@ -641,9 +641,6 @@
             
             const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
             
-            // Lógica de Deseos ya está implícita con el uso de categorias30
-            // La lógica de Ahorro/Deudas ya usa categorias20
-
             return { 
                 ingresosTotales: ingresosRealesMes, 
                 gastosTotales: totalSalidasMes, 
@@ -814,9 +811,6 @@
                     try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
                 });
             });
-
-            // Llama a la función de inicio después de definir el listener
-            document.getElementById('tab-resumen').click();
         }
         
         function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroGastado) {
@@ -1300,7 +1294,7 @@
 
         // --- 8. INICIO DE LA APLICACIÓN ---
         
-        // El inicializador de pestañas y carga debe ir al final
+        // Se llama a la inicialización al final del módulo para garantizar que todas las funciones estén definidas
         inicializarPestanas(); 
         inicializarSelectorMes();
         actualizarCategoriasYCuentas(); 

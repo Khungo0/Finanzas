@@ -31,11 +31,6 @@
         }
 
         /* Grid Layouts */
-        .grid-4-gap {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-        }
         /* Layout para el Dashboard (3 columnas) */
         .grid-cols-3-dashboard {
             display: grid;
@@ -71,12 +66,12 @@
         .border-red-500 { border-left: 4px solid #ef4444; }
         .border-gray-500 { border-left: 4px solid #64748b; }
         .border-indigo-500 { border-left: 4px solid #6366f1; }
-        .border-emerald-500 { border-left: 4px solid #10b981; } 
+        .border-blue-500 { border-left: 4px solid #3b82f6; } /* Ahorro Mes */
         .text-green-600 { color: #10b981; }
         .text-red-600 { color: #ef4444; }
         .text-indigo-700 { color: #4f46e5; }
         .text-gray-800 { color: #1e293b; }
-        .text-emerald-600 { color: #059669; } 
+        .text-blue-600 { color: #2563eb; } /* Ahorro Mes */
         
         /* Tabs */
         .tab-button {
@@ -122,6 +117,11 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.15s;
+        }
+        /* Estilo para botón deshabilitado/cargando */
+        button:disabled {
+            background-color: #a5b4fc; /* Indigo-300 */
+            cursor: not-allowed;
         }
         
         /* Table Styles */
@@ -238,7 +238,7 @@
                             <input type="date" id="fecha" required>
                         </div>
 
-                        <button type="submit">
+                        <button type="submit" id="btn-guardar-transaccion">
                             Guardar Transacción
                         </button>
                         <div id="form-message" style="text-align: center; margin-top: 8px; font-size: 0.875rem; display: none;"></div>
@@ -297,8 +297,13 @@
                     </div>
     
                     <div class="card-shadow border-red-500">
-                        <h2 class="dashboard-card-title">Salidas (Gastos + Ahorro)</h2>
-                        <p id="gastos-totales" class="dashboard-card-value text-red-600">$0.00</p>
+                        <h2 class="dashboard-card-title">Gastos del Mes (50/30)</h2>
+                        <p id="gastos-mes" class="dashboard-card-value text-red-600">$0.00</p>
+                    </div>
+
+                    <div class="card-shadow border-blue-500">
+                        <h2 class="dashboard-card-title">Ahorro del Mes (20%)</h2>
+                        <p id="ahorro-mes" class="dashboard-card-value text-blue-600">$0.00</p>
                     </div>
     
                     <div class="card-shadow border-indigo-500">
@@ -306,10 +311,6 @@
                         <p id="balance-neto" class="dashboard-card-value text-indigo-700">$0.00</p>
                     </div>
                     
-                    <div class="card-shadow border-emerald-500">
-                        <h2 class="dashboard-card-title">Ahorro Acumulado</h2>
-                        <p id="ahorro-acumulado-total" class="dashboard-card-value text-emerald-600">$0.00</p>
-                    </div>
                 </div>
             </section>
 
@@ -514,6 +515,7 @@
         const ingresosTotalesEl = document.getElementById('ingresos-totales');
         const gastosTotalesEl = document.getElementById('gastos-totales');
         const balanceNetoEl = document.getElementById('balance-neto');
+        const btnGuardarTransaccion = document.getElementById('btn-guardar-transaccion');
         
         // DOM UI Avanzada (Administración)
         const categoriasListas = {
@@ -760,7 +762,7 @@
             resumenMensual = calcularResumenMensual();
 
             const { ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal, gastoNecesidades, gastoDeseos, gastoAhorroDeudas } = resumenMensual;
-            renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal);
+            renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal, gastoNecesidades, gastoDeseos, gastoAhorroDeudas); // Actualizado
             renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas);
             renderizarListaTransacciones();
             actualizarCategoriasYCuentas(); 
@@ -828,11 +830,18 @@
             });
         }
         
-        function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal) {
+        // MEJORA 1: renderizarDashboard actualizado para las nuevas tarjetas
+        function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroAcumuladoTotal, gastoNecesidades, gastoDeseos, gastoAhorroDeudas) {
             saldoInicialEl.textContent = formatCurrency(saldoInicial);
             ingresosTotalesEl.textContent = formatCurrency(ingresosTotales);
-            gastosTotalesEl.textContent = formatCurrency(gastosTotales);
             
+            // Tarjeta de Gastos (50+30)
+            const gastosMes = gastoNecesidades + gastoDeseos;
+            document.getElementById('gastos-mes').textContent = formatCurrency(gastosMes);
+            
+            // Tarjeta de Ahorro (20)
+            document.getElementById('ahorro-mes').textContent = formatCurrency(gastoAhorroDeudas);
+
             balanceNetoEl.textContent = formatCurrency(balanceNeto);
             
             // MEJORA 2: Mostrar Ahorro Acumulado
@@ -1041,6 +1050,10 @@
         formTransaccion.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // MEJORA 2: Estado de Carga
+            btnGuardarTransaccion.disabled = true;
+            btnGuardarTransaccion.textContent = "Guardando...";
+
             const fechaTransaccion = document.getElementById('fecha').value;
             const mesAnioTransaccion = fechaTransaccion.substring(0, 7);
 
@@ -1081,6 +1094,10 @@
                 formMessageEl.style.display = 'block';
                 formMessageEl.style.color = '#ef4444';
             }
+            
+            // MEJORA 2: Restaurar botón
+            btnGuardarTransaccion.disabled = false;
+            btnGuardarTransaccion.textContent = "Guardar Transacción";
         });
         
         // --- LISTENERS DE ACCIONES DE LA TABLA Y MODALES (Resto del CRUD) ---

@@ -626,7 +626,6 @@
                             
                             // Clasificación 20% Ahorro/Deudas (solo si está en la lista de 20% y es de tipo Gasto)
                             if (categorias20Activas.includes(t.categoria)) {
-                                // Esto es para categorías de Deuda que el usuario puso en el 20%
                                 gastoAhorroDeudas += monto; 
                             }
 
@@ -642,6 +641,9 @@
             
             const balanceNeto = saldoInicial + totalEntradasMes - totalSalidasMes;
             
+            // Lógica de Deseos ya está implícita con el uso de categorias30
+            // La lógica de Ahorro/Deudas ya usa categorias20
+
             return { 
                 ingresosTotales: ingresosRealesMes, 
                 gastosTotales: totalSalidasMes, 
@@ -752,8 +754,6 @@
             renderizarPlanificador503020(ingresosTotales, gastoNecesidades, gastoDeseos, gastoAhorroDeudas);
             renderizarListaTransacciones();
             calcularSugerenciaAhorro(); 
-            // Esto asegura que los iconos de las pestañas funcionen al cargar
-            try { document.getElementById('tab-resumen').click(); } catch(e) {}
             try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
         }
 
@@ -811,10 +811,12 @@
                     if (targetId === 'seccion-resumen') {
                         actualizarCategoriasYCuentas(); 
                     }
-                    // Re-renderiza íconos para asegurar que no falten después del cambio de pestaña
                     try { createIcons({ icons: window.lucideIcons }); } catch(e) {}
                 });
             });
+
+            // Llama a la función de inicio después de definir el listener
+            document.getElementById('tab-resumen').click();
         }
         
         function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroGastado) {
@@ -1298,8 +1300,7 @@
 
         // --- 8. INICIO DE LA APLICACIÓN ---
         
-        document.getElementById('tab-resumen').click();
-
+        // El inicializador de pestañas y carga debe ir al final
         inicializarPestanas(); 
         inicializarSelectorMes();
         actualizarCategoriasYCuentas(); 

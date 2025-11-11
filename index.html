@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanzas 50/30/20</title>
+    <title>Finanzas 50/30/20 Puras</title>
     
     <link rel="icon" type="image/png" href="mi-icono.png">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwindcss.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
@@ -14,12 +14,11 @@
         .category-bar-container { height: 1rem; border-radius: 0.25rem; overflow: hidden; display: flex; }
         .category-bar-segment { height: 100%; transition: width 0.5s ease-in-out; }
 
-        /* Estilos clave para el Gráfico 50/30/20 */
+        /* Estilos clave para el Gráfico 50/30/20 (Anillo) */
         .budget-ring {
             width: 150px;
             height: 150px;
             border-radius: 50%;
-            /* Definición de los segmentos del anillo con variables CSS */
             background: conic-gradient(
                 #ef4444 0% var(--pct-50),
                 #f97316 var(--pct-50) calc(var(--pct-50) + var(--pct-30)),
@@ -408,7 +407,7 @@
             'Efectivo', 'Mercantil', 'Binance', 'Zinli'
         ];
         
-        // Referencias del DOM
+        // Referencias del DOM (Seguras)
         const tipoSelect = document.getElementById('tipo');
         const categoriaSelect = document.getElementById('categoria');
         const cuentaSelect = document.getElementById('cuenta'); 
@@ -422,8 +421,12 @@
         const ahorroPorcentajeInput = document.getElementById('ahorro-porcentaje'); 
         const ahorroSugerenciaContainer = document.getElementById('ahorro-sugerencia-container');
         const budgetRingEl = document.getElementById('budget-ring');
+        
         const saldoInicialEl = document.getElementById('saldo-inicial');
         const ingresosTotalesEl = document.getElementById('ingresos-totales');
+        const gastosTotalesEl = document.getElementById('gastos-totales');
+        const ahorroGastado503020El = document.getElementById('ahorro-gastado-503020');
+        const balanceNetoEl = document.getElementById('balance-neto');
         
         // DOM UI Avanzada
         const categoriasListas = {
@@ -467,7 +470,6 @@
         };
         
         function calcularSugerenciaAhorro() {
-            const tipo = tipoSelect.value;
             const porcentaje = parseFloat(ahorroPorcentajeInput.value) || 0;
             const porcentajeValido = isNaN(porcentaje) || porcentaje < 0 ? 0 : porcentaje;
             
@@ -477,7 +479,7 @@
 
             document.getElementById('ahorro-sugerencia-monto').textContent = `Sugerencia (${porcentajeValido}% de ${formatCurrency(ingresosTotales)}): ${formatCurrency(montoSugerido)}`;
             
-            if (tipo === 'ahorro') {
+            if (tipoSelect.value === 'ahorro') {
                 ahorroSugerenciaContainer.classList.remove('hidden');
             } else {
                 ahorroSugerenciaContainer.classList.add('hidden');
@@ -571,10 +573,7 @@
             
             // CÁLCULO DEL 30% (Gastos Deseos/Flexibles)
             
-            // AhorroPuro: Solo las transacciones de tipo 'ahorro' del mes actual.
             const ahorroPuroMes = transaccionesMesActual.filter(t => t.tipo === 'ahorro').reduce((sum, t) => sum + t.monto, 0);
-
-            // DeudasPuras: Solo las transacciones de categoría 'Deudas' del mes actual.
             const deudasPurasMes = transaccionesMesActual.filter(t => t.tipo === 'gasto' && t.categoria === 'Deudas').reduce((sum, t) => sum + t.monto, 0);
 
             // Gastos Esenciales Puros (sin deudas): Necesidades - Deudas
@@ -802,32 +801,32 @@
             budgetRingEl.setAttribute('data-total', `${totalConsumedPct.toFixed(1)}%`);
 
             // 4. Colores de los objetivos (Alerta visual)
-            const updateColor = (monto, objetivo, id) => {
-                const el = document.getElementById(id);
-                el.classList.remove('bg-red-200', 'border-red-400', 'bg-orange-200', 'border-orange-400', 'bg-emerald-200', 'border-emerald-400', 'bg-red-100', 'border-red-300', 'bg-red-50', 'bg-orange-50', 'bg-emerald-50', 'border-red-200', 'border-orange-200', 'border-emerald-200');
+            const updateColor = (monto, objetivo, id, targetEl) => {
+                targetEl.classList.remove('bg-red-200', 'border-red-400', 'bg-orange-200', 'border-orange-400', 'bg-emerald-200', 'border-emerald-400', 'bg-red-100', 'border-red-300', 'bg-red-50', 'bg-orange-50', 'bg-emerald-50', 'border-red-200', 'border-orange-200', 'border-emerald-200');
 
                 if (id === 'box-50' || id === 'box-30') {
                     if (monto > objetivo) {
-                        el.classList.add('bg-red-200', 'border-red-400');
+                        targetEl.classList.add('bg-red-200', 'border-red-400');
                     } else {
-                        el.classList.add('bg-red-50', 'border-red-200');
+                        targetEl.classList.add('bg-red-50', 'border-red-200');
                     }
                 } else if (id === 'box-20') {
                     if (monto < objetivo) {
-                        el.classList.add('bg-red-100', 'border-red-300'); 
+                        targetEl.classList.add('bg-red-100', 'border-red-300'); 
                     } else {
-                        el.classList.add('bg-emerald-50', 'border-emerald-200');
+                        targetEl.classList.add('bg-emerald-50', 'border-emerald-200');
                     }
                 }
                 
-                if (id === 'box-50' && monto <= objetivo) el.classList.add('bg-red-50', 'border-red-200');
-                if (id === 'box-30' && monto <= objetivo) el.classList.add('bg-orange-50', 'border-orange-200');
-                if (id === 'box-20' && monto >= objetivo) el.classList.add('bg-emerald-50', 'border-emerald-200');
+                // Asegurar colores base si no hay alerta
+                if (id === 'box-50' && monto <= objetivo) targetEl.classList.add('bg-red-50', 'border-red-200');
+                if (id === 'box-30' && monto <= objetivo) targetEl.classList.add('bg-orange-50', 'border-orange-200');
+                if (id === 'box-20' && monto >= objetivo) targetEl.classList.add('bg-emerald-50', 'border-emerald-200');
             };
 
-            updateColor(gastoNecesidades, objetivo50, 'box-50');
-            updateColor(gastoDeseos, objetivo30, 'box-30');
-            updateColor(gastoAhorroDeudas, objetivo20, 'box-20');
+            updateColor(gastoNecesidades, objetivo50, 'box-50', document.getElementById('box-50'));
+            updateColor(gastoDeseos, objetivo30, 'box-30', document.getElementById('box-30'));
+            updateColor(gastoAhorroDeudas, objetivo20, 'box-20', document.getElementById('box-20'));
         }
         // --- FIN FUNCIÓN PLANIFICADOR 50/30/20 ---
 
@@ -835,10 +834,11 @@
         function renderizarDashboard(ingresosTotales, gastosTotales, balanceNeto, saldoInicial, ahorroGastado) {
             saldoInicialEl.textContent = formatCurrency(saldoInicial);
             ingresosTotalesEl.textContent = formatCurrency(ingresosTotales);
-            document.getElementById('gastos-totales').textContent = formatCurrency(gastosTotales);
+            gastosTotalesEl.textContent = formatCurrency(gastosTotales);
+            // CORRECCIÓN: Usar el elemento correcto
             document.getElementById('ahorro-gastado-503020').textContent = formatCurrency(ahorroGastado); 
             
-            const balanceEl = document.getElementById('balance-neto');
+            const balanceEl = balanceNetoEl;
             balanceEl.textContent = formatCurrency(balanceNeto);
             balanceEl.classList.remove('text-green-700', 'text-red-700', 'text-indigo-700');
             if (balanceNeto > 0) balanceEl.classList.add('text-green-700'); 
@@ -1273,6 +1273,9 @@
 
         // --- 8. INICIO DE LA APLICACIÓN ---
         
+        // Inicializar pestañas para que la sección resumen sea visible al inicio.
+        document.getElementById('tab-resumen').click();
+
         inicializarPestanas(); 
         inicializarSelectorMes();
         actualizarCategoriasYCuentas(); 

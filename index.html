@@ -642,6 +642,7 @@
 
         // --- 4. FUNCIONES CRUD CON SUPABASE ---
         
+        // CORRECCIÓN: Esta es la ÚNICA declaración de guardarConfiguracionLocal
         function guardarConfiguracionLocal() {
             localStorage.setItem('finanzasCategorias', JSON.stringify(categorias)); // Solo Ingresos
             localStorage.setItem('categorias50', JSON.stringify(categorias50));
@@ -954,13 +955,7 @@
             calcularSugerenciaAhorro(); 
         }
         
-        // CORRECCIÓN: La función solo debe estar definida UNA VEZ
-        function guardarConfiguracionLocal() {
-            localStorage.setItem('finanzasCategorias', JSON.stringify(categorias)); // Solo Ingresos
-            localStorage.setItem('categorias50', JSON.stringify(categorias50));
-            localStorage.setItem('categorias30', JSON.stringify(categorias30));
-            localStorage.setItem('categorias20', JSON.stringify(categorias20));
-        }
+        // CORRECCIÓN: La función duplicada se eliminó. Esta es la única.
         
         // --- EVENT HANDLERS ---
         
@@ -1286,6 +1281,9 @@
         inicializarSelectorMes();
         actualizarCategoriasYCuentas(); 
         cargarDatosDesdeSupabase(); 
+
+        // Se activa la primera pestaña manualmente al final de la carga del script
+        document.getElementById('tab-resumen').click();
 
         try {
             createIcons({ icons: window.lucideIcons });

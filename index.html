@@ -7,32 +7,134 @@
     
     <link rel="icon" type="image/png" href="mi-icono.png">
     <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwindcss.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; } /* Fondo más claro */
-        .card-shadow { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); border: 1px solid #e2e8f0; }
-        .category-bar-container { height: 1rem; border-radius: 0.25rem; overflow: hidden; display: flex; }
-        .category-bar-segment { height: 100%; transition: width 0.5s ease-in-out; }
+        /* Base Styles */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f4f7f9; 
+            padding: 20px; 
+            color: #1e293b;
+        }
+        main { 
+            max-width: 1024px; 
+            margin: 0 auto; 
+        }
 
-        /* Estilos clave para el Gráfico 50/30/20 (Anillo) */
+        /* Card and Shadow */
+        .card-shadow { 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
+            border: 1px solid #e2e8f0; 
+            background-color: white; 
+            padding: 24px; 
+            border-radius: 12px;
+        }
+
+        /* Grid Layouts */
+        .grid-4-gap {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+        .grid-cols-3-gap {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .grid-col-1-lg-4 { grid-column: span 1 / span 1; }
+        .grid-col-lg-3 { grid-column: span 3 / span 3; }
+        .grid-col-lg-4 { grid-column: span 4 / span 4; }
+
+
+        /* Typography and Headings */
+        h1 { font-size: 2.25rem; font-weight: 800; color: #1e293b; text-align: center; margin-bottom: 24px; }
+        h2 { font-size: 1.5rem; font-weight: 700; color: #475569; margin-bottom: 16px; display: flex; align-items: center; }
+        h3 { font-size: 1.125rem; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 16px; }
+        p { margin-top: 4px; }
+
+        /* Dashboard Cards */
+        .dashboard-card-title { font-size: 1.125rem; color: #64748b; }
+        .dashboard-card-value { font-size: 2rem; font-weight: 700; margin-top: 4px; }
+
+        .border-green-500 { border-left: 4px solid #22c55e; }
+        .border-red-500 { border-left: 4px solid #ef4444; }
+        .border-gray-500 { border-left: 4px solid #64748b; }
+        .border-indigo-500 { border-left: 4px solid #6366f1; }
+        .text-green-600 { color: #10b981; }
+        .text-red-600 { color: #ef4444; }
+        .text-indigo-700 { color: #4f46e5; }
+        .text-gray-800 { color: #1e293b; }
+        
+        /* Tabs */
+        .tab-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px 0;
+            margin-right: 24px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: color 0.15s, border-color 0.15s;
+            border-bottom: 2px solid transparent;
+            color: #64748b;
+        }
+        .tab-button[data-target="seccion-resumen"] {
+            border-bottom-color: #4f46e5;
+            color: #4f46e5;
+        }
+        
+        /* 50/30/20 Boxes */
+        .budget-box { border-radius: 8px; padding: 12px; }
+        .bg-red-50 { background-color: #fef2f2; border: 1px solid #fecaca; }
+        .bg-orange-50 { background-color: #fff7ed; border: 1px solid #fed7aa; }
+        .bg-emerald-50 { background-color: #ecfdf5; border: 1px solid #a7f3d0; }
+
+        .text-red-700 { color: #b91c1c; }
+        .text-orange-700 { color: #c2410c; }
+        .text-emerald-700 { color: #059669; }
+
+        /* Form Controls */
+        select, input[type="text"], input[type="number"], input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-top: 4px;
+        }
+        button[type="submit"] {
+            padding: 10px;
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        
+        /* Table Styles */
+        table { width: 100%; border-collapse: collapse; }
+        thead { background-color: #f8fafc; }
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 0.875rem; }
+        th { font-weight: 600; text-transform: uppercase; color: #64748b; }
+        
+        /* Icons and Buttons */
+        .btn-eliminar-general, .btn-editar { background: none; border: none; cursor: pointer; margin-left: 8px; }
+        .text-red-400 { color: #f87171; }
+        .text-indigo-500 { color: #6366f1; }
+        
+        /* === 50/30/20 Ring Styles (Mantenido) === */
         .budget-ring {
             width: 150px;
             height: 150px;
             border-radius: 50%;
-            background: conic-gradient(
-                #ef4444 0% var(--pct-50),
-                #f97316 var(--pct-50) calc(var(--pct-50) + var(--pct-30)),
-                #10b981 calc(var(--pct-50) + var(--pct-30)) 100%
-            );
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto;
-            transition: all 0.5s ease;
         }
         .budget-ring::after {
             content: attr(data-total);
-            background: #f4f7f9; /* Debe coincidir con el body background */
+            background: #f4f7f9;
             width: 120px;
             height: 120px;
             border-radius: 50%;
@@ -43,6 +145,27 @@
             font-weight: bold;
             color: #1e293b;
         }
+
+        /* Utility classes (simplified) */
+        .mb-10 { margin-bottom: 40px; }
+        .mt-4 { margin-top: 16px; }
+        .space-y-6 > * + * { margin-top: 24px; }
+        .flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .items-center { align-items: center; }
+        .text-center { text-align: center; }
+        .inline-flex { display: inline-flex; }
+        .text-xs { font-size: 0.75rem; }
+        .leading-5 { line-height: 1.25rem; }
+        .rounded-full { border-radius: 9999px; }
+        .px-2 { padding-left: 8px; padding-right: 8px; }
+        .bg-green-100 { background-color: #d1fae5; }
+        .text-green-800 { color: #065f46; }
+        .bg-blue-100 { background-color: #dbeafe; }
+        .text-blue-800 { color: #1e40af; }
+        .bg-red-100 { background-color: #fee2e2; }
+        .text-red-800 { color: #991b1b; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -52,23 +175,21 @@
         <p id="auth-status" class="text-sm text-green-600 mt-1">Conectado a la nube. Datos en Supabase. ☁️</p>
     </header>
 
-    <div class="max-w-6xl mx-auto mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="md:col-span-1 flex justify-between items-center bg-white p-4 rounded-xl card-shadow">
-            <label for="selector-mes" class="text-lg font-semibold text-gray-700">Mes de Análisis:</label>
-            <select id="selector-mes" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 w-40">
-                </select>
-        </div>
+    <div class="max-w-6xl mx-auto mb-8 flex justify-between items-center card-shadow" style="padding: 15px;">
+        <label for="selector-mes" class="text-lg font-semibold text-gray-700">Mes de Análisis:</label>
+        <select id="selector-mes" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; width: 160px;">
+            </select>
     </div>
     
     <main class="max-w-6xl mx-auto">
         
         <section id="tabs-container" class="mb-8">
-            <div class="border-b border-gray-200">
-                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button id="tab-resumen" class="tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition duration-150 border-indigo-500 text-indigo-600" data-target="seccion-resumen">
+            <div style="border-bottom: 1px solid #e2e8f0;">
+                <nav class="flex" aria-label="Tabs">
+                    <button id="tab-resumen" class="tab-button" data-target="seccion-resumen">
                         Dashboard y Transacciones
                     </button>
-                    <button id="tab-categorias" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition duration-150" data-target="seccion-categorias">
+                    <button id="tab-categorias" class="tab-button" data-target="seccion-categorias">
                         Administrar Cuentas y Categorías
                     </button>
                 </nav>
@@ -77,87 +198,87 @@
 
         <div id="seccion-resumen" class="tab-content">
             
-            <section id="resumen-dashboard" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-gray-500">
-                    <h2 class="text-lg font-medium text-gray-500">Saldo Inicial</h2>
-                    <p id="saldo-inicial" class="text-3xl font-bold text-gray-800 mt-1">$0.00</p>
+            <section id="resumen-dashboard" class="grid-4-gap mb-10">
+                <div class="card-shadow border-gray-500">
+                    <h2 class="dashboard-card-title">Saldo Inicial</h2>
+                    <p id="saldo-inicial" class="dashboard-card-value text-gray-800">$0.00</p>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-green-500">
-                    <h2 class="text-lg font-medium text-gray-500">Ingresos Totales</h2>
-                    <p id="ingresos-totales" class="text-3xl font-bold text-green-600 mt-1">$0.00</p>
+                <div class="card-shadow border-green-500">
+                    <h2 class="dashboard-card-title">Ingresos Totales</h2>
+                    <p id="ingresos-totales" class="dashboard-card-value text-green-600">$0.00</p>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-red-500">
-                    <h2 class="text-lg font-medium text-gray-500">Salidas (Gastos + Ahorro)</h2>
-                    <p id="gastos-totales" class="text-3xl font-bold text-red-600 mt-1">$0.00</p>
+                <div class="card-shadow border-red-500">
+                    <h2 class="dashboard-card-title">Salidas (Gastos + Ahorro)</h2>
+                    <p id="gastos-totales" class="dashboard-card-value text-red-600">$0.00</p>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-indigo-500">
-                    <h2 class="text-lg font-medium text-gray-500">Saldo Final</h2>
-                    <p id="balance-neto" class="text-3xl font-bold mt-1 text-indigo-700">$0.00</p>
+                <div class="card-shadow border-indigo-500">
+                    <h2 class="dashboard-card-title">Saldo Final</h2>
+                    <p id="balance-neto" class="dashboard-card-value text-indigo-700">$0.00</p>
                 </div>
             </section>
 
-            <section id="planificador-50-30-20" class="bg-white p-8 rounded-xl card-shadow mb-10">
-                <h2 class="text-2xl font-bold mb-6 text-gray-700 flex items-center">
-                    <i data-lucide="target" class="w-6 h-6 mr-2 text-pink-500"></i>
+            <section id="planificador-50-30-20" class="card-shadow mb-10">
+                <h2 style="margin-bottom: 24px;">
+                    <i data-lucide="target" style="width: 24px; height: 24px; margin-right: 8px; color: #ec4899;"></i>
                     Planificación 50/30/20 (Basado en Ingresos)
                 </h2>
                 
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
-                    <div class="lg:col-span-1 text-center">
+                <div style="display: grid; grid-template-columns: 1fr 3fr; gap: 32px; align-items: center;">
+                    <div style="text-align: center;">
                         <div id="budget-ring" class="budget-ring" data-total="0%"></div>
-                        <p class="text-lg font-semibold text-gray-600 mt-4">Porcentaje de Ingreso Usado</p>
-                        <p id="ingreso-neto-503020" class="text-xl font-bold text-gray-800">$0.00</p>
+                        <p style="font-size: 1.125rem; font-weight: 600; color: #475569; margin-top: 16px;">Porcentaje de Ingreso Usado</p>
+                        <p id="ingreso-neto-503020" style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">$0.00</p>
                     </div>
 
-                    <div class="lg:col-span-3 space-y-4">
-                        <div class="grid grid-cols-3 gap-4 text-sm font-medium text-center border-b pb-2">
-                            <span class="text-red-600">50% Necesidades</span>
-                            <span class="text-orange-600">30% Deseos</span>
-                            <span class="text-emerald-600">20% Ahorro/Deudas</span>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div class="grid-cols-3-gap" style="font-size: 0.875rem; font-weight: 600; text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: #ef4444;">50% Necesidades</span>
+                            <span style="color: #f97316;">30% Deseos</span>
+                            <span style="color: #10b981;">20% Ahorro/Deudas</span>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="p-3 bg-red-50 rounded-lg border border-red-200" id="box-50">
-                                <p class="text-red-700 font-bold">Objetivo: <span id="objetivo-50">$0.00</span></p>
-                                <p class="text-gray-600">Gastado: <span id="gasto-50" class="font-semibold">$0.00</span></p>
+                        <div class="grid-cols-3-gap">
+                            <div class="budget-box bg-red-50" id="box-50">
+                                <p class="text-red-700" style="font-weight: 700;">Objetivo: <span id="objetivo-50">$0.00</span></p>
+                                <p style="color: #475569;">Gastado: <span id="gasto-50" style="font-weight: 600;">$0.00</span></p>
                             </div>
-                            <div class="p-3 bg-orange-50 rounded-lg border border-orange-200" id="box-30">
-                                <p class="text-orange-700 font-bold">Objetivo: <span id="objetivo-30">$0.00</span></p>
-                                <p class="text-gray-600">Gastado: <span id="gasto-30" class="font-semibold">$0.00</span></p>
+                            <div class="budget-box bg-orange-50" id="box-30">
+                                <p class="text-orange-700" style="font-weight: 700;">Objetivo: <span id="objetivo-30">$0.00</span></p>
+                                <p style="color: #475569;">Gastado: <span id="gasto-30" style="font-weight: 600;">$0.00</span></p>
                             </div>
-                            <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200" id="box-20">
-                                <p class="text-emerald-700 font-bold">Objetivo: <span id="objetivo-20">$0.00</span></p>
-                                <p class="text-gray-600">Aportado: <span id="gasto-20" class="font-semibold">$0.00</span></p>
+                            <div class="budget-box bg-emerald-50" id="box-20">
+                                <p class="text-emerald-700" style="font-weight: 700;">Objetivo: <span id="objetivo-20">$0.00</span></p>
+                                <p style="color: #475569;">Aportado: <span id="gasto-20" style="font-weight: 600;">$0.00</span></p>
                             </div>
                         </div>
 
-                        <p class="text-xs text-gray-500 pt-2">
+                        <p style="font-size: 0.75rem; color: #64748b; padding-top: 8px;">
                             *Nota: Las categorías **Vivienda, Servicios, Salud, Educación y Deudas** se consideran **Necesidades** (50%). Las transacciones de tipo **Ahorro** más la categoría **Deudas** cuentan como **Ahorro/Deudas** (20%). El resto es **Deseos** (30%).
                         </p>
                     </div>
                 </div>
             </section>
 
-            <button id="toggle-advanced" class="w-full py-2 mb-6 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition duration-150">
+            <button id="toggle-advanced" style="width: 100%; padding: 12px; margin-bottom: 24px; background-color: #cbd5e1; color: #475569; font-weight: 600; border-radius: 6px; cursor: pointer;">
                 Mostrar Formulario de Transacción y Gráficos Secundarios (↓)
             </button>
             
-            <div id="advanced-container" class="hidden">
-                <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10">
-                    <div class="lg:col-span-1 space-y-6">
-                        <div class="bg-white p-6 rounded-xl card-shadow">
-                            <h2 class="text-2xl font-bold mb-4 text-gray-700 flex items-center">
-                                <i data-lucide="plus-circle" class="w-6 h-6 mr-2 text-indigo-500"></i>
+            <div id="advanced-container" style="display: none; transition: all 0.3s ease;">
+                <section class="grid-4-gap mb-10">
+                    <div class="grid-col-1-lg-4 space-y-6" style="grid-column: span 1 / span 1;">
+                        <div class="card-shadow">
+                            <h2 style="font-size: 1.5rem; color: #475569; margin-bottom: 16px;">
+                                <i data-lucide="plus-circle" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
                                 Nueva Transacción
                             </h2>
-                            <form id="form-transaccion" class="space-y-4">
+                            <form id="form-transaccion" style="display: flex; flex-direction: column; gap: 16px;">
                                 
                                 <div>
-                                    <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
-                                    <select id="tipo" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <label for="tipo" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Tipo</label>
+                                    <select id="tipo" required>
                                         <option value="ingreso">Ingreso</option>
                                         <option value="gasto">Gasto</option>
                                         <option value="ahorro">Ahorro</option>
@@ -165,140 +286,136 @@
                                 </div>
                                 
                                 <div>
-                                    <label for="cuenta" class="block text-sm font-medium text-gray-700">Cuenta/Fondo</label>
-                                    <select id="cuenta" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <label for="cuenta" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Cuenta/Fondo</label>
+                                    <select id="cuenta" required>
                                     </select>
                                 </div>
 
                                 <div>
-                                    <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
-                                    <select id="categoria" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <label for="categoria" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Categoría</label>
+                                    <select id="categoria" required>
                                     </select>
                                 </div>
 
-                                <div id="ahorro-sugerencia-container" class="space-y-2 hidden">
-                                    <label for="ahorro-porcentaje" class="block text-sm font-medium text-gray-700">Porcentaje de Ahorro Sugerido (20%)</label>
-                                    <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="20" placeholder="Ej: 20" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
-                                    <p id="ahorro-sugerencia-monto" class="text-sm text-indigo-600 font-semibold mt-1">Sugerencia: $0.00</p>
+                                <div id="ahorro-sugerencia-container" style="display: none; flex-direction: column; gap: 8px;">
+                                    <label for="ahorro-porcentaje" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Porcentaje de Ahorro Sugerido (20%)</label>
+                                    <input type="number" id="ahorro-porcentaje" min="0" max="100" step="1" value="20" placeholder="Ej: 20">
+                                    <p id="ahorro-sugerencia-monto" style="font-size: 0.875rem; color: #4f46e5; font-weight: 600;">Sugerencia: $0.00</p>
                                 </div>
 
                                 <div>
-                                    <label for="monto" class="block text-sm font-medium text-gray-700">Monto ($)</label>
-                                    <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <label for="monto" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Monto ($)</label>
+                                    <input type="number" id="monto" required min="0.01" step="0.01" placeholder="Ej: 500.00">
                                 </div>
 
                                 <div>
-                                    <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-                                    <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <label for="descripcion" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Descripción</label>
+                                    <input type="text" id="descripcion" required placeholder="Ej: Pago de alquiler">
                                 </div>
                                 
                                 <div>
-                                    <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
-                                    <input type="date" id="fecha" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <label for="fecha" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Fecha</label>
+                                    <input type="date" id="fecha" required>
                                 </div>
 
-                                <button type="submit" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-150">
+                                <button type="submit">
                                     Guardar Transacción
                                 </button>
-                                <div id="form-message" class="text-center mt-2 text-sm hidden"></div>
+                                <div id="form-message" style="text-align: center; margin-top: 8px; font-size: 0.875rem; display: none;"></div>
                             </form>
                         </div>
                     </div>
                     
-                    <div class="lg:col-span-3 space-y-6">
-                        <div class="bg-white p-6 rounded-xl card-shadow">
-                            <h2 class="text-2xl font-bold mb-4 text-gray-700">Resumen de Fondos por Cuenta</h2>
-                            <div id="resumen-cuentas" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                <p class="text-gray-500">Calculando saldos...</p>
+                    <div class="grid-col-lg-3" style="grid-column: span 3 / span 3; display: flex; flex-direction: column; gap: 24px;">
+                        <div class="card-shadow">
+                            <h2>Resumen de Fondos por Cuenta</h2>
+                            <div id="resumen-cuentas" class="grid-cols-3-gap">
+                                <p style="color: #64748b;">Calculando saldos...</p>
                             </div>
                         </div>
 
-                        <div class="bg-white p-6 rounded-xl card-shadow">
-                            <h2 class="text-2xl font-bold mb-4 text-gray-700">Distribución de Ingresos y Gastos</h2>
+                        <div class="card-shadow">
+                            <h2>Distribución de Ingresos y Gastos</h2>
                             
-                            <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Gastos por Categoría</h3>
-                            <div id="gastos-por-categoria" class="space-y-3">
-                                <p class="text-gray-500 text-center">No hay gastos registrados aún.</p>
+                            <h3 style="color: #ef4444;">Gastos por Categoría</h3>
+                            <div id="gastos-por-categoria" style="display: flex; flex-direction: column; gap: 12px;">
+                                <p style="color: #64748b; text-align: center; padding: 16px 0;">No hay gastos registrados aún.</p>
                             </div>
                             
-                            <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 pt-6 mb-4">Ingresos por Categoría</h3>
-                            <div id="ingresos-por-categoria" class="space-y-3">
-                                <p class="text-gray-500 text-center py-4">No hay ingresos registrados aún.</p>
+                            <h3 style="color: #22c55e; margin-top: 24px;">Ingresos por Categoría</h3>
+                            <div id="ingresos-por-categoria" style="display: flex; flex-direction: column; gap: 12px;">
+                                <p style="color: #64748b; text-align: center; padding: 16px 0;">No hay ingresos registrados aún.</p>
                             </div>
                         </div>
                     </div>
                 </section>
             </div>
-            <section class="bg-white p-6 rounded-xl card-shadow">
-                <h2 class="text-2xl font-bold mb-4 text-gray-700">Historial de Transacciones del Mes</h2>
+            <section class="card-shadow">
+                <h2>Historial de Transacciones del Mes</h2>
                 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div style="overflow-x: auto;">
+                    <table style="min-width: 100%;">
+                        <thead>
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuenta</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+                                <th style="width: 10%;">Fecha</th>
+                                <th style="width: 12%;">Tipo</th>
+                                <th style="width: 12%;">Cuenta</th>
+                                <th style="width: 15%;">Categoría</th>
+                                <th style="width: 35%;">Descripción</th>
+                                <th style="width: 10%; text-align: right;">Monto</th>
+                                <th style="width: 6%; text-align: right;">Acción</th>
                             </tr>
                         </thead>
-                        <tbody id="lista-transacciones" class="bg-white divide-y divide-gray-200">
-                            <tr><td colspan="7" class="p-4 text-center text-gray-500">Cargando transacciones...</td></tr>
+                        <tbody id="lista-transacciones">
+                            <tr><td colspan="7" style="padding: 16px; text-align: center; color: #64748b;">Cargando transacciones...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
         </div>
 
-        <div id="seccion-categorias" class="tab-content hidden">
-            <div class="bg-white p-6 rounded-xl card-shadow">
-                <h2 class="text-2xl font-bold mb-6 text-gray-700 flex items-center">
-                    <i data-lucide="list-checks" class="w-6 h-6 mr-2 text-indigo-500"></i>
+        <div id="seccion-categorias" class="tab-content" style="display: none;">
+            <div class="card-shadow">
+                <h2>
+                    <i data-lucide="list-checks" style="width: 24px; height: 24px; margin-right: 8px; color: #6366f1;"></i>
                     Administración de Cuentas y Categorías
                 </h2>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="grid-4-gap">
                     
-                    <div id="admin-cuentas-container">
-                        <h3 class="text-xl font-semibold mb-3 text-purple-700 border-b pb-1">Cuentas/Fondos <span id="count-cuenta" class="text-sm font-normal text-gray-500"></span></h3>
-                        <ul id="lista-cuenta" class="space-y-3">
-                            </ul>
-                        <div class="mt-4">
-                            <input type="text" id="input-cuenta" placeholder="Nueva cuenta (Ej: Banco)" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2 focus:ring-purple-500">
-                            <button data-tipo="cuenta" class="btn-agregar-general w-full py-2 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar Cuenta</button>
+                    <div style="display: flex; flex-direction: column;">
+                        <h3 style="color: #8b5cf6;">Cuentas/Fondos <span id="count-cuenta" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
+                        <ul id="lista-cuenta" style="display: flex; flex-direction: column; gap: 12px;"></ul>
+                        <div style="margin-top: 16px;">
+                            <input type="text" id="input-cuenta" placeholder="Nueva cuenta (Ej: Banco)" style="margin-bottom: 8px;">
+                            <button data-tipo="cuenta" class="btn-agregar-general" style="background-color: #8b5cf6;">Agregar Cuenta</button>
                         </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-xl font-semibold mb-3 text-green-700 border-b pb-1">Ingresos <span id="count-ingreso" class="text-sm font-normal text-gray-500"></span></h3>
-                        <ul id="lista-ingreso" class="space-y-3">
-                        </ul>
-                        <div class="mt-4">
-                            <input type="text" id="input-ingreso" placeholder="Nueva categoría de Ingreso" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2 focus:ring-green-500">
-                            <button data-tipo="ingreso" class="btn-agregar-general w-full py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar</button>
+                    <div style="display: flex; flex-direction: column;">
+                        <h3 style="color: #22c55e;">Ingresos <span id="count-ingreso" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
+                        <ul id="lista-ingreso" style="display: flex; flex-direction: column; gap: 12px;"></ul>
+                        <div style="margin-top: 16px;">
+                            <input type="text" id="input-ingreso" placeholder="Nueva categoría de Ingreso" style="margin-bottom: 8px;">
+                            <button data-tipo="ingreso" class="btn-agregar-general" style="background-color: #22c55e;">Agregar</button>
                         </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-xl font-semibold mb-3 text-red-700 border-b pb-1">Gastos <span id="count-gasto" class="text-sm font-normal text-gray-500"></span></h3>
-                        <ul id="lista-gasto" class="space-y-3">
-                        </ul>
-                        <div class="mt-4">
-                            <input type="text" id="input-gasto" placeholder="Nueva categoría de Gasto" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2 focus:ring-red-500">
-                            <button data-tipo="gasto" class="btn-agregar-general w-full py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar</button>
+                    <div style="display: flex; flex-direction: column;">
+                        <h3 style="color: #ef4444;">Gastos <span id="count-gasto" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
+                        <ul id="lista-gasto" style="display: flex; flex-direction: column; gap: 12px;"></ul>
+                        <div style="margin-top: 16px;">
+                            <input type="text" id="input-gasto" placeholder="Nueva categoría de Gasto" style="margin-bottom: 8px;">
+                            <button data-tipo="gasto" class="btn-agregar-general" style="background-color: #ef4444;">Agregar</button>
                         </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-xl font-semibold mb-3 text-blue-700 border-b pb-1">Ahorros <span id="count-ahorro" class="text-sm font-normal text-gray-500"></span></h3>
-                        <ul id="lista-ahorro" class="space-y-3">
-                        </ul>
-                        <div class="mt-4">
-                            <input type="text" id="input-ahorro" placeholder="Nueva categoría de Ahorro" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2 focus:ring-blue-500">
-                            <button data-tipo="ahorro" class="btn-agregar-general w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg text-sm transition duration-150">Agregar</button>
+                    <div style="display: flex; flex-direction: column;">
+                        <h3 style="color: #3b82f6;">Ahorros <span id="count-ahorro" style="font-size: 0.875rem; font-weight: 400; color: #64748b;"></span></h3>
+                        <ul id="lista-ahorro" style="display: flex; flex-direction: column; gap: 12px;"></ul>
+                        <div style="margin-top: 16px;">
+                            <input type="text" id="input-ahorro" placeholder="Nueva categoría de Ahorro" style="margin-bottom: 8px;">
+                            <button data-tipo="ahorro" class="btn-agregar-general" style="background-color: #3b82f6;">Agregar</button>
                         </div>
                     </div>
 
@@ -306,26 +423,26 @@
 
             </div>
         </div>
-        <div id="modal-container" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden items-center justify-center p-4">
-            <div class="bg-white rounded-lg p-6 max-w-sm w-full card-shadow">
-                <h3 id="modal-title" class="text-lg font-semibold mb-3 text-gray-800">Confirmar Eliminación</h3>
-                <p id="modal-body" class="text-gray-600 mb-4">¿Estás seguro de que quieres eliminar esta transacción?</p>
-                <div class="flex justify-end space-x-3">
-                    <button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
-                    <button id="modal-confirm" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition">Eliminar</button>
+        <div id="modal-container" style="position: fixed; inset: 0; background-color: rgba(30, 41, 59, 0.75); z-index: 50; display: none; align-items: center; justify-content: center; padding: 16px;">
+            <div style="background-color: white; border-radius: 8px; padding: 24px; max-width: 384px; width: 100%; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                <h3 id="modal-title" style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 12px; border-bottom: none;">Confirmar Eliminación</h3>
+                <p id="modal-body" style="color: #475569; margin-bottom: 16px;">¿Estás seguro de que quieres eliminar esta transacción?</p>
+                <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <button id="modal-cancel" style="padding: 8px 16px; font-size: 0.875rem; font-weight: 500; color: #475569; background-color: #e2e8f0; border-radius: 6px; transition: background-color 0.15s; cursor: pointer;">Cancelar</button>
+                    <button id="modal-confirm" style="padding: 8px 16px; font-size: 0.875rem; font-weight: 500; color: white; background-color: #dc2626; border-radius: 6px; transition: background-color 0.15s; cursor: pointer;">Eliminar</button>
                 </div>
             </div>
         </div>
 
-        <div id="modal-container-edicion" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden items-center justify-center p-4">
-            <div class="bg-white rounded-lg p-6 max-w-lg w-full card-shadow">
-                <h3 class="text-xl font-bold mb-4 text-gray-800">Editar Transacción</h3>
-                <form id="form-edicion" class="space-y-4">
+        <div id="modal-container-edicion" style="position: fixed; inset: 0; background-color: rgba(30, 41, 59, 0.75); z-index: 50; display: none; align-items: center; justify-content: center; padding: 16px;">
+            <div style="background-color: white; border-radius: 8px; padding: 24px; max-width: 576px; width: 100%; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 16px; border-bottom: none;">Editar Transacción</h3>
+                <form id="form-edicion" style="display: flex; flex-direction: column; gap: 16px;">
                     <input type="hidden" id="edit-id">
 
                     <div>
-                        <label for="edit-tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
-                        <select id="edit-tipo" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="edit-tipo" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Tipo</label>
+                        <select id="edit-tipo" required>
                             <option value="ingreso">Ingreso</option>
                             <option value="gasto">Gasto</option>
                             <option value="ahorro">Ahorro</option>
@@ -333,35 +450,35 @@
                     </div>
 
                     <div>
-                        <label for="edit-cuenta" class="block text-sm font-medium text-gray-700">Cuenta/Fondo</label>
-                        <select id="edit-cuenta" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="edit-cuenta" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Cuenta/Fondo</label>
+                        <select id="edit-cuenta" required>
                             </select>
                     </div>
 
                     <div>
-                        <label for="edit-categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
-                        <select id="edit-categoria" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="edit-categoria" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Categoría</label>
+                        <select id="edit-categoria" required>
                             </select>
                     </div>
                     
                     <div>
-                        <label for="edit-monto" class="block text-sm font-medium text-gray-700">Monto ($)</label>
-                        <input type="number" id="edit-monto" required min="0.01" step="0.01" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="edit-monto" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Monto ($)</label>
+                        <input type="number" id="edit-monto" required min="0.01" step="0.01">
                     </div>
 
                     <div>
-                        <label for="edit-descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-                        <input type="text" id="edit-descripcion" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="edit-descripcion" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Descripción</label>
+                        <input type="text" id="edit-descripcion" required>
                     </div>
 
                     <div>
-                        <label for="edit-fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
-                        <input type="date" id="edit-fecha" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="edit-fecha" style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569;">Fecha</label>
+                        <input type="date" id="edit-fecha" required>
                     </div>
 
-                    <div class="flex justify-end space-x-3 pt-4">
-                        <button type="button" id="modal-cancel-edicion" class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
-                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">Guardar Cambios</button>
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px;">
+                        <button type="button" id="modal-cancel-edicion" style="padding: 8px 16px; font-size: 0.875rem; font-weight: 500; color: #475569; background-color: #e2e8f0; border-radius: 6px; transition: background-color 0.15s; cursor: pointer;">Cancelar</button>
+                        <button type="submit" style="padding: 8px 16px; font-size: 0.875rem; font-weight: 500; color: white; background-color: #4f46e5; border-radius: 6px; transition: background-color 0.15s; cursor: pointer;">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
@@ -432,12 +549,7 @@
         const gastosTotalesEl = document.getElementById('gastos-totales');
         const balanceNetoEl = document.getElementById('balance-neto');
         
-        // Elementos para el Dashboard Colapsable
-        const toggleAdvancedBtn = document.getElementById('toggle-advanced');
-        const advancedContainer = document.getElementById('advanced-container');
-
-
-        // DOM UI Avanzada (Inputs y Listas de Administración)
+        // DOM UI Avanzada
         const categoriasListas = {
             ingreso: document.getElementById('lista-ingreso'),
             gasto: document.getElementById('lista-gasto'),
@@ -489,9 +601,9 @@
             document.getElementById('ahorro-sugerencia-monto').textContent = `Sugerencia (${porcentajeValido}% de ${formatCurrency(ingresosTotales)}): ${formatCurrency(montoSugerido)}`;
             
             if (tipoSelect.value === 'ahorro') {
-                ahorroSugerenciaContainer.classList.remove('hidden');
+                ahorroSugerenciaContainer.style.display = 'flex';
             } else {
-                ahorroSugerenciaContainer.classList.add('hidden');
+                ahorroSugerenciaContainer.style.display = 'none';
             }
         }
         
@@ -625,7 +737,7 @@
             
             if (error) {
                 console.error("Error al cargar datos de Supabase:", error);
-                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Error al cargar datos: ${error.message}.</td></tr>`;
+                document.getElementById('lista-transacciones').innerHTML = `<tr><td colspan="7" style="padding: 16px; text-align: center; color: #ef4444;">Error al cargar datos: ${error.message}.</td></tr>`;
                 todasTransacciones = [];
             } else {
                 todasTransacciones = data.map(t => ({
@@ -724,22 +836,21 @@
                 button.addEventListener('click', () => {
                     const targetId = button.dataset.target;
 
-                    tabContents.forEach(content => content.classList.add('hidden'));
+                    tabContents.forEach(content => content.style.display = 'none');
                     tabButtons.forEach(btn => {
-                        btn.classList.remove('border-indigo-500', 'text-indigo-600');
-                        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                        btn.style.borderColor = 'transparent';
+                        btn.style.color = '#64748b';
                     });
 
-                    document.getElementById(targetId).classList.remove('hidden');
-                    button.classList.add('border-indigo-500', 'text-indigo-600');
-                    button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    document.getElementById(targetId).style.display = 'block';
+                    button.style.borderColor = '#4f46e5';
+                    button.style.color = '#4f46e5';
 
                     if (targetId === 'seccion-categorias') {
                         renderizarCategorias();
                         renderizarCuentas(); 
                     }
                     
-                    // Asegura que al volver al resumen, el dashboard colapsable se actualice
                     if (targetId === 'seccion-resumen') {
                         actualizarCategoriasYCuentas(); 
                     }
@@ -755,16 +866,16 @@
             const saldosOrdenados = cuentas.map(c => [c, saldos[c] !== undefined ? saldos[c] : 0]);
 
             if (saldosOrdenados.length === 0) {
-                resumenCuentasEl.innerHTML = '<p class="text-gray-500">No hay cuentas configuradas o transacciones registradas.</p>';
+                resumenCuentasEl.innerHTML = '<p style="color: #64748b;">No hay cuentas configuradas o transacciones registradas.</p>';
                 return;
             }
 
             saldosOrdenados.forEach(([cuenta, saldo]) => {
-                const color = saldo >= 0 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200';
+                const color = saldo >= 0 ? 'background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;' : 'background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;';
                 const html = `
-                    <div class="${color} p-3 rounded-lg border">
-                        <p class="text-sm font-semibold truncate">${cuenta}</p>
-                        <p class="text-xl font-bold mt-1">${formatCurrency(saldo)}</p>
+                    <div style="${color} padding: 12px; border-radius: 6px;">
+                        <p style="font-size: 0.875rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${cuenta}</p>
+                        <p style="font-size: 1.25rem; font-weight: 700; margin-top: 4px;">${formatCurrency(saldo)}</p>
                     </div>
                 `;
                 resumenCuentasEl.insertAdjacentHTML('beforeend', html);
@@ -807,33 +918,51 @@
             
             const totalConsumedPct = Math.min(totalPct, 100);
 
+            // Usando style.setProperty para las variables CSS
             budgetRingEl.style.setProperty('--pct-50', `${deg50}deg`);
             budgetRingEl.style.setProperty('--pct-30', `${deg30}deg`);
             budgetRingEl.setAttribute('data-total', `${totalConsumedPct.toFixed(1)}%`);
 
             // 4. Colores de los objetivos (Alerta visual)
             const updateColor = (monto, objetivo, id, targetEl) => {
-                targetEl.classList.remove('bg-red-200', 'border-red-400', 'bg-orange-200', 'border-orange-400', 'bg-emerald-200', 'border-emerald-400', 'bg-red-100', 'border-red-300', 'bg-red-50', 'bg-orange-50', 'bg-emerald-50', 'border-red-200', 'border-orange-200', 'border-emerald-200');
+                // Limpieza de estilos de alerta
+                targetEl.style.backgroundColor = '';
+                targetEl.style.borderColor = '';
+                targetEl.querySelector('p').style.color = '';
+                targetEl.querySelector('p').style.fontWeight = '700';
 
+                // Alerta para Necesidades y Deseos (gastar de más)
                 if (id === 'box-50' || id === 'box-30') {
                     if (monto > objetivo) {
-                        targetEl.classList.add('bg-red-200', 'border-red-400');
+                        targetEl.style.backgroundColor = '#fee2e2'; // Red-100
+                        targetEl.style.borderColor = '#f87171';    // Red-400
+                        targetEl.querySelector('p').style.color = '#b91c1c';
                     } else {
-                        targetEl.classList.add('bg-red-50', 'border-red-200');
+                        // Estilos base
+                        if (id === 'box-50') { targetEl.style.backgroundColor = '#fef2f2'; targetEl.style.borderColor = '#fecaca'; }
+                        if (id === 'box-30') { targetEl.style.backgroundColor = '#fff7ed'; targetEl.style.borderColor = '#fed7aa'; }
                     }
-                } else if (id === 'box-20') {
+                } 
+                
+                // Alerta para Ahorro/Deudas (gastar de menos)
+                else if (id === 'box-20') {
                     if (monto < objetivo) {
-                        targetEl.classList.add('bg-red-100', 'border-red-300'); 
+                        targetEl.style.backgroundColor = '#fef2f2'; // Red-50
+                        targetEl.style.borderColor = '#fecaca';    // Red-200
+                        targetEl.querySelector('p').style.color = '#b91c1c';
                     } else {
-                        targetEl.classList.add('bg-emerald-50', 'border-emerald-200');
+                        // Estilo base
+                        targetEl.style.backgroundColor = '#ecfdf5';
+                        targetEl.style.borderColor = '#a7f3d0';
                     }
                 }
-                
-                // Asegurar colores base si no hay alerta
-                if (id === 'box-50' && monto <= objetivo) targetEl.classList.add('bg-red-50', 'border-red-200');
-                if (id === 'box-30' && monto <= objetivo) targetEl.classList.add('bg-orange-50', 'border-orange-200');
-                if (id === 'box-20' && monto >= objetivo) targetEl.classList.add('bg-emerald-50', 'border-emerald-200');
+
+                // Restaurar colores de texto específicos si no hay alerta
+                if (id === 'box-50' && monto <= objetivo) targetEl.querySelector('p').style.color = '#b91c1c';
+                if (id === 'box-30' && monto <= objetivo) targetEl.querySelector('p').style.color = '#c2410c';
+                if (id === 'box-20' && monto >= objetivo) targetEl.querySelector('p').style.color = '#059669';
             };
+
 
             updateColor(gastoNecesidades, objetivo50, 'box-50', document.getElementById('box-50'));
             updateColor(gastoDeseos, objetivo30, 'box-30', document.getElementById('box-30'));
@@ -848,10 +977,9 @@
             gastosTotalesEl.textContent = formatCurrency(gastosTotales);
             
             balanceNetoEl.textContent = formatCurrency(balanceNeto);
-            balanceNetoEl.classList.remove('text-green-700', 'text-red-700', 'text-indigo-700');
-            if (balanceNeto > 0) balanceNetoEl.classList.add('text-green-700'); 
-            else if (balanceNeto < 0) balanceNetoEl.classList.add('text-red-700'); 
-            else balanceNetoEl.classList.add('text-indigo-700');
+            
+            // Colorear Saldo Final
+            balanceNetoEl.style.color = (balanceNeto > 0) ? '#10b981' : (balanceNeto < 0) ? '#ef4444' : '#4f46e5';
 
             renderizarGastosPorCategoria(resumenMensual.gastosPorCategoria, resumenMensual.gastosTotales);
             renderizarIngresosPorCategoria(resumenMensual.ingresosPorCategoria, ingresosTotales);
@@ -864,7 +992,7 @@
             const totalGastosVisual = categoriasGastos.reduce((sum, [, monto]) => sum + monto, 0);
 
             if (totalGastosVisual === 0) {
-                gastosPorCategoriaEl.innerHTML = '<p class="text-gray-500 text-center py-4">No hay transacciones de tipo Gasto registradas en este mes.</p>';
+                gastosPorCategoriaEl.innerHTML = '<p style="color: #64748b; text-align: center; padding: 16px 0;">No hay transacciones de tipo Gasto registradas en este mes.</p>';
                 return;
             }
             const colores = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f43f5e'];
@@ -876,13 +1004,13 @@
                 const color = colores[colorIndex % colores.length];
                 colorIndex++;
                 const html = `
-                    <div>
-                        <div class="flex justify-between text-sm font-medium">
-                            <span class="text-gray-700">${categoria}</span>
-                            <span class="text-gray-600">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 500;">
+                            <span style="color: #475569;">${categoria}</span>
+                            <span style="color: #64748b;">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
                         </div>
-                        <div class="category-bar-container bg-gray-200 mt-1">
-                            <div class="category-bar-segment" style="width: ${porcentaje}%; background-color: ${color};"></div>
+                        <div style="height: 8px; border-radius: 4px; overflow: hidden; background-color: #e2e8f0;">
+                            <div style="height: 100%; width: ${porcentaje}%; background-color: ${color}; transition: width 0.5s;"></div>
                         </div>
                     </div>
                 `;
@@ -894,7 +1022,7 @@
             ingresosPorCategoriaEl.innerHTML = '';
             
             if (ingresosTotales === 0) {
-                ingresosPorCategoriaEl.innerHTML = '<p class="text-gray-500 text-center py-4">No hay ingresos registrados en este mes.</p>';
+                ingresosPorCategoriaEl.innerHTML = '<p style="color: #64748b; text-align: center; padding: 16px 0;">No hay ingresos registrados en este mes.</p>';
                 return;
             }
             
@@ -907,13 +1035,13 @@
                 const color = colores[colorIndex % colores.length];
                 colorIndex++;
                 const html = `
-                    <div>
-                        <div class="flex justify-between text-sm font-medium">
-                            <span class="text-gray-700">${categoria}</span>
-                            <span class="text-gray-600">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 500;">
+                            <span style="color: #475569;">${categoria}</span>
+                            <span style="color: #64748b;">${formatCurrency(monto)} (${porcentaje.toFixed(1)}%)</span>
                         </div>
-                        <div class="category-bar-container bg-gray-200 mt-1">
-                            <div class="category-bar-segment" style="width: ${porcentaje}%; background-color: ${color};"></div>
+                        <div style="height: 8px; border-radius: 4px; overflow: hidden; background-color: #e2e8f0;">
+                            <div style="height: 100%; width: ${porcentaje}%; background-color: ${color}; transition: width 0.5s;"></div>
                         </div>
                     </div>
                 `;
@@ -923,7 +1051,7 @@
 
         function renderizarListaTransacciones() {
             if (transaccionesMesActual.length === 0) {
-                listaTransaccionesEl.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500">No hay transacciones registradas para este mes.</td></tr>`;
+                listaTransaccionesEl.innerHTML = `<tr><td colspan="7" style="padding: 16px; text-align: center; color: #64748b;">No hay transacciones registradas para este mes.</td></tr>`;
                 return;
             }
 
@@ -936,26 +1064,26 @@
                 let tipoTexto;
                 let categoriaTexto = t.categoria || 'N/A';
 
-                montoClase = esIngreso ? 'text-green-600 font-semibold' : esAhorro ? 'text-blue-600 font-semibold' : 'text-red-600 font-semibold';
-                tipoClase = esIngreso ? 'bg-green-100 text-green-800' : esAhorro ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800';
+                montoClase = esIngreso ? 'color: #10b981; font-weight: 600;' : esAhorro ? 'color: #3b82f6; font-weight: 600;' : 'color: #ef4444; font-weight: 600;';
+                tipoClase = esIngreso ? 'background-color: #d1fae5; color: #065f46;' : esAhorro ? 'background-color: #dbeafe; color: #1e40af;' : 'background-color: #fee2e2; color: #991b1b;';
                 tipoTexto = esIngreso ? 'INGRESO' : esAhorro ? 'AHORRO' : 'GASTO';
                 
                 return `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${t.fecha}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${tipoClase}">${tipoTexto}</span>
+                    <tr style="transition: background-color 0.15s;">
+                        <td style="padding: 12px; font-size: 0.875rem; color: #64748b;">${t.fecha}</td>
+                        <td style="padding: 12px;">
+                            <span class="inline-flex text-xs leading-5 rounded-full px-2" style="${tipoClase} font-weight: 600;">${tipoTexto}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${t.cuenta || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${categoriaTexto}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">${t.descripcion}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm ${montoClase}">${formatCurrency(t.monto)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                            <button data-id="${t.id}" class="btn-editar text-indigo-500 hover:text-indigo-700 transition" title="Editar Transacción">
-                                <i data-lucide="pencil" class="w-5 h-5 inline-block"></i>
+                        <td style="padding: 12px; font-size: 0.875rem; color: #475569;">${t.cuenta || 'N/A'}</td>
+                        <td style="padding: 12px; font-size: 0.875rem; color: #1e293b;">${categoriaTexto}</td>
+                        <td style="padding: 12px; font-size: 0.875rem; color: #64748b;" class="truncate">${t.descripcion}</td>
+                        <td style="padding: 12px; text-align: right; font-size: 0.875rem; ${montoClase}">${formatCurrency(t.monto)}</td>
+                        <td style="padding: 12px; text-align: right; font-size: 0.875rem;">
+                            <button data-id="${t.id}" class="btn-editar" style="color: #6366f1;">
+                                <i data-lucide="pencil" style="width: 18px; height: 18px; display: inline-block;"></i>
                             </button>
-                            <button data-id="${t.id}" class="btn-eliminar text-red-500 hover:text-red-700 transition" title="Eliminar Transacción">
-                                <i data-lucide="trash-2" class="w-5 h-5 inline-block"></i>
+                            <button data-id="${t.id}" class="btn-eliminar" style="color: #ef4444;">
+                                <i data-lucide="trash-2" style="width: 18px; height: 18px; display: inline-block;"></i>
                             </button>
                         </td>
                     </tr>
@@ -1005,9 +1133,9 @@
 
             if (mesAnioTransaccion !== mesSeleccionado) {
                 formMessageEl.textContent = `Advertencia: La transacción es del mes ${mesAnioTransaccion}, pero estás viendo ${mesSeleccionado}. Se guardará.`;
-                formMessageEl.classList.remove('hidden', 'text-green-500');
-                formMessageEl.classList.add('text-red-500');
-                setTimeout(() => formMessageEl.classList.add('hidden'), 5000);
+                formMessageEl.style.display = 'block';
+                formMessageEl.style.color = '#ef4444';
+                setTimeout(() => formMessageEl.style.display = 'none', 5000);
             }
 
             const transaccion = {
@@ -1025,32 +1153,34 @@
                 if (result.success) {
                     await cargarDatosDesdeSupabase(); 
                     formMessageEl.textContent = "¡Transacción guardada con éxito en la nube!";
-                    formMessageEl.classList.remove('hidden', 'text-red-500');
-                    formMessageEl.classList.add('text-green-500');
+                    formMessageEl.style.display = 'block';
+                    formMessageEl.style.color = '#10b981';
                     formTransaccion.reset();
                     fechaInput.value = new Date().toISOString().substring(0, 10);
-                    setTimeout(() => formMessageEl.classList.add('hidden'), 3000);
+                    setTimeout(() => formMessageEl.style.display = 'none', 3000);
                 } else {
                     formMessageEl.textContent = `Error al guardar: ${result.error.message}.`;
-                    formMessageEl.classList.remove('hidden', 'text-green-500');
-                    formMessageEl.classList.add('text-red-500');
+                    formMessageEl.style.display = 'block';
+                    formMessageEl.style.color = '#ef4444';
                 }
             } else {
                 formMessageEl.textContent = "Por favor, complete todos los campos (incluida la cuenta) correctamente.";
-                formMessageEl.classList.remove('hidden', 'text-green-500');
-                formMessageEl.classList.add('text-red-500');
+                formMessageEl.style.display = 'block';
+                formMessageEl.style.color = '#ef4444';
             }
         });
         
         // Listener para el botón colapsable
-        toggleAdvancedBtn.addEventListener('click', () => {
-            const isHidden = advancedContainer.classList.contains('hidden');
-            if (isHidden) {
-                advancedContainer.classList.remove('hidden');
-                toggleAdvancedBtn.innerHTML = 'Ocultar Formulario de Transacción y Gráficos Secundarios (↑)';
+        document.getElementById('toggle-advanced').addEventListener('click', () => {
+            const container = document.getElementById('advanced-container');
+            const button = document.getElementById('toggle-advanced');
+
+            if (container.style.display === 'none' || container.style.display === '') {
+                container.style.display = 'block';
+                button.innerHTML = 'Ocultar Formulario de Transacción y Gráficos Secundarios (↑)';
             } else {
-                advancedContainer.classList.add('hidden');
-                toggleAdvancedBtn.innerHTML = 'Mostrar Formulario de Transacción y Gráficos Secundarios (↓)';
+                container.style.display = 'none';
+                button.innerHTML = 'Mostrar Formulario de Transacción y Gráficos Secundarios (↓)';
             }
         });
 
@@ -1073,13 +1203,11 @@
         let idAeliminar = null;
         function mostrarModalConfirmacion(id) {
             idAeliminar = id;
-            modalContainerConfirm.classList.remove('hidden');
-            modalContainerConfirm.classList.add('flex');
+            modalContainerConfirm.style.display = 'flex';
         }
 
         modalCancelConfirm.addEventListener('click', () => {
-            modalContainerConfirm.classList.remove('flex');
-            modalContainerConfirm.classList.add('hidden');
+            modalContainerConfirm.style.display = 'none';
             idAeliminar = null;
         });
 
@@ -1087,8 +1215,7 @@
             if (idAeliminar) {
                 eliminarTransaccion(idAeliminar);
             }
-            modalContainerConfirm.classList.remove('flex');
-            modalContainerConfirm.classList.add('hidden');
+            modalContainerConfirm.style.display = 'none';
             idAeliminar = null;
         });
         
@@ -1152,15 +1279,14 @@
                 console.error("Error al actualizar en Supabase:", error);
                 alert("Error al actualizar: " + error.message);
             } else {
-                modalContainerEdicion.classList.add('hidden');
+                modalContainerEdicion.style.display = 'none';
                 await cargarDatosDesdeSupabase();
             }
         }
 
 
         modalCancelEdicion.addEventListener('click', () => {
-            modalContainerEdicion.classList.remove('flex');
-            modalContainerEdicion.classList.add('hidden');
+            modalContainerEdicion.style.display = 'none';
             editTipoSelect.onchange = null; 
         });
         
@@ -1175,8 +1301,7 @@
             
             actualizarOpcionesEdicion(transaccion.tipo, transaccion.categoria, transaccion.cuenta);
             
-            modalContainerEdicion.classList.remove('hidden');
-            modalContainerEdicion.classList.add('flex');
+            modalContainerEdicion.style.display = 'flex';
         }
 
         // --- Funciones para la pestaña Administrar Datos (CRUD de Cuentas/Categorías) ---
@@ -1252,13 +1377,13 @@
                 const listItem = document.createElement('li');
                 
                 listItem.dataset.nombre = cuenta;
-                listItem.className = `flex justify-between items-center p-3 rounded-lg border bg-gray-50`;
+                listItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 6px; background-color: #f8fafc; border: 1px solid #e2e8f0;';
                 
                 listItem.innerHTML = `
-                    <span class="text-gray-800" data-cuenta="${cuenta}">${cuenta}</span>
+                    <span style="color: #1e293b; font-weight: 500;" data-cuenta="${cuenta}">${cuenta}</span>
                     <div>
-                        <button data-tipo="cuenta" data-nombre="${cuenta}" class="btn-eliminar-general text-red-400 hover:text-red-600 transition" title="Eliminar Cuenta">
-                            <i data-lucide="x-circle" class="w-5 h-5 inline-block"></i>
+                        <button data-tipo="cuenta" data-nombre="${cuenta}" class="btn-eliminar-general" style="color: #ef4444; background: none; border: none; cursor: pointer;">
+                            <i data-lucide="x-circle" style="width: 18px; height: 18px; display: inline-block;"></i>
                         </button>
                     </div>
                 `;
@@ -1276,12 +1401,14 @@
                 listaEl.innerHTML = '';
                 categorias[tipo].forEach(categoria => {
                     const listItem = document.createElement('li');
-                    listItem.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-lg border';
+                    listItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 6px; background-color: #f8fafc; border: 1px solid #e2e8f0;';
                     listItem.innerHTML = `
-                        <span class="text-gray-800">${categoria}</span>
-                        <button data-tipo="${tipo}" data-nombre="${categoria}" class="btn-eliminar-general text-red-400 hover:text-red-600 transition" title="Eliminar Categoría">
-                            <i data-lucide="x-circle" class="w-5 h-5 inline-block"></i>
-                        </button>
+                        <span style="color: #1e293b; font-weight: 500;">${categoria}</span>
+                        <div>
+                            <button data-tipo="${tipo}" data-nombre="${categoria}" class="btn-eliminar-general" style="color: #ef4444; background: none; border: none; cursor: pointer;">
+                                <i data-lucide="x-circle" style="width: 18px; height: 18px; display: inline-block;"></i>
+                            </button>
+                        </div>
                     `;
                     listaEl.appendChild(listItem);
                 });
